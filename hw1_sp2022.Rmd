@@ -130,8 +130,9 @@ Write a brief report to summarize all the variables collected. Include both summ
 ```{r}
 cat("Sample size: ", nrow(cleaned_survey_data))
 ```
-```{r}
 
+```{r}
+summary(cleaned_survey_data)
 ```
 
 
