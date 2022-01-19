@@ -1,9 +1,9 @@
 ---
 title: " Modern Data Mining, HW 1"
 author:
-- Group Member Sarah Hayward
-- Group Member Annie Vo
-- Group Member Jess Brown
+- Sarah Hayward
+- Annie Vo
+- Jessica Brown
 date: 'Due: 11:59PM,  Jan. 30th, 2021'
 output:
   pdf_document:
