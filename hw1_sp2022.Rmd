@@ -133,6 +133,7 @@ cat("Sample size: ", nrow(cleaned_survey_data))
 
 ```{r}
 summary(cleaned_survey_data)
+print("bla")
 ```
 
 
