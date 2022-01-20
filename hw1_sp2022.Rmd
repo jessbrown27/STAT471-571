@@ -350,6 +350,11 @@ Here are the datasets:
 
 Feel free to use either dataset to address the problems. 
 
+```{r, echo=FALSE}
+baseball <- read_csv()
+```
+
+
 ## EDA: Relationship between payroll changes and performance
 
 Payroll may relate to performance among ML Baseball teams. One possible argument is that what affects this year's performance is not this year's payroll, but the amount that payroll increased from last year. Let us look into this through EDA. 
