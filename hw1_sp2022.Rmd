@@ -123,7 +123,7 @@ lapply(cleaned_survey_data, unique)
 ```
 
 
-**Answer:** We found that there were 35 rows with at least one missing value or unspecified answer (exclusive or). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondant did not answer the questio. For this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
+**Answer:** We found that there were 35 rows with at least one missing value or unspecified answer (exclusive or). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondent did not answer the question. For the gender question in particular, it could be possible that the NAs were people who don't identify as male or female, something the survey did not account for; however, we also want to avoid making this assumption as it's very possible they just didn't answer the question. To be standardized, for this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
 
 ```{r}
 print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, cleaned_survey_data$education == "select one"), ]))
@@ -134,37 +134,88 @@ print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, clea
 final_survey_data = cleaned_survey_data[rowSums(is.na(cleaned_survey_data)) == 0 & cleaned_survey_data$education != "select one", ]
 ```
 
-From the intial data, we can also see that there are a few questionable/wrong age values, namely 4 and 223 which were likely filled in incorrectly. We can see that these values consist of only 2 rows, one for each value, after we removed the missing data. The data also affirms that the row for the 4-year-old is incorrect given that there's no way a toddler could complete a bachelor's or 4-year degree. 
+From the initial data, we can also see that there are a few questionable/wrong age values, namely 4 and 223 which were likely filled in incorrectly. We can see that these values consist of only 2 rows, one for each value, after we removed the missing data. The data also affirms that the row for the 4-year-old is incorrect given that there's no way a toddler could complete a bachelor's or 4-year degree. 
 
 ```{r}
 final_survey_data %>% filter(age == 4 | age == 223)
 ```
+We could reasonably assume that the 223 person meant 22 or 23 and that the 4-year-old is likely in their 40s or some age that ends in 4. Given the uncertainty and the very low number of rows, we will also drop these rows. 
+
 ```{r}
 final_survey_data = final_survey_data %>% filter(age != 4 & age != 223)
 ```
 
-Overall, we ended up removing only 37 rows from our dataset. 
+Overall, we ended up removing only 37 rows from our dataset. Our overall sample is big enough that we still have enough datapoints to work with after removing these points, but it's also small enough that incorrect estimations for the missing or wrongly entered questions could make a tangible impact on our results. 
 
 iii. Brief summary 
 
 Write a brief report to summarize all the variables collected. Include both summary statistics (including sample size) and graphical displays such as histograms or bar charts where appropriate. Comment on what you have found from this sample. (For example - it's very interesting to think about why would one work for a job that pays only 10cents/each survey? Who are those survey workers? The answer may be interesting even if it may not directly relate to our goal.)
 
-We can first determine the sample size of our data and see that we are considering 1,764 survey results.
+**Report:** We can first determine the sample size of our data and see that we are considering 1,725 survey results.
 
 ```{r}
-cat("Sample size: ", nrow(cleaned_survey_data))
+cat("Sample size: ", nrow(final_survey_data))
 ```
 
-We can then delve into the other summary statistics of the data. Since all of our columns contain categorical data, worktime is the only numerical and continuous 
+We can then delve into the other summary statistics of the data. While most of our columns are categorical data, we can get distribution information about age and worktime, such as the average age of the respondents which is 30.3 and the average worktime being 22.5. We can also see the ranges we're dealing with, with the youngest repondant being only 18 years-old and the oldest is 76. The time used to complete the survey ranges from just 8 seconds to 108 seconds. 
 
 ```{r}
-summary(cleaned_survey_data)
+summary(final_survey_data)
 ```
 
-```{r}
+We can now make graphical representations of each of our columns to demonstrate the demographics and distribution of the responses. 
 
+For age and worktime, it makes sense to make boxplots to visualize the distributions of the numerical columns given in the summary. 
+
+```{r fig.height=3, fig.width=4}
+box_p1 <- ggplot(final_survey_data) + 
+  geom_boxplot(aes(x = "", y = age)) + 
+  labs(title = "Boxplot of Age of Survey Respondents", x = "") 
+
+box_p2 <- ggplot(final_survey_data) +
+  geom_boxplot(aes(x = "", y = worktime)) +
+  labs(title = "Boxplot of Worktime of Survey Repondents", x = "")
+
+grid.arrange(box_p1, box_p2, ncol = 2)
 ```
 
+Unlike age and worktime, gender is a categorical variable and thus is better represented using a histogram instead of a boxplot. We can see that there are almost 33% more men which took the survey than women, potentially meaning there are more male survey workers (although it's far from conclusive). 
+
+```{r fig.height=3, fig.width=4}
+ggplot(final_survey_data) + 
+  geom_bar(aes(x = gender), fill = "light green") +
+  labs( title = "Histogram of Gender", x = "Gender" , y = "Frequency")
+```
+
+
+For education and income, both discrete categorical variables, it makes sense to also create histograms to evaluate the distribution of the data. We can see that our data most heavily consists of 4-year college graduates and (likely) many current college students as well as those who did not finish college or those with an associate's degree. Our data is more evenly distributed by income group, with the least amount of respondents in the highest income level (> $150,000), which makes sense given they are the population least incentivized by a job that pays 10 cents per survey. 
+
+```{r fig.height=6, fig.width=4}
+hist_p1 <- ggplot(final_survey_data) + 
+  geom_bar(aes(x = education), fill = "blue") +
+  labs( title = "Histogram of Education", x = "Education Level" , y = "Frequency") + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
+
+hist_p2 <- ggplot(final_survey_data) + 
+  geom_bar(aes(x = income), fill = "light blue") +
+  labs( title = "Histogram of Income", x = "Income" , y = "Frequency")
+
+grid.arrange(hist_p1, hist_p2, nrow = 2)
+```
+
+Lastly, we can represent the listening habits of histograms as well given that they're also discrete categorical variables. From the graphs, it's evident that although there are plenty of Sirius listeners in the survey workers, there are few people which have listen Sirius Business Radio by Wharton. 
+
+```{r fig.height=6, fig.width=4}
+hist_p3 <- ggplot(final_survey_data) + 
+  geom_bar(aes(x = sirius), fill = "maroon") +
+  labs( title = "Histogram of Sirius Listeners", x = "Sirius Listener?" , y = "Frequency")
+
+hist_p4 <- ggplot(final_survey_data) + 
+  geom_bar(aes(x = wharton), fill = "slateblue1") +
+  labs( title = "Histogram of Wharton Listeners", x = "Wharton Listener?" , y = "Frequency")
+
+grid.arrange(hist_p3, hist_p4, nrow = 2)
+```
 
 ## Sample properties
 
