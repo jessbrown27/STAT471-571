@@ -351,7 +351,7 @@ Here are the datasets:
 Feel free to use either dataset to address the problems. 
 
 ```{r, echo=FALSE}
-baseball <- read_csv()
+baseball <- read_csv("baseball.csv")
 ```
 
 
