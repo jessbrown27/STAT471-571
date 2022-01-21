@@ -106,7 +106,8 @@ Select only the variables Age, Gender, Education Level, Household Income in 2013
 Change the variable names to be "age", "gender", "education", "income", "sirius", "wharton", "worktime".
 
 ```{r}
-cleaned_survey_data = survey_data %>% select("Answer.Age", "Answer.Gender", "Answer.Education", "Answer.HouseHoldIncome", "Answer.Sirius Radio", "Answer.Wharton Radio", "WorkTimeInSeconds") %>% rename(c(age = Answer.Age, gender = Answer.Gender, education = Answer.Education, income = Answer.HouseHoldIncome, sirius = "Answer.Sirius Radio", wharton = "Answer.Wharton Radio", worktime = WorkTimeInSeconds))
+#get selected columns and change datatypes of numeric columnss
+cleaned_survey_data = survey_data %>% select("Answer.Age", "Answer.Gender", "Answer.Education", "Answer.HouseHoldIncome", "Answer.Sirius Radio", "Answer.Wharton Radio", "WorkTimeInSeconds") %>% rename(c(age = Answer.Age, gender = Answer.Gender, education = Answer.Education, income = Answer.HouseHoldIncome, sirius = "Answer.Sirius Radio", wharton = "Answer.Wharton Radio", worktime = WorkTimeInSeconds)) %>% mutate(across(c(age, worktime), as.integer))
 ```
 
 
@@ -116,23 +117,52 @@ As in real world data with user input, the data is incomplete, with missing valu
 
 Tip: Reflect on the reasons for which data could be wrong or missing. How would you address each case? For this homework, if you are trying to predict missing values with regression, you are definitely overthinking. Keep it simple.
 
-**Answer:** We found that there were 17 rows with at least one missing value. This likely means that these respondents didn't fill out the survey completely. Given the small sample of missing values, we opted to remove them to preserve the integrity of the data. 
-
 ```{r}
-cleaned_survey_data = cleaned_survey_data[rowSums(is.na(cleaned_survey_data)) == 0, ] 
+#get unique values for each column
+lapply(cleaned_survey_data, unique)
 ```
 
+
+**Answer:** We found that there were 35 rows with at least one missing value or unspecified answer (exclusive or). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondant did not answer the questio. For this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
+
+```{r}
+print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, cleaned_survey_data$education == "select one"), ]))
+```
+
+```{r}
+#drop missing values
+final_survey_data = cleaned_survey_data[rowSums(is.na(cleaned_survey_data)) == 0 & cleaned_survey_data$education != "select one", ]
+```
+
+From the intial data, we can also see that there are a few questionable/wrong age values, namely 4 and 223 which were likely filled in incorrectly. We can see that these values consist of only 2 rows, one for each value, after we removed the missing data. The data also affirms that the row for the 4-year-old is incorrect given that there's no way a toddler could complete a bachelor's or 4-year degree. 
+
+```{r}
+final_survey_data %>% filter(age == 4 | age == 223)
+```
+```{r}
+final_survey_data = final_survey_data %>% filter(age != 4 & age != 223)
+```
+
+Overall, we ended up removing only 37 rows from our dataset. 
 
 iii. Brief summary 
 
 Write a brief report to summarize all the variables collected. Include both summary statistics (including sample size) and graphical displays such as histograms or bar charts where appropriate. Comment on what you have found from this sample. (For example - it's very interesting to think about why would one work for a job that pays only 10cents/each survey? Who are those survey workers? The answer may be interesting even if it may not directly relate to our goal.)
 
+We can first determine the sample size of our data and see that we are considering 1,764 survey results.
+
 ```{r}
 cat("Sample size: ", nrow(cleaned_survey_data))
 ```
 
+We can then delve into the other summary statistics of the data. Since all of our columns contain categorical data, worktime is the only numerical and continuous 
+
 ```{r}
 summary(cleaned_survey_data)
+```
+
+```{r}
+
 ```
 
 
