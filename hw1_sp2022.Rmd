@@ -417,15 +417,21 @@ ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint
 ```{r, echo=FALSE}
 #creating the diff_log function
 baseball$diff_log <- log(baseball$payroll) - lag(log(baseball$payroll))
-
+#note we set the year 1998 to NA since the row before is a different team, and
+#that is the first year that we have data for
+baseball$diff_log[baseball$year==1998] <- NA
 ```
 
 iii. Create a long data table including: team, year, diff_log, win_pct
-
+```{r, echo=FALSE}
+#creating long table 
+baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
+```
 
 ## Exploratory questions
 
 i. Which five teams had highest increase in their payroll between years 2010 and 2014, inclusive?
+
 
 ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is, had the biggest percentage gain in wins?
 
