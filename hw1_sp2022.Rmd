@@ -382,6 +382,7 @@ Feel free to use either dataset to address the problems.
 
 ```{r, echo=FALSE}
 baseball <- read_csv("baseball.csv")
+payData <- read_csv("MLPayData_Total.csv")
 ```
 
 
@@ -396,9 +397,28 @@ i. To describe the increment of payroll in each year there are several possible 
     - option 1: diff: payroll_2013 - payroll_2012
     - option 2: log diff: log(payroll_2013) - log(payroll_2012)
 
+```{r, echo=FALSE}
+#let's look at the differences for 2013
+payData$p2013 - payData$p2012
+plot(payData$p2013 - payData$p2012)
+log(payData$p2013) - log(payData$p2012)
+plot(log(payData$p2013) - log(payData$p2012))
+
+```
+
 Explain why the log difference is more appropriate in this setup.
+  
+  We want to use the log difference as it allows us to approximate the percent
+  change in the payroll rather than just the difference in pay. By using the log 
+  we can compare the different teams in a more efficient manner. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
+
+```{r, echo=FALSE}
+#creating the diff_log function
+baseball$diff_log <- log(baseball$payroll) - lag(log(baseball$payroll))
+
+```
 
 iii. Create a long data table including: team, year, diff_log, win_pct
 
