@@ -455,13 +455,14 @@ ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is
 
 ```{r, echo=FALSE}
 #determining biggest percent gain in wins
-payData$pctChange <- payData$X2014.pct - payData$X2010.pct
-sort(payData$pctChange, decreasing = TRUE)
-i <- order(payData$pctChange, decreasing = TRUE)
-payData[i,c("Team.name.2014", "pctChange")]
+tenFourteen$pctChange <- tenFourteen$win_pct - lag(tenFourteen$win_pct)
+i <- seq(1, 60, 2)
+#we set odd numbers to NA since we don't need the differences for different teams
+tenFourteen$pctChange[i] <- NA
+j <- order(tenFourteen$pctChange, decreasing = TRUE)
+tenFourteen[j,c("team", "pctChange")]
 ```
-The team with the biggest percent change, or that improved the most from 2010 to 
-2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
+The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
 
 
 ## Do log increases in payroll imply better performance? 
