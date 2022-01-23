@@ -469,6 +469,9 @@ The team with the biggest percent change, or that improved the most from 2010 to
 
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
 
+```{r, echo=FALSE}
+plot(tenFourteen$fourYearDiff, tenFourteen$pctChange)
+```
 
 
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
