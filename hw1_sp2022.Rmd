@@ -431,14 +431,42 @@ baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
 ## Exploratory questions
 
 i. Which five teams had highest increase in their payroll between years 2010 and 2014, inclusive?
+```{r, echo=FALSE}
+#payroll differences between 2010 and 2014 (p2014-p2010)
+payData$payIncrease <- payData$p2014 - payData$p2010
+s#ort(payData$payIncrease, decreasing = TRUE)
+i<- order(payData$payIncrease, decreasing = TRUE)[1:5]
+# payData$Team.name.2014[i]
+# payData$payIncrease[i]
+payData[i,c("Team.name.2014", "payIncrease")]
+```
+
+  The teams with the highest increase in payroll between 2010 and 2014 inclusive are
+  1. Los Angeles Dodgers	140.3			
+  2. Texas Rangers	80.8			
+  3. Washington Nationals	73.3			
+  4. Toronto Blue Jays	69.9			
+  5. San Francisco Giants	56.4			
 
 
 ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is, had the biggest percentage gain in wins?
+
+```{r, echo=FALSE}
+#determining biggest percent gain in wins
+payData$pctChange <- payData$X2014.pct - payData$X2010.pct
+sort(payData$pctChange, decreasing = TRUE)
+i <- order(payData$pctChange, decreasing = TRUE)
+payData[i,c("Team.name.2014", "pctChange")]
+```
+The team with the biggest percent change, or that improved the most from 2010 to 
+2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
 
 
 ## Do log increases in payroll imply better performance? 
 
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
+
+
 
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
 
