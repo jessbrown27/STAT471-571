@@ -471,6 +471,7 @@ Is there evidence to support the hypothesis that higher increases in payroll on 
 
 ```{r, echo=FALSE}
 plot(tenFourteen$fourYearDiff, tenFourteen$pctChange)
+#this plot does not indicate any correlation between increased payroll and increased performance
 ```
 
 
