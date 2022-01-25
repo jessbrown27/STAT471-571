@@ -470,7 +470,7 @@ The team with the biggest percent change, or that improved the most from 2010 to
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
 
 ```{r, echo=FALSE}
-plot(baseball$diff_log, baseball$win_pct)
+plot(baseball$diff_log, baseball$win_pct, pch = 16, cex = 1.3, col = "red")
 #this plot does not indicate any correlation between increased payroll and increased performance
 
 plot(baseball$payroll, baseball$win_pct, pch = 16, cex = 1.3, col = "blue")
