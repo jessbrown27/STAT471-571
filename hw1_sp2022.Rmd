@@ -189,17 +189,30 @@ Notice the data came in as an Excel file. We need to use the package `readxl` an
 
 
 ```{r, eval = FALSE}
-
 install.packages("readxl")
 library("readxl")
-
-degree_data = read_excel('WomenData_06_16.xlsx')
 ```
 
 
 i. Read the data into R.
+
+```{r, eval = FALSE}
+degree_data = read_excel('WomenData_06_16.xlsx')
+```
+
 ii. Clean the names of each variables. (Change variable names to  `Field`,`Degree`, `Sex`, `Year` and `Number` )
+
+```{r}
+degree_data <- degree_data %>% rename(Field = `Field and sex`, Number = `Degrees Awarded`)
+names(degree_data)
+```
+
 iii. Set the variable natures properly. 
+
+```{r}
+str(degree_data)
+```
+
 iv. Any missing values?
 
 2. Write a summary describing the data set provided here. 
