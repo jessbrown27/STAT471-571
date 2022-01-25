@@ -474,7 +474,12 @@ plot(baseball$diff_log, baseball$win_pct)
 #this plot does not indicate any correlation between increased payroll and increased performance
 
 plot(baseball$payroll, baseball$win_pct, pch = 16, cex = 1.3, col = "blue")
+cor(baseball$payroll, baseball$win_pct)
 ```
+
+The correlation between the log difference of the payrrroll between years and the
+win percentage for games that year is very low. 0.345 indicates there is almost no
+correlation between those variables. 
 
 
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
