@@ -511,7 +511,7 @@ plot(x = baseball$diff_log,
      pch  = 16,     # "point character": shape/character of points 
      cex  = 0.8,    # size
      col  = "blue", # color 
-     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
+     xlab = "Percent Difference in Payroll Between Years",  # x-axis
      ylab = "Win Percent",  # y-axis 
      main = "MLB Team's Win Percent vs.Change in Payroll") # title
 
@@ -551,7 +551,37 @@ on the log scale and the percentage of wins per year for teams
 
 Which set of factors are better explaining performance? Yearly payroll or yearly increase in payroll? What criterion is being used? 
 
+Yearly Payroll
 
+```{r}
+baseballSubset <- subset(baseball, !is.na(diff_log))
+cor(baseballSubset$payroll, baseballSubset$win_pct)
+cor(baseballSubset$diff_log, baseballSubset$win_pct)
+```
+We can see that Yearly payroll has a higher correlation with win percentage than the
+yearly increase in payroll. We can also look at these plots below to see if
+there is a visual correlation as well.
+
+```{r}
+plot(x = baseballSubset$diff_log, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Change in Payroll") # title
+
+plot(x = baseballSubset$payroll, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "dark green", # color 
+     xlab = "Yearly Payroll",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Payroll") # title
+
+```
 
 
 
