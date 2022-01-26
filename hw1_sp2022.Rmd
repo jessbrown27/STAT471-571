@@ -481,6 +481,9 @@ The correlation between the log difference of the payrrroll between years and th
 win percentage for games that year is very low. 0.345 indicates there is almost no
 correlation between those variables. 
 
+We can also use the graphs from the prior question to see that the top 5 teams
+with the greater percent increase in payroll between 2010 and 2014 do not 
+line up with the top 5 teams that had the biggest percent change in wins from those years
 
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
 
