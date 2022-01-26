@@ -583,6 +583,11 @@ plot(x = baseballSubset$payroll,
 
 ```
 
+Although neither plot indicates a strong correlation between the two variable, you
+can see there is a weak positive correlation between Yearly Payroll and win percentage
+compared to the other scatter plot of change in payroll and win percentage that does
+not indicate any correlation. 
+
 
 
 
