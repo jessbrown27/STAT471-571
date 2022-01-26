@@ -203,6 +203,7 @@ degree_data = read_excel('WomenData_06_16.xlsx')
 ii. Clean the names of each variables. (Change variable names to  `Field`,`Degree`, `Sex`, `Year` and `Number` )
 
 ```{r}
+names(degree_data)
 degree_data <- degree_data %>% rename(Field = `Field and sex`, Number = `Degrees Awarded`)
 names(degree_data)
 ```
@@ -211,9 +212,16 @@ iii. Set the variable natures properly.
 
 ```{r}
 str(degree_data)
+summary(degree_data)
+degree_data[,c('Degree','Sex')] <- lapply(degree_data[,c('Degree','Sex')], as.factor)
+degree_data[,c('Year','Number')] <- lapply(degree_data[,c('Year','Number')], as.integer)
+str(degree_data)
+summary(degree_data)
 ```
 
 iv. Any missing values?
+
+There are no missing values
 
 2. Write a summary describing the data set provided here. 
 
@@ -261,6 +269,7 @@ wsci %<>%
 # set the field, degree and sex as factors
 wsci %<>% 
   mutate( Field = as.factor(Field))
+wsci
 ```
 
 
