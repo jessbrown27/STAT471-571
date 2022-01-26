@@ -468,16 +468,56 @@ The team with the biggest percent change, or that improved the most from 2010 to
 ## Do log increases in payroll imply better performance? 
 
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
+Pick up a few statistics, accompanied with some data visualization, to support your answer. 
 
-```{r, echo=FALSE}
-plot(baseball$diff_log, baseball$win_pct, pch = 16, cex = 1.3, col = "red")
-#this plot does not indicate any correlation between increased payroll and increased performance
 
-plot(baseball$payroll, baseball$win_pct, pch = 16, cex = 1.3, col = "blue")
-cor(baseball$payroll, baseball$win_pct)
+```{r}
+# create average winning percentage and diff_log for each team
+data_agg <-baseball %>% 
+  group_by(team) %>%
+  summarise(
+    diff_log_avg = mean(diff_log, na.rm = TRUE), 
+    win_pct_ave = mean(win_pct))
+str(data_agg)
+summary(data_agg)
 ```
 
-The correlation between the log difference of the payrrroll between years and the
+```{r}
+# now let's look at the averages on a plot and see if there is some relationship
+#install.packages("ggrepel")
+#library(ggrepel)
+data_agg %>%
+  ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
+  # geometric options: color, size, shape, alpha: transparency (range: 0 to 1)
+  geom_point(color = "blue", size= 3, alpha = .8) + 
+  geom_text_repel(aes(label = team), size = 5) +
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Average Change in Payroll", 
+       y = "Win_pct_ave")
+
+cor(data_agg$diff_log_avg, data_agg$win_pct_ave)
+
+```
+Based on this graph of the average change in payroll, (average of diff_log for each team)
+and the win percent average over the years 1998-2014, there does not appear to be 
+any correlation between the variables. In fact the correlation is nearly zero meaning
+that those two variables have little to no effect on one another.
+
+
+```{r, echo=FALSE}
+
+plot(x = baseball$diff_log, 
+     y = baseball$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "MLB Team's Win Percent vs.Change in Payroll") # title
+
+```
+
+The correlation between the log difference of the payroll between years and the
 win percentage for games that year is very low. 0.345 indicates there is almost no
 correlation between those variables. 
 
@@ -485,7 +525,27 @@ We can also use the graphs from the prior question to see that the top 5 teams
 with the greater percent increase in payroll between 2010 and 2014 do not 
 line up with the top 5 teams that had the biggest percent change in wins from those years
 
-Pick up a few statistics, accompanied with some data visualization, to support your answer. 
+
+```{r}
+baseball %>%
+  ggplot(aes(x=diff_log, y=win_pct, group = year, color=team)) +
+  geom_point()+
+  geom_smooth(method="lm", formula=y~x, se=F,color = "red")+
+  facet_wrap(~year) + 
+  theme_bw() +
+  theme(legend.position = 0)
+```
+From the plots above, we are able to look at the changes in payroll on the log scale
+and the win percentage for group by each year. We can see that there is no clear positive
+correlation for all of the years. Some have a least squares line that is flat, some have
+positive, and have negative. This further proves my belief that there is no relation between
+change is payroll on the log scale and winning percentage. 
+
+
+So overall, we can conclude that there is not evidence to support the hypothesis
+that higher increases in payroll on the log scale lead to increased performance. 
+In fact our data showed that there is no correlation between the payroll increases 
+on the log scale and the percentage of wins per year for teams
 
 ## Comparison
 
