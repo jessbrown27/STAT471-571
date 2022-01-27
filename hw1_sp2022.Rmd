@@ -694,7 +694,6 @@ plot(x = baseballSubset$payroll,
      xlab = "Yearly Payroll",  # x-axis
      ylab = "Win Percent",  # y-axis 
      main = "Win Percent vs.Payroll") # title
-
 ```
 
 Although neither plot indicates a strong correlation between the two variable, you
