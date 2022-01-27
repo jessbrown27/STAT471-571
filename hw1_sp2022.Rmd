@@ -308,8 +308,8 @@ degree_data = read_excel('WomenData_06_16.xlsx')
 ii. Clean the names of each variables. (Change variable names to  `Field`,`Degree`, `Sex`, `Year` and `Number` )
 
 ```{r}
+# Most variable names are already clean
 degree_data <- degree_data %>% rename(Field = `Field and sex`, Number = `Degrees Awarded`)
-names(degree_data)
 ```
 
 iii. Set the variable natures properly. 
@@ -317,7 +317,9 @@ iii. Set the variable natures properly.
 ```{r}
 str(degree_data)
 summary(degree_data)
+# Changing Degree and Sex to factors for data consistency
 degree_data[,c('Degree','Sex')] <- lapply(degree_data[,c('Degree','Sex')], as.factor)
+# Chaning Year and Number to integers for data consistency
 degree_data[,c('Year','Number')] <- lapply(degree_data[,c('Year','Number')], as.integer)
 str(degree_data)
 summary(degree_data)
@@ -326,10 +328,10 @@ summary(degree_data)
 iv. Any missing values?
 
 ```{r}
-degree_data$Field
+sum(is.na(degree_data))
 ```
 
-There are no missing values
+**Answer:** There are no missing values.
 
 2. Write a summary describing the data set provided here. 
 
@@ -339,16 +341,10 @@ length(unique(degree_data$Field))
 ```
 
 i. How many fields are there in this data?
-
-There are 10 distinct fields in this data.
-
 ii. What are the degree types? 
-
-The degree types are BS, MS and PhD.
-
 iii. How many year's statistics are being reported here? 
 
-There are 10 years of statistics being reported from 2006-2016.
+**Answer:** In this data, there are 660 different entries and 5 different variables: Field, Degree, Sex, Year, and Number. Within the Field variable, there are 10 distinct fields. The different degree types are BS, MS, and PhD. There are 11 years of statistics reported with the data spanning from 2006-2016. The minimum number of degrees awarded for a single degree type and for a particular sex in a year is 218, while the max is 781474.
 
 ## BS degrees in 2015
 
@@ -356,13 +352,17 @@ Is there evidence that more males are in science-related fields vs `Non-S&E`? Pr
 
 ```{r}
 degree_data %>%
-  mutate(Field = ifelse(Field!="Non-S&E" , "S&E", "Non-S&E")) %>%
-  ggplot(aes(x = Sex, y = Number, fill = ScienceField)) +
+  # Only take data that are BS degrees in 2015
+  filter(Degree == 'BS' & Year == 2015) %>%
+  mutate(Field = ifelse(Field != "Non-S&E" , "S&E", "Non-S&E")) %>%
+  ggplot(aes(x = Sex, y = Number, fill = Field)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(scales = "free_y") +
   theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-  ggtitle("Degrees granted across fields by degree and gender") 
+  ggtitle("Degrees granted across fields by gender") 
 ```
+
+**Answer:** Only looking at the histogram side for male (not comparing to the female side), there is no evidence that there are more males in science related fields than males in non-S&E. In fact, there are around 5 times as many males in non-S&E than there are in science related fields. There is a similar trend when looking at the female side. However, there is a greater difference of females in Non-S&E than science related (about 8 times as many females in Non-S&E than science related). This greater difference is largely due to there being more female in Non-S&E fields than there are male since the number of female and male in science related fields is roughly equal. Comparatively to the ratio of female in science-related fields vs Non-S&E, there are more male in science-related fields vs Non-S&E.
 
 ## EDA bringing type of degree, field and gender in 2015
 
@@ -370,7 +370,7 @@ Describe the number of people by type of degree, field, and gender. Do you see a
 
 ## EDA bring all variables 
 
-In this last portion of the EDA, we ask you to provide evidence numerically and graphically: Do the number of  degrees change by gender, field, and time? 
+In this last portion of the EDA, we ask you to provide evidence numerically and graphically: Do the number of degrees change by gender, field, and time? 
 
 ## Women in Data Science
 
