@@ -611,8 +611,8 @@ summary(data_agg)
 
 ```{r}
 # now let's look at the averages on a plot and see if there is some relationship
-#install.packages("ggrepel")
-#library(ggrepel)
+install.packages("ggrepel")
+library(ggrepel)
 data_agg %>%
   ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
   # geometric options: color, size, shape, alpha: transparency (range: 0 to 1)
@@ -701,7 +701,6 @@ Although neither plot indicates a strong correlation between the two variable, y
 can see there is a weak positive correlation between Yearly Payroll and win percentage
 compared to the other scatter plot of change in payroll and win percentage that does
 not indicate any correlation. 
-
 
 
 
