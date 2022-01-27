@@ -106,7 +106,8 @@ Select only the variables Age, Gender, Education Level, Household Income in 2013
 Change the variable names to be "age", "gender", "education", "income", "sirius", "wharton", "worktime".
 
 ```{r}
-cleaned_survey_data = survey_data %>% select("Answer.Age", "Answer.Gender", "Answer.Education", "Answer.HouseHoldIncome", "Answer.Sirius Radio", "Answer.Wharton Radio", "WorkTimeInSeconds") %>% rename(c(age = Answer.Age, gender = Answer.Gender, education = Answer.Education, income = Answer.HouseHoldIncome, sirius = "Answer.Sirius Radio", wharton = "Answer.Wharton Radio", worktime = WorkTimeInSeconds))
+#get selected columns and change datatypes of numeric columnss
+cleaned_survey_data = survey_data %>% select("Answer.Age", "Answer.Gender", "Answer.Education", "Answer.HouseHoldIncome", "Answer.Sirius Radio", "Answer.Wharton Radio", "WorkTimeInSeconds") %>% rename(c(age = Answer.Age, gender = Answer.Gender, education = Answer.Education, income = Answer.HouseHoldIncome, sirius = "Answer.Sirius Radio", wharton = "Answer.Wharton Radio", worktime = WorkTimeInSeconds)) %>% mutate(across(c(age, worktime), as.integer))
 ```
 
 
@@ -116,23 +117,52 @@ As in real world data with user input, the data is incomplete, with missing valu
 
 Tip: Reflect on the reasons for which data could be wrong or missing. How would you address each case? For this homework, if you are trying to predict missing values with regression, you are definitely overthinking. Keep it simple.
 
-**Answer:** We found that there were 17 rows with at least one missing value. This likely means that these respondents didn't fill out the survey completely. Given the small sample of missing values, we opted to remove them to preserve the integrity of the data. 
-
 ```{r}
-cleaned_survey_data = cleaned_survey_data[rowSums(is.na(cleaned_survey_data)) == 0, ] 
+#get unique values for each column
+lapply(cleaned_survey_data, unique)
 ```
 
+
+**Answer:** We found that there were 35 rows with at least one missing value or unspecified answer (exclusive or). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondant did not answer the questio. For this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
+
+```{r}
+print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, cleaned_survey_data$education == "select one"), ]))
+```
+
+```{r}
+#drop missing values
+final_survey_data = cleaned_survey_data[rowSums(is.na(cleaned_survey_data)) == 0 & cleaned_survey_data$education != "select one", ]
+```
+
+From the intial data, we can also see that there are a few questionable/wrong age values, namely 4 and 223 which were likely filled in incorrectly. We can see that these values consist of only 2 rows, one for each value, after we removed the missing data. The data also affirms that the row for the 4-year-old is incorrect given that there's no way a toddler could complete a bachelor's or 4-year degree. 
+
+```{r}
+final_survey_data %>% filter(age == 4 | age == 223)
+```
+```{r}
+final_survey_data = final_survey_data %>% filter(age != 4 & age != 223)
+```
+
+Overall, we ended up removing only 37 rows from our dataset. 
 
 iii. Brief summary 
 
 Write a brief report to summarize all the variables collected. Include both summary statistics (including sample size) and graphical displays such as histograms or bar charts where appropriate. Comment on what you have found from this sample. (For example - it's very interesting to think about why would one work for a job that pays only 10cents/each survey? Who are those survey workers? The answer may be interesting even if it may not directly relate to our goal.)
 
+We can first determine the sample size of our data and see that we are considering 1,764 survey results.
+
 ```{r}
 cat("Sample size: ", nrow(cleaned_survey_data))
 ```
 
+We can then delve into the other summary statistics of the data. Since all of our columns contain categorical data, worktime is the only numerical and continuous 
+
 ```{r}
 summary(cleaned_survey_data)
+```
+
+```{r}
+
 ```
 
 
@@ -406,6 +436,12 @@ Here are the datasets:
 
 Feel free to use either dataset to address the problems. 
 
+```{r, echo=FALSE}
+baseball <- read_csv("baseball.csv")
+payData <- read_csv("MLPayData_Total.csv")
+```
+
+
 ## EDA: Relationship between payroll changes and performance
 
 Payroll may relate to performance among ML Baseball teams. One possible argument is that what affects this year's performance is not this year's payroll, but the amount that payroll increased from last year. Let us look into this through EDA. 
@@ -417,31 +453,196 @@ i. To describe the increment of payroll in each year there are several possible 
     - option 1: diff: payroll_2013 - payroll_2012
     - option 2: log diff: log(payroll_2013) - log(payroll_2012)
 
+```{r, echo=FALSE}
+#let's look at the differences for 2013
+payData$p2013 - payData$p2012
+plot(payData$p2013 - payData$p2012)
+log(payData$p2013) - log(payData$p2012)
+plot(log(payData$p2013) - log(payData$p2012))
+
+```
+
 Explain why the log difference is more appropriate in this setup.
+  
+  We want to use the log difference as it allows us to approximate the percent
+  change in the payroll rather than just the difference in pay. By using the log 
+  we can compare the different teams in a more efficient manner. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
 
-iii. Create a long data table including: team, year, diff_log, win_pct
+```{r, echo=FALSE}
+#creating the diff_log function
+baseball$diff_log <- log(baseball$payroll) - lag(log(baseball$payroll))
+#note we set the year 1998 to NA since the row before is a different team, and
+#that is the first year that we have data for
+baseball$diff_log[baseball$year==1998] <- NA
+```
 
+iii. Create a long data table including: team, year, diff_log, win_pct
+```{r, echo=FALSE}
+#creating long table 
+baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
+```
 
 ## Exploratory questions
 
 i. Which five teams had highest increase in their payroll between years 2010 and 2014, inclusive?
+```{r, echo=FALSE}
+#payroll differences between 2010 and 2014 (p2014-p2010)
+#make a new data set with just 2010 and 2014
+tenFourteen <- subset(baseballNew, year == 2010 | year == 2014)
+tenFourteen$fourYearDiff <- tenFourteen$diff_log - lag(tenFourteen$diff_log)
+i <- seq(1, 60, 2)
+#we set odd numbers to NA since we don't need the differences for different teams
+tenFourteen$fourYearDiff[i] <- NA
+j <- order(tenFourteen$fourYearDiff, decreasing = TRUE)[1:5]
+tenFourteen[j,c("team", "fourYearDiff")]
+```
+
+  The teams with the highest increase in payroll between 2010 and 2014 inclusive are
+  1. Houston Astros	0.812		
+  2. Oakland Athletics	0.506		
+  3. Arizona Diamondbacks	0.427		
+  4. San Diego Padres	0.418		
+  5. Texas Rangers	0.393				
+
 
 ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is, had the biggest percentage gain in wins?
+
+```{r, echo=FALSE}
+#determining biggest percent gain in wins
+tenFourteen$pctChange <- tenFourteen$win_pct - lag(tenFourteen$win_pct)
+i <- seq(1, 60, 2)
+#we set odd numbers to NA since we don't need the differences for different teams
+tenFourteen$pctChange[i] <- NA
+j <- order(tenFourteen$pctChange, decreasing = TRUE)
+tenFourteen[j,c("team", "pctChange")]
+```
+The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
 
 
 ## Do log increases in payroll imply better performance? 
 
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
-
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
+
+
+```{r}
+# create average winning percentage and diff_log for each team
+data_agg <-baseball %>% 
+  group_by(team) %>%
+  summarise(
+    diff_log_avg = mean(diff_log, na.rm = TRUE), 
+    win_pct_ave = mean(win_pct))
+str(data_agg)
+summary(data_agg)
+```
+
+```{r}
+# now let's look at the averages on a plot and see if there is some relationship
+#install.packages("ggrepel")
+#library(ggrepel)
+data_agg %>%
+  ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
+  # geometric options: color, size, shape, alpha: transparency (range: 0 to 1)
+  geom_point(color = "blue", size= 3, alpha = .8) + 
+  geom_text_repel(aes(label = team), size = 5) +
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Average Change in Payroll", 
+       y = "Win_pct_ave")
+
+cor(data_agg$diff_log_avg, data_agg$win_pct_ave)
+
+```
+Based on this graph of the average change in payroll, (average of diff_log for each team)
+and the win percent average over the years 1998-2014, there does not appear to be 
+any correlation between the variables. In fact the correlation is nearly zero meaning
+that those two variables have little to no effect on one another.
+
+
+```{r, echo=FALSE}
+
+plot(x = baseball$diff_log, 
+     y = baseball$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Percent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "MLB Team's Win Percent vs.Change in Payroll") # title
+
+```
+
+The correlation between the log difference of the payroll between years and the
+win percentage for games that year is very low. 0.345 indicates there is almost no
+correlation between those variables. 
+
+We can also use the graphs from the prior question to see that the top 5 teams
+with the greater percent increase in payroll between 2010 and 2014 do not 
+line up with the top 5 teams that had the biggest percent change in wins from those years
+
+
+```{r}
+baseball %>%
+  ggplot(aes(x=diff_log, y=win_pct, group = year, color=team)) +
+  geom_point()+
+  geom_smooth(method="lm", formula=y~x, se=F,color = "red")+
+  facet_wrap(~year) + 
+  theme_bw() +
+  theme(legend.position = 0)
+```
+From the plots above, we are able to look at the changes in payroll on the log scale
+and the win percentage for group by each year. We can see that there is no clear positive
+correlation for all of the years. Some have a least squares line that is flat, some have
+positive, and have negative. This further proves my belief that there is no relation between
+change is payroll on the log scale and winning percentage. 
+
+
+So overall, we can conclude that there is not evidence to support the hypothesis
+that higher increases in payroll on the log scale lead to increased performance. 
+In fact our data showed that there is no correlation between the payroll increases 
+on the log scale and the percentage of wins per year for teams
 
 ## Comparison
 
 Which set of factors are better explaining performance? Yearly payroll or yearly increase in payroll? What criterion is being used? 
 
+Yearly Payroll
 
+```{r}
+baseballSubset <- subset(baseball, !is.na(diff_log))
+cor(baseballSubset$payroll, baseballSubset$win_pct)
+cor(baseballSubset$diff_log, baseballSubset$win_pct)
+```
+We can see that Yearly payroll has a higher correlation with win percentage than the
+yearly increase in payroll. We can also look at these plots below to see if
+there is a visual correlation as well.
+
+```{r}
+plot(x = baseballSubset$diff_log, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Change in Payroll") # title
+
+plot(x = baseballSubset$payroll, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "dark green", # color 
+     xlab = "Yearly Payroll",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Payroll") # title
+
+```
+
+Although neither plot indicates a strong correlation between the two variable, you
+can see there is a weak positive correlation between Yearly Payroll and win percentage
+compared to the other scatter plot of change in payroll and win percentage that does
+not indicate any correlation. 
 
 
 
