@@ -115,7 +115,7 @@ ii. Handle missing/wrongly filled values of the selected variables
 
 As in real world data with user input, the data is incomplete, with missing values, and has incorrect responses. There is no general rule for dealing with these problems beyond “use common sense.” In whatever case, explain what the problems were and how you addressed them. Be sure to explain your rationale for your chosen methods of handling issues with the data. Do not use Excel for this, however tempting it might be.
 
-Tip: Reflect on the reasons for which data could be wrong or missing. How would you address each case? For this homework, if you are trying to predict missing values with regression, you are definitely overthinking. Keep it simple.
+Tip: Reflect on the reasons for which data could be wrong or missing. How would you address each case? For this homework, if you are trying to predict missing values with regression, you are definitely over thinking. Keep it simple.
 
 ```{r}
 #get unique values for each column
@@ -530,17 +530,13 @@ i. To describe the increment of payroll in each year there are several possible 
 ```{r}
 #let's look at the differences for 2013
 payData$p2013 - payData$p2012
-plot(payData$p2013 - payData$p2012)
 log(payData$p2013) - log(payData$p2012)
-plot(log(payData$p2013) - log(payData$p2012))
-
 ```
 
 Explain why the log difference is more appropriate in this setup.
   
-  We want to use the log difference as it allows us to approximate the percent
-  change in the payroll rather than just the difference in pay. By using the log 
-  we can compare the different teams in a more efficient manner. 
+**Answer:** We want to use the log difference as it allows us to approximate the percent change in the payroll rather than just the difference in pay. By using the log 
+we can compare the different teams in a more efficient manner. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
 
@@ -573,6 +569,7 @@ j <- order(tenFourteen$fourYearDiff, decreasing = TRUE)[1:5]
 tenFourteen[j,c("team", "fourYearDiff")]
 ```
 
+**Answer:**
   The teams with the highest increase in payroll between 2010 and 2014 inclusive are
   1. Houston Astros	0.812		
   2. Oakland Athletics	0.506		
@@ -592,7 +589,7 @@ tenFourteen$pctChange[i] <- NA
 j <- order(tenFourteen$pctChange, decreasing = TRUE)
 tenFourteen[j,c("team", "pctChange")]
 ```
-The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
+**Answer:** The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
 
 
 ## Do log increases in payroll imply better performance? 
@@ -628,10 +625,7 @@ data_agg %>%
 cor(data_agg$diff_log_avg, data_agg$win_pct_ave)
 
 ```
-Based on this graph of the average change in payroll, (average of diff_log for each team)
-and the win percent average over the years 1998-2014, there does not appear to be 
-any correlation between the variables. In fact the correlation is nearly zero meaning
-that those two variables have little to no effect on one another.
+**Answer:** Based on this graph of the average change in payroll, (average of diff_log for each team)and the win percent average over the years 1998-2014, there does not appear to be any correlation between the variables. In fact the correlation is nearly zero meaning that those two variables have little to no effect on one another.
 
 
 ```{r, echo=FALSE}
@@ -647,13 +641,10 @@ plot(x = baseball$diff_log,
 
 ```
 
-The correlation between the log difference of the payroll between years and the
-win percentage for games that year is very low. 0.345 indicates there is almost no
+**Answer:** The correlation between the log difference of the payroll between years and the win percentage for games that year is very low. 0.345 indicates there is almost no
 correlation between those variables. 
 
-We can also use the graphs from the prior question to see that the top 5 teams
-with the greater percent increase in payroll between 2010 and 2014 do not 
-line up with the top 5 teams that had the biggest percent change in wins from those years
+We can also use the graphs from the prior question to see that the top 5 teams with the greater percent increase in payroll between 2010 and 2014 do not  line up with the top 5 teams that had the biggest percent change in wins from those years
 
 
 ```{r}
@@ -665,23 +656,16 @@ baseball %>%
   theme_bw() +
   theme(legend.position = 0)
 ```
-From the plots above, we are able to look at the changes in payroll on the log scale
-and the win percentage for group by each year. We can see that there is no clear positive
-correlation for all of the years. Some have a least squares line that is flat, some have
-positive, and have negative. This further proves my belief that there is no relation between
-change is payroll on the log scale and winning percentage. 
+**Answer:** From the plots above, we are able to look at the changes in payroll on the log scale and the win percentage for group by each year. We can see that there is no clear positive correlation for all of the years. Some have a least squares line that is flat, some have positive, and have negative. This further proves my belief that there is no relation between change is payroll on the log scale and winning percentage. 
 
 
-So overall, we can conclude that there is not evidence to support the hypothesis
-that higher increases in payroll on the log scale lead to increased performance. 
-In fact our data showed that there is no correlation between the payroll increases 
-on the log scale and the percentage of wins per year for teams
+So overall, we can conclude that there is not evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance.  In fact our data showed that there is no correlation between the payroll increases  on the log scale and the percentage of wins per year for teams
 
 ## Comparison
 
 Which set of factors are better explaining performance? Yearly payroll or yearly increase in payroll? What criterion is being used? 
 
-Yearly Payroll
+**Answer:** Yearly Payroll
 
 ```{r}
 baseballSubset <- subset(baseball, !is.na(diff_log))
