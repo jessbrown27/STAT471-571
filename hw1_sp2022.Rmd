@@ -293,22 +293,76 @@ Our goal is to answer the above questions only through EDA (Exploratory Data Ana
 Notice the data came in as an Excel file. We need to use the package `readxl` and the function `read_excel()` to read the data `WomenData_06_16.xlsx` into R. 
 
 
+```{r}
+install.packages("readxl")
+library("readxl")
+```
+
+
 i. Read the data into R.
+
+```{r}
+degree_data = read_excel('WomenData_06_16.xlsx')
+```
+
 ii. Clean the names of each variables. (Change variable names to  `Field`,`Degree`, `Sex`, `Year` and `Number` )
+
+```{r}
+degree_data <- degree_data %>% rename(Field = `Field and sex`, Number = `Degrees Awarded`)
+names(degree_data)
+```
+
 iii. Set the variable natures properly. 
+
+```{r}
+str(degree_data)
+summary(degree_data)
+degree_data[,c('Degree','Sex')] <- lapply(degree_data[,c('Degree','Sex')], as.factor)
+degree_data[,c('Year','Number')] <- lapply(degree_data[,c('Year','Number')], as.integer)
+str(degree_data)
+summary(degree_data)
+```
+
 iv. Any missing values?
+
+```{r}
+degree_data$Field
+```
+
+There are no missing values
 
 2. Write a summary describing the data set provided here. 
 
+```{r}
+summary(degree_data)
+length(unique(degree_data$Field))
+```
+
 i. How many fields are there in this data?
+
+There are 10 distinct fields in this data.
+
 ii. What are the degree types? 
+
+The degree types are BS, MS and PhD.
+
 iii. How many year's statistics are being reported here? 
 
-
+There are 10 years of statistics being reported from 2006-2016.
 
 ## BS degrees in 2015
 
 Is there evidence that more males are in science-related fields vs `Non-S&E`? Provide summary statistics and a plot which shows the number of people by gender and by field. Write a brief summary to describe your findings.
+
+```{r}
+degree_data %>%
+  mutate(Field = ifelse(Field!="Non-S&E" , "S&E", "Non-S&E")) %>%
+  ggplot(aes(x = Sex, y = Number, fill = ScienceField)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across fields by degree and gender") 
+```
 
 ## EDA bringing type of degree, field and gender in 2015
 
@@ -344,6 +398,7 @@ wsci %<>%
 # set the field, degree and sex as factors
 wsci %<>% 
   mutate( Field = as.factor(Field))
+wsci
 ```
 
 
@@ -455,6 +510,12 @@ Here are the datasets:
 
 Feel free to use either dataset to address the problems. 
 
+```{r}
+baseball <- read_csv("baseball.csv")
+payData <- read_csv("MLPayData_Total.csv")
+```
+
+
 ## EDA: Relationship between payroll changes and performance
 
 Payroll may relate to performance among ML Baseball teams. One possible argument is that what affects this year's performance is not this year's payroll, but the amount that payroll increased from last year. Let us look into this through EDA. 
@@ -466,31 +527,196 @@ i. To describe the increment of payroll in each year there are several possible 
     - option 1: diff: payroll_2013 - payroll_2012
     - option 2: log diff: log(payroll_2013) - log(payroll_2012)
 
+```{r}
+#let's look at the differences for 2013
+payData$p2013 - payData$p2012
+plot(payData$p2013 - payData$p2012)
+log(payData$p2013) - log(payData$p2012)
+plot(log(payData$p2013) - log(payData$p2012))
+
+```
+
 Explain why the log difference is more appropriate in this setup.
+  
+  We want to use the log difference as it allows us to approximate the percent
+  change in the payroll rather than just the difference in pay. By using the log 
+  we can compare the different teams in a more efficient manner. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
 
-iii. Create a long data table including: team, year, diff_log, win_pct
+```{r, echo=FALSE}
+#creating the diff_log function
+baseball$diff_log <- log(baseball$payroll) - lag(log(baseball$payroll))
+#note we set the year 1998 to NA since the row before is a different team, and
+#that is the first year that we have data for
+baseball$diff_log[baseball$year==1998] <- NA
+```
 
+iii. Create a long data table including: team, year, diff_log, win_pct
+```{r}
+#creating long table 
+baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
+```
 
 ## Exploratory questions
 
 i. Which five teams had highest increase in their payroll between years 2010 and 2014, inclusive?
+```{r}
+#payroll differences between 2010 and 2014 (p2014-p2010)
+#make a new data set with just 2010 and 2014
+tenFourteen <- subset(baseballNew, year == 2010 | year == 2014)
+tenFourteen$fourYearDiff <- tenFourteen$diff_log - lag(tenFourteen$diff_log)
+i <- seq(1, 60, 2)
+#we set odd numbers to NA since we don't need the differences for different teams
+tenFourteen$fourYearDiff[i] <- NA
+j <- order(tenFourteen$fourYearDiff, decreasing = TRUE)[1:5]
+tenFourteen[j,c("team", "fourYearDiff")]
+```
+
+  The teams with the highest increase in payroll between 2010 and 2014 inclusive are
+  1. Houston Astros	0.812		
+  2. Oakland Athletics	0.506		
+  3. Arizona Diamondbacks	0.427		
+  4. San Diego Padres	0.418		
+  5. Texas Rangers	0.393				
+
 
 ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is, had the biggest percentage gain in wins?
+
+```{r}
+#determining biggest percent gain in wins
+tenFourteen$pctChange <- tenFourteen$win_pct - lag(tenFourteen$win_pct)
+i <- seq(1, 60, 2)
+#we set odd numbers to NA since we don't need the differences for different teams
+tenFourteen$pctChange[i] <- NA
+j <- order(tenFourteen$pctChange, decreasing = TRUE)
+tenFourteen[j,c("team", "pctChange")]
+```
+The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
 
 
 ## Do log increases in payroll imply better performance? 
 
 Is there evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance?
-
 Pick up a few statistics, accompanied with some data visualization, to support your answer. 
+
+
+```{r}
+# create average winning percentage and diff_log for each team
+data_agg <-baseball %>% 
+  group_by(team) %>%
+  summarise(
+    diff_log_avg = mean(diff_log, na.rm = TRUE), 
+    win_pct_ave = mean(win_pct))
+str(data_agg)
+summary(data_agg)
+```
+
+```{r}
+# now let's look at the averages on a plot and see if there is some relationship
+#install.packages("ggrepel")
+#library(ggrepel)
+data_agg %>%
+  ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
+  # geometric options: color, size, shape, alpha: transparency (range: 0 to 1)
+  geom_point(color = "blue", size= 3, alpha = .8) + 
+  geom_text_repel(aes(label = team), size = 5) +
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Average Change in Payroll", 
+       y = "Win_pct_ave")
+
+cor(data_agg$diff_log_avg, data_agg$win_pct_ave)
+
+```
+Based on this graph of the average change in payroll, (average of diff_log for each team)
+and the win percent average over the years 1998-2014, there does not appear to be 
+any correlation between the variables. In fact the correlation is nearly zero meaning
+that those two variables have little to no effect on one another.
+
+
+```{r, echo=FALSE}
+
+plot(x = baseball$diff_log, 
+     y = baseball$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Percent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "MLB Team's Win Percent vs.Change in Payroll") # title
+
+```
+
+The correlation between the log difference of the payroll between years and the
+win percentage for games that year is very low. 0.345 indicates there is almost no
+correlation between those variables. 
+
+We can also use the graphs from the prior question to see that the top 5 teams
+with the greater percent increase in payroll between 2010 and 2014 do not 
+line up with the top 5 teams that had the biggest percent change in wins from those years
+
+
+```{r}
+baseball %>%
+  ggplot(aes(x=diff_log, y=win_pct, group = year, color=team)) +
+  geom_point()+
+  geom_smooth(method="lm", formula=y~x, se=F,color = "red")+
+  facet_wrap(~year) + 
+  theme_bw() +
+  theme(legend.position = 0)
+```
+From the plots above, we are able to look at the changes in payroll on the log scale
+and the win percentage for group by each year. We can see that there is no clear positive
+correlation for all of the years. Some have a least squares line that is flat, some have
+positive, and have negative. This further proves my belief that there is no relation between
+change is payroll on the log scale and winning percentage. 
+
+
+So overall, we can conclude that there is not evidence to support the hypothesis
+that higher increases in payroll on the log scale lead to increased performance. 
+In fact our data showed that there is no correlation between the payroll increases 
+on the log scale and the percentage of wins per year for teams
 
 ## Comparison
 
 Which set of factors are better explaining performance? Yearly payroll or yearly increase in payroll? What criterion is being used? 
 
+Yearly Payroll
 
+```{r}
+baseballSubset <- subset(baseball, !is.na(diff_log))
+cor(baseballSubset$payroll, baseballSubset$win_pct)
+cor(baseballSubset$diff_log, baseballSubset$win_pct)
+```
+We can see that Yearly payroll has a higher correlation with win percentage than the
+yearly increase in payroll. We can also look at these plots below to see if
+there is a visual correlation as well.
+
+```{r}
+plot(x = baseballSubset$diff_log, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "blue", # color 
+     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Change in Payroll") # title
+
+plot(x = baseballSubset$payroll, 
+     y = baseballSubset$win_pct, 
+     pch  = 16,     # "point character": shape/character of points 
+     cex  = 0.8,    # size
+     col  = "dark green", # color 
+     xlab = "Yearly Payroll",  # x-axis
+     ylab = "Win Percent",  # y-axis 
+     main = "Win Percent vs.Payroll") # title
+
+```
+
+Although neither plot indicates a strong correlation between the two variable, you
+can see there is a weak positive correlation between Yearly Payroll and win percentage
+compared to the other scatter plot of change in payroll and win percentage that does
+not indicate any correlation. 
 
 
 
