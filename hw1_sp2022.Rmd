@@ -221,19 +221,44 @@ summary(degree_data)
 
 iv. Any missing values?
 
+```{r}
+degree_data$Field
+```
+
 There are no missing values
 
 2. Write a summary describing the data set provided here. 
 
+```{r}
+summary(degree_data)
+length(unique(degree_data$Field))
+```
+
 i. How many fields are there in this data?
+
+There are 10 distinct fields in this data.
+
 ii. What are the degree types? 
+
+The degree types are BS, MS and PhD.
+
 iii. How many year's statistics are being reported here? 
 
-
+There are 10 years of statistics being reported from 2006-2016.
 
 ## BS degrees in 2015
 
 Is there evidence that more males are in science-related fields vs `Non-S&E`? Provide summary statistics and a plot which shows the number of people by gender and by field. Write a brief summary to describe your findings.
+
+```{r}
+degree_data %>%
+  mutate(Field = ifelse(Field!="Non-S&E" , "S&E", "Non-S&E")) %>%
+  ggplot(aes(x = Sex, y = Number, fill = ScienceField)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across fields by degree and gender") 
+```
 
 ## EDA bringing type of degree, field and gender in 2015
 
