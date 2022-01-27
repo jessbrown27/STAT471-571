@@ -218,7 +218,7 @@ Our goal is to answer the above questions only through EDA (Exploratory Data Ana
 Notice the data came in as an Excel file. We need to use the package `readxl` and the function `read_excel()` to read the data `WomenData_06_16.xlsx` into R. 
 
 
-```{r, eval = FALSE}
+```{r}
 install.packages("readxl")
 library("readxl")
 ```
@@ -226,14 +226,13 @@ library("readxl")
 
 i. Read the data into R.
 
-```{r, eval = FALSE}
+```{r}
 degree_data = read_excel('WomenData_06_16.xlsx')
 ```
 
 ii. Clean the names of each variables. (Change variable names to  `Field`,`Degree`, `Sex`, `Year` and `Number` )
 
 ```{r}
-names(degree_data)
 degree_data <- degree_data %>% rename(Field = `Field and sex`, Number = `Degrees Awarded`)
 names(degree_data)
 ```
