@@ -380,7 +380,7 @@ Here are the datasets:
 
 Feel free to use either dataset to address the problems. 
 
-```{r, echo=FALSE}
+```{r}
 baseball <- read_csv("baseball.csv")
 payData <- read_csv("MLPayData_Total.csv")
 ```
@@ -397,7 +397,7 @@ i. To describe the increment of payroll in each year there are several possible 
     - option 1: diff: payroll_2013 - payroll_2012
     - option 2: log diff: log(payroll_2013) - log(payroll_2012)
 
-```{r, echo=FALSE}
+```{r}
 #let's look at the differences for 2013
 payData$p2013 - payData$p2012
 plot(payData$p2013 - payData$p2012)
@@ -423,7 +423,7 @@ baseball$diff_log[baseball$year==1998] <- NA
 ```
 
 iii. Create a long data table including: team, year, diff_log, win_pct
-```{r, echo=FALSE}
+```{r}
 #creating long table 
 baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
 ```
@@ -431,7 +431,7 @@ baseballNew <- baseball[,c("team", "year", "diff_log", "win_pct")]
 ## Exploratory questions
 
 i. Which five teams had highest increase in their payroll between years 2010 and 2014, inclusive?
-```{r, echo=FALSE}
+```{r}
 #payroll differences between 2010 and 2014 (p2014-p2010)
 #make a new data set with just 2010 and 2014
 tenFourteen <- subset(baseballNew, year == 2010 | year == 2014)
@@ -453,7 +453,7 @@ tenFourteen[j,c("team", "fourYearDiff")]
 
 ii. Between 2010 and 2014, inclusive, which team(s) "improved" the most? That is, had the biggest percentage gain in wins?
 
-```{r, echo=FALSE}
+```{r}
 #determining biggest percent gain in wins
 tenFourteen$pctChange <- tenFourteen$win_pct - lag(tenFourteen$win_pct)
 i <- seq(1, 60, 2)
