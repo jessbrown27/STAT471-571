@@ -223,7 +223,7 @@ The population from which the sample is drawn determines where the results of ou
 
 i. Does this sample appear to be a random sample from the general population of the USA?
 
-In terms of gender, this sample does not appear to be a random sample from the general population of the US given the disproportionate number of males compared to females given that in the US there are actually more women than men (169 million vs 162 million). The income distributions are more realistic of the US population given that the median income levels in our age group are around $30,000-50,000 (https://dqydj.com/average-median-top-income-by-age-percentiles/) which is not only the mode of our distribution, but the ranges around it are also highly populated. When comparing our education data to the distribution in the US (https://www.statista.com/statistics/785618/educational-attainment-by-age-group-us/), we can see that our sample is more educated given the larger percentage of those with at least a bachelor's degree and disproportionally small number of people with less than a high school diploma (<1% instead of around 10%) and those with only a high school diploma (11% instead of around 26-33%).
+In terms of gender, this sample does not appear to be a random sample from the general population of the US given the disproportionate number of males compared to females given that in the US there are actually more women than men (161.7 million vs 156.7 million in 2014). The income distributions are more realistic of the US population given that the median income levels in our age group are around $30,000-50,000 (https://dqydj.com/average-median-top-income-by-age-percentiles/) which is not only the mode of our distribution, but the ranges around it are also highly populated. When comparing our education data to the distribution in the US (https://www.statista.com/statistics/785618/educational-attainment-by-age-group-us/), we can see that our sample is more educated given the larger percentage of those with at least a bachelor's degree and disproportionally small number of people with less than a high school diploma (<1% instead of around 10%) and those with only a high school diploma (11% instead of around 26-33%).
 
 ```{r}
 #get distribution of education data
@@ -233,7 +233,7 @@ This sample does not seem to be a representative random sample of the general po
 
 ii. Does this sample appear to be a random sample from the MTURK population?
 
-When considering the general MTURK population, we again see that our sample has a disproportionate number of men instead of women given that across each age group, there are actually more female participants on MTURK. This sample does seem to be representative age-wise of the relatively young MTURK population, as most data entries are for people under 40. As pointed out on the website from which we pull this MTURK data (https://www.cloudresearch.com/resources/blog/who-uses-amazon-mturk-2020-demographics/), the distribution of income is similar to that of the US population, which we have already noted is similarly represented in our sample. For education, it does seem like our data is similar to the distribution of education levels among US MTURK workers (https://crowdsourcing-class.org/readings/downloads/platform/demographics-of-mturk.pdf). It does seem like this sample is a representative random sample from the MTURK population outside of the gender distribution. 
+When considering the general MTURK population, we again see that our sample has a disproportionate number of men instead of women given that across each age group, there are actually more female participants on MTURK. However, it is important to note that the older MTURK workers are most heavily concentrated with females and our data consists of mostly younger people. This sample does seem to be representative age-wise of the relatively young MTURK population, as most data entries are for people under 40. As pointed out on the website from which we pull this MTURK data (https://www.cloudresearch.com/resources/blog/who-uses-amazon-mturk-2020-demographics/), the distribution of income is similar to that of the US population, which we have already noted is similarly represented in our sample. For education, it does seem like our data is similar to the distribution of education levels among US MTURK workers (https://crowdsourcing-class.org/readings/downloads/platform/demographics-of-mturk.pdf). It does seem like this sample is a representative random sample from the MTURK population outside of the gender distribution. 
 
 Note: You can not provide evidence by simply looking at our data here. For example, you need to find distribution of education in our age group in US to see if the two groups match in distribution. You may need to gather some background information about the MTURK population to have a slight sense if this particular sample seem to a random sample from there... Please do not spend too much time gathering evidence. 
 
@@ -248,6 +248,19 @@ To be specific, you should include:
 3. Findings
 4. Limitations of the study. 
 
+Before writing the executive summary, we need to first estimate the Wharton audience using the proportion p of Wharton Sirius listeners from our dataset.
+
+```{r}
+#get proportion p of wharton listener out of the sirius listeners
+prop_table = final_survey_data %>% filter(sirius == "Yes") %>% count(sirius, wharton) %>% mutate(n, p = n / sum(n)) %>% filter(wharton == "Yes")
+prop_table
+```
+
+```{r}
+cat("Our estimation of the audiance size is: ", 51600000 * prop_table$p[1])
+```
+
+**Executive summary:** We conducted a study to measure the success of the Wharton Talk Show on Sirius Radio, that is, estimate the number of listeners. We got our data from a survey we launched on Amazon Mechanical Turk (MTURK) in May 2014
 
 ## New task
 
