@@ -260,7 +260,7 @@ prop_table
 cat("Our estimation of the audiance size is: ", 51600000 * prop_table$p[1])
 ```
 
-**Executive summary:** We conducted a study to measure the success of the Wharton Talk Show on Sirius Radio, that is, estimate the number of listeners. We got our data from a survey we launched on Amazon Mechanical Turk (MTURK) in May 2014
+**Executive summary:** We conducted a study to measure the success of the Wharton Talk Show on Sirius Radio, that is, estimate the number of listeners. We got our data from a survey we launched on Amazon Mechanical Turk (MTURK) in May 2014 which included basic demographic questions and asked repondents whether they were a Sirius Radio listener and if they have listened to Sirius Business Radio by Wharton. We ended up with a random sample of 1,725 responses from the MTURK population, a population which we assumed shares the same proportion of Wharton listeners vs. Sirius listeners in the general population. Therefore, to estimate the audience size for the Wharton Talk Show, we calculated the proportion (p) of Sirius listeners which have listened to the Wharton show and got about 5%. We then multiplied that p value by 51.6 million, overall number of Sirius listeners to get an estimated approximate audience size of 2,587,725 people. Our study is not without limitations however, given that it is very dependent on our assumption about the consistency of our sample compared to the population of Sirius listeners. There is no evidence to support this and our sample is shown to be somewhat differently distributed than the US population of the same age range. We are also making inferences on a population of 51.6 million listeners based on less than 2000 people, which is a large claim. 
 
 ## New task
 
