@@ -712,7 +712,7 @@ tenFourteen$pctChange[i] <- NA
 j <- order(tenFourteen$pctChange, decreasing = TRUE)
 tenFourteen[j,c("team", "pctChange")]
 ```
-**Answer:** The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.
+**Answer:** The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.The next closest team was the Baltimore Oriole with a win percent change of 0.18519 followed by the Washington Nationals at 0.16667.
 
 
 ## Do log increases in payroll imply better performance? 
@@ -722,15 +722,26 @@ Pick up a few statistics, accompanied with some data visualization, to support y
 
 
 ```{r}
-# create average winning percentage and diff_log for each team
+#creating the win_pct_change function
+baseball$win_pct_change <- log(baseball$win_pct) - lag(log(baseball$win_pct))
+#note we set the year 1998 to NA since the row before is a different team, and
+#that is the first year that we have data for
+baseball$win_pct_change[baseball$year==1998] <- NA
+
+```
+
+```{r}
+# create average change in winning percentage and diff_log for each team
 data_agg <-baseball %>% 
   group_by(team) %>%
   summarise(
     diff_log_avg = mean(diff_log, na.rm = TRUE), 
-    win_pct_ave = mean(win_pct))
+    win_pct_ave = mean(win_pct_change, na.rm = TRUE))
 str(data_agg)
 summary(data_agg)
 ```
+Above we created a new data set that found the average difference payroll on the log scale for the team covering all the differences between 1998-2014 as well as the average win percentage change for all of those years. This allows us to look at the overall performance of the teams in just two variables. 
+
 
 ```{r}
 # now let's look at the averages on a plot and see if there is some relationship
@@ -738,7 +749,6 @@ install.packages("ggrepel")
 library(ggrepel)
 data_agg %>%
   ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
-  # geometric options: color, size, shape, alpha: transparency (range: 0 to 1)
   geom_point(color = "blue", size= 3, alpha = .8) + 
   geom_text_repel(aes(label = team), size = 5) +
   labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
@@ -748,40 +758,36 @@ data_agg %>%
 cor(data_agg$diff_log_avg, data_agg$win_pct_ave)
 
 ```
-**Answer:** Based on this graph of the average change in payroll, (average of diff_log for each team)and the win percent average over the years 1998-2014, there does not appear to be any correlation between the variables. In fact the correlation is nearly zero meaning that those two variables have little to no effect on one another.
+**Answer:** Based on this graph of the average change in payroll, (average of diff_log for each team)and the win percent average change over the years 1998-2014, there does  appear to be a moderate positive correlation between the variables. The correlation between the variables diff_log_avg and win_pct_avg is 0.592.That means that an increase in the difference in payroll would be correlate to a increase in the average win percentage change for the teams. 
 
+However, this is looking at the performance of each team averaged over the years and it could be different if we compare each year to the increased performance and thus have more data points. So below we will look at all the teams and all of the changes between the years. 
 
-```{r, echo=FALSE}
+```{r}
+# we remove the NA functions to make it easier to plot the graphs and compute the correlation
+baseballSubset <- subset(baseball, !is.na(diff_log) & !is.na(win_pct_change))
 
-plot(x = baseball$diff_log, 
-     y = baseball$win_pct, 
-     pch  = 16,     # "point character": shape/character of points 
-     cex  = 0.8,    # size
-     col  = "blue", # color 
-     xlab = "Percent Difference in Payroll Between Years",  # x-axis
-     ylab = "Win Percent",  # y-axis 
-     main = "MLB Team's Win Percent vs.Change in Payroll") # title
-
+baseballSubset %>%
+  ggplot(aes(x = diff_log, y = win_pct_change)) + 
+  geom_point(color = "blue", size= 3) + 
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Change in Payroll", 
+       y = "Change in Win Percentage")
+cor(baseballSubset$diff_log, baseballSubset$win_pct_change)
 ```
+**Answer:** Now from looking at this plot, there appears to be essentially not correlation between changes in payroll on the log scale and the change in win percentage for teams. This is further confirmed by a correlation value of 0.0391 which is essentially zero. A correlation value of zero indicates no correlation at all. 
 
-**Answer:** The correlation between the log difference of the payroll between years and the win percentage for games that year is very low. 0.345 indicates there is very low correlation between those variables. 
-
-We can also use the graphs from the prior question to see that the top 5 teams with the greater percent increase in payroll between 2010 and 2014 do not  line up with the top 5 teams that had the biggest percent change in wins from those years
-
+As further evidence, we can also use the graphs from the prior question to see that the top 5 teams with the greater percent increase in payroll between 2010 and 2014 do not  line up with the top 5 teams that had the biggest percent change in wins from those years
 
 ```{r}
 baseball %>%
-  ggplot(aes(x=diff_log, y=win_pct, group = year, color=team)) +
+  ggplot(aes(x=diff_log, y=win_pct_change, group = team, color=year)) +
   geom_point()+
   geom_smooth(method="lm", formula=y~x, se=F,color = "red")+
-  facet_wrap(~year) + 
+  facet_wrap(~team) + 
   theme_bw() +
   theme(legend.position = 0)
 ```
-**Answer:** From the plots above, we are able to look at the changes in payroll on the log scale and the win percentage for group by each year. We can see that there is no clear positive correlation for all of the years. Some have a least squares line that is flat, some have positive, and have negative. This further proves my belief that there is no relation between change is payroll on the log scale and winning percentage. 
-
-
-So overall, we can conclude that there is not evidence to support the hypothesis that higher increases in payroll on the log scale lead to increased performance.  In fact our data showed that there is no correlation between the payroll increases  on the log scale and the percentage of wins per year for teams
+**Answer:** From the plots above, we are able to look at the changes in payroll on the log scale and the win percentage change for team. We can see that there is no clear positive correlation for all of the teams Some have a least squares line that is flat, some have positive, and have negative. This means that the correlation for each of the teams can be different, for some teams an increase is payroll on the log scale could lead to an increase of percent change in wins but for other teams it could lead to a decrease. Because of this we can say that an increase in payroll for some individual teams doesn't lead to increased performance. In fact as we saw, when we look at all the data for the teams combined, the correlation and scatter plot indicates no correlation between increased payroll and increased performance. Thus we can conclude that increased payroll does not lead to increased performance. 
 
 ## Comparison
 
@@ -790,40 +796,31 @@ Which set of factors are better explaining performance? Yearly payroll or yearly
 **Answer:** Yearly Payroll
 
 ```{r}
-baseballSubset <- subset(baseball, !is.na(diff_log))
-cor(baseballSubset$payroll, baseballSubset$win_pct)
-cor(baseballSubset$diff_log, baseballSubset$win_pct)
+cor(baseballSubset$payroll, baseballSubset$win_pct_change)
+cor(baseballSubset$diff_log, baseballSubset$win_pct_change)
 ```
-We can see that Yearly payroll has a higher correlation with win percentage than the
-yearly increase in payroll. We can also look at these plots below to see if
+We can see that Yearly payroll has a slightly higher correlation when looking at the absolute value with win percentage than the yearly increase in payroll. We can also look at these plots below to see if
 there is a visual correlation as well.
 
 ```{r}
-plot(x = baseballSubset$diff_log, 
-     y = baseballSubset$win_pct, 
-     pch  = 16,     # "point character": shape/character of points 
-     cex  = 0.8,    # size
-     col  = "blue", # color 
-     xlab = "Perecent Difference in Payroll Between Years",  # x-axis
-     ylab = "Win Percent",  # y-axis 
-     main = "Win Percent vs.Change in Payroll") # title
+baseballSubset %>%
+  ggplot(aes(x = diff_log, y = win_pct_change)) + 
+  geom_point(color = "blue", size= 3) + 
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Change in Payroll", 
+       y = "Change in Win Percentage")
 
-plot(x = baseballSubset$payroll, 
-     y = baseballSubset$win_pct, 
-     pch  = 16,     # "point character": shape/character of points 
-     cex  = 0.8,    # size
-     col  = "dark green", # color 
-     xlab = "Yearly Payroll",  # x-axis
-     ylab = "Win Percent",  # y-axis 
-     main = "Win Percent vs.Payroll") # title
-
-
+baseballSubset %>%
+  ggplot(aes(x = payroll, y = win_pct_change)) + 
+  geom_point(color = "blue", size= 3) + 
+  labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
+       x = "Change in Payroll", 
+       y = "Change in Win Percentage")
 ```
 
 Although neither plot indicates a strong correlation between the two variable, you
-can see there is a weak positive correlation between Yearly Payroll and win percentage
+can see there is a weak positive correlation between Yearly Payroll and Win percentage change
 compared to the other scatter plot of change in payroll and win percentage that does
-not indicate any correlation. 
-
+not indicate any correlation. Thus although both yearly payroll and change in year payroll on the log scale have low correlations with values of-0.109 and 0.0391 respectively, if I had to choose one to describe performance, it would be Yearly payroll. Notice that the correlation being negative hear means that for the entire MLB, a higher payroll weakly correlated to a decreased in win percent change between the years. 
 
 
