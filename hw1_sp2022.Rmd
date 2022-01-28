@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.width=8, fig.height=4)
 options(scipen = 0, digits = 3)  # controls base R output
 # check if you have ISLR package, if not, install it
 if(!require('pacman')) {install.packages('pacman')}
-pacman::p_load(ISLR, readxl, tidyverse, magrittr, dplyr, ggplot2)
+pacman::p_load(ISLR, readxl, tidyverse, magrittr, dplyr, ggplot2, gridExtra)
 ```
 
 
@@ -274,7 +274,9 @@ Please fill in the google form to list your platform where surveys will be launc
 
 A good proposal will give an accurate estimation with the least amount of money used. 
 
+**Answer:** For the new survey, we immediately wanted to account for the fact that Wharton Business Radio is not exclusive to SiriusXM anymore, given that clips are available for listening or download online and it’s also available on platforms like Apple Music. For this reason, instead of estimating the proportion p of Sirius listeners that listen to Wharton Business Radio, we want to expand to estimate the proportion of the general US population which have listened to the show. To collect this random sampling of US citizens, we would like to use the platform which brings together a wide variety of characters: Twitter. We would like to create a free survey on Qualtrics that we would link in the Twitter promoted tweet which we would limit geographically to the US and age-wise to those above the age of 16. The survey would have the same questions as the original study from 2014, besides the question on whether the person is a Sirius listener and instead include a drop-down question on where they listened to the show. While this won’t help with our prediction, it would support our hypothesis that Wharton Business Radio listeners are not limited to SiriusXM subscribers and improve on the original study. 
 
+Twitter gave an estimate that there would be a cost of \$0.50 per interaction, and aiming for 2,000 responses, the total cost of data collection would then be \$1000. We would also only leave the ad and survey open for 1 month to collect the data and provide an additional month for us to analyze and put together our findings.
 
 
 
@@ -294,7 +296,7 @@ Notice the data came in as an Excel file. We need to use the package `readxl` an
 
 
 ```{r}
-install.packages("readxl")
+#install.packages("readxl")
 library("readxl")
 ```
 
@@ -510,7 +512,7 @@ To help out, we have included some R-codes here as references. You should make y
 
 1. Clean data
 
-```{r data wrangling, echo = FALSE, warning = FALSE}
+```{r data wrangling, echo = FALSE, warning = FALSE, eval = FALSE}
 # For the demonstration purpose, we show this R-chunk by taking echo=TRUE
 # In your final report you should hide all the R-chunks to keep your report flowing well.
 wsci <- read_excel("WomenData_06_16.xlsx")
@@ -526,7 +528,7 @@ wsci
 ```
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval = FALSE}
 wsci %<>%
   rename(Field = "Field and sex",
          Number = "Degrees Awarded") %>%
@@ -539,7 +541,7 @@ wsci %<>%
 
 2. A number of sample analyses 
 
-```{r eval = FALSE, echo = FALSE}
+```{r eval = FALSE, echo = FALSE, eval = FALSE}
 wsci %>%  # to get the average number of ppl by gender
   group_by(Field, Sex) %>%
   summarise(deg = mean(Number))
@@ -745,7 +747,7 @@ Above we created a new data set that found the average difference payroll on the
 
 ```{r}
 # now let's look at the averages on a plot and see if there is some relationship
-install.packages("ggrepel")
+#install.packages("ggrepel")
 library(ggrepel)
 data_agg %>%
   ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
