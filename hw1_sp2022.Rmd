@@ -657,11 +657,14 @@ i. To describe the increment of payroll in each year there are several possible 
 #let's look at the differences for 2013
 payData$p2013 - payData$p2012
 log(payData$p2013) - log(payData$p2012)
+summary(payData$p2013 - payData$p2012)
+summary(log(payData$p2013) - log(payData$p2012))
 ```
+We can see that the values in the first set have a much larger range from -81.7 to 121.5, whereas the second set using the log  the values lie closer together and the range is from about -1 to 1.
 
 Explain why the log difference is more appropriate in this setup.
   
-**Answer:** We want to use the log difference as it allows us to approximate the percent change in the payroll rather than just the difference in pay. By converting the differences to the log scale we can compare the different teams on a more standardized scale. This allows us to level our the teams that get more funding to those with less funding. 
+**Answer:** We want to use the log difference as it allows us to approximate the percent change in the payroll rather than just the difference in pay. By converting the differences to the log scale we can compare the different teams on a more standardized scale. As we saw above, it put all the log payroll differences on a much smaller range from about -1 to 1. This allows us to level our the teams that get more funding to those with less funding. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
 
@@ -714,7 +717,7 @@ tenFourteen$pctChange[i] <- NA
 j <- order(tenFourteen$pctChange, decreasing = TRUE)
 tenFourteen[j,c("team", "pctChange")]
 ```
-**Answer:** The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.The next closest team was the Baltimore Oriole with a win percent change of 0.18519 followed by the Washington Nationals at 0.16667.
+**Answer:** The team with the biggest percent change, or that improved the most from 2010 to 2014 was the Pittsburgh Pirates. Their percent change was 0.19136.The next closest team was the Baltimore Orioles with a win percent change of 0.18519 followed by the Washington Nationals at 0.16667.
 
 
 ## Do log increases in payroll imply better performance? 
