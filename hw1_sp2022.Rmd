@@ -335,14 +335,14 @@ sum(is.na(degree_data))
 
 2. Write a summary describing the data set provided here. 
 
+i. How many fields are there in this data?
+ii. What are the degree types? 
+iii. How many year's statistics are being reported here? 
+
 ```{r}
 summary(degree_data)
 length(unique(degree_data$Field))
 ```
-
-i. How many fields are there in this data?
-ii. What are the degree types? 
-iii. How many year's statistics are being reported here? 
 
 **Answer:** In this data, there are 660 different entries and 5 different variables: Field, Degree, Sex, Year, and Number. Within the Field variable, there are 10 distinct fields. The different degree types are BS, MS, and PhD. There are 11 years of statistics reported with the data spanning from 2006-2016. The minimum number of degrees awarded for a single degree type and for a particular sex in a year is 218, while the max is 781474.
 
@@ -351,15 +351,24 @@ iii. How many year's statistics are being reported here?
 Is there evidence that more males are in science-related fields vs `Non-S&E`? Provide summary statistics and a plot which shows the number of people by gender and by field. Write a brief summary to describe your findings.
 
 ```{r}
+# Create another variable that codes the field into S&E or Non-S&E
 degree_data %<>% mutate(ScienceField = ifelse(Field != "Non-S&E" , "S&E", "Non-S&E"))
 degree_data %>%
   # Only take data that are BS degrees in 2015
   filter(Degree == 'BS' & Year == 2015) %>%
-  ggplot(aes(x = Sex, y = Number, fill = Field)) +
+  ggplot(aes(x = Sex, y = Number, fill = ScienceField)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(scales = "free_y") +
   theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-  ggtitle("Degrees granted across fields by gender") 
+  ggtitle("Degrees granted across field type by gender")
+degree_data %>%
+  # Only take data that are BS degrees in 2015
+  filter(Degree == 'BS' & Year == 2015) %>%
+  ggplot(aes(x = ScienceField, y = Number, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across field type by gender")
 ```
 
 **Answer:** Only looking at the histogram side for male (not comparing to the female side), there is no evidence that there are more males in science related fields than males in non-S&E. In fact, there are around 5 times as many males in non-S&E than there are in science related fields. There is a similar trend when looking at the female side. However, there is a greater difference of females in Non-S&E than science related (about 8 times as many females in Non-S&E than science related). This greater difference is largely due to there being more female in Non-S&E fields than there are male since the number of female and male in science related fields is roughly equal. Comparatively to the ratio of female in science-related fields vs Non-S&E, there are more male in science-related fields vs Non-S&E.
@@ -368,9 +377,57 @@ degree_data %>%
 
 Describe the number of people by type of degree, field, and gender. Do you see any evidence of gender effects over different types of degrees? Again, provide graphs to summarize your findings.
 
+```{r}
+degree_data %>%
+  # Filter to only 2015
+  filter(Year == 2015) %>%
+  ggplot(aes(x = ScienceField, y = Number, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(Degree~., scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across field type by degree and gender")
+degree_data %>%
+  # Filter to only 2015
+  filter(Year == 2015) %>%
+  ggplot(aes(x = Sex, y = Number, fill = ScienceField)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(Degree~., scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across field type by degree and gender")
+degree_data %>%
+  # Filter to only 2015
+  filter(Year == 2015) %>%
+  ggplot(aes(x = Degree, y = Number, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(ScienceField~., scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  ggtitle("Degrees granted across field type by degree and gender") 
+```
+
+**Answer:** Within the Non-S&E fields, there is consistently more degrees awarded to females than males (about double as much) across all types of degrees so there is evidence of a general gender effect over all Non-S&E field degrees that more are awarded to females but no evidence that the gender effect changes based on degree type. However, with science related fields, the gap between degrees awarded to females and males widens the higher the degree is. For the BS degree, there is roughly an equal amount of degrees awarded to each sex, with a little more to female than male. However, for the MS degree, there is about double as many degrees awarded to male than female. This difference is replicated in the PhD degree. Therefore, because of the difference of degrees awarded to each sex in MS and PhD degrees but lack of difference in BS degree, there is evidence of gender effects over the MS and PhD degrees that more degrees are awarded to males (about twice as much).
+
 ## EDA bring all variables 
 
 In this last portion of the EDA, we ask you to provide evidence numerically and graphically: Do the number of degrees change by gender, field, and time? 
+
+```{r}
+degree_data %>%
+  group_by(ScienceField, Sex, Year, Degree) %>%
+  summarise(ScienceField_number = sum(Number)) %>%
+  ggplot(aes(x = Year, y = ScienceField_number, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(ScienceField~Degree, scales = "free_y") +
+  ggtitle("Degrees granted by sex, degree and SE")
+
+
+degree_data %>%
+  group_by(ScienceField, Sex, Year, Degree) %>%
+  summarise(ScienceField_number = sum(Number)) %>%
+  ggplot(aes(x = Year, y = ScienceField_number, fill = Sex)) +
+  geom_bar(stat = "identity", position = "fill") +
+  facet_grid(ScienceField~Degree, scales = "free_y") +
+  ggtitle("Degrees granted proportion by sex across degree and SE")
+```
 
 ## Women in Data Science
 
