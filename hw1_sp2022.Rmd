@@ -535,12 +535,11 @@ log(payData$p2013) - log(payData$p2012)
 
 Explain why the log difference is more appropriate in this setup.
   
-**Answer:** We want to use the log difference as it allows us to approximate the percent change in the payroll rather than just the difference in pay. By using the log 
-we can compare the different teams in a more efficient manner. 
+**Answer:** We want to use the log difference as it allows us to approximate the percent change in the payroll rather than just the difference in pay. By converting the differences to the log scale we can compare the different teams on a more standardized scale. This allows us to level our the teams that get more funding to those with less funding. 
 
 ii. Create a new variable `diff_log=log(payroll_2013) - log(payroll_2012)`. Hint: use `dplyr::lag()` function.
 
-```{r, echo=FALSE}
+```{r}
 #creating the diff_log function
 baseball$diff_log <- log(baseball$payroll) - lag(log(baseball$payroll))
 #note we set the year 1998 to NA since the row before is a different team, and
@@ -641,8 +640,7 @@ plot(x = baseball$diff_log,
 
 ```
 
-**Answer:** The correlation between the log difference of the payroll between years and the win percentage for games that year is very low. 0.345 indicates there is almost no
-correlation between those variables. 
+**Answer:** The correlation between the log difference of the payroll between years and the win percentage for games that year is very low. 0.345 indicates there is very low correlation between those variables. 
 
 We can also use the graphs from the prior question to see that the top 5 teams with the greater percent increase in payroll between 2010 and 2014 do not  line up with the top 5 teams that had the biggest percent change in wins from those years
 
@@ -694,6 +692,8 @@ plot(x = baseballSubset$payroll,
      xlab = "Yearly Payroll",  # x-axis
      ylab = "Win Percent",  # y-axis 
      main = "Win Percent vs.Payroll") # title
+
+
 ```
 
 Although neither plot indicates a strong correlation between the two variable, you
