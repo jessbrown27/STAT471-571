@@ -419,6 +419,13 @@ degree_data %>%
 In this last portion of the EDA, we ask you to provide evidence numerically and graphically: Do the number of degrees change by gender, field, and time? 
 
 ```{r}
+
+degree_data %>%
+  group_by(ScienceField, Sex) %>%
+  summarise(ScienceField_number = sum(Number)) %>%
+  group_by(ScienceField) %>%
+  mutate(ratio = ScienceField_number / sum(ScienceField_number))
+
 degree_data %>%
   group_by(ScienceField, Sex, Degree) %>%
   summarise(ScienceField_number = sum(Number)) %>%
@@ -464,7 +471,7 @@ degree_data %>%
   ggtitle("Female proportion in SE/non-SE across year by degree")
 ```
 
-**Answer:** For Non-S&E fields, there have consistently been about 1.5 as many female receiving degrees throughout the years and degree types (with a little less of a difference in PhD than BS). For science-related fields, there have consistently throughout the years been an equal amount of BS degrees awarded, a slightly higher amount of MS degrees awarded for males, and a slightly higher amount than seen in the MS degrees in PhD degrees. When looking at the trend for female proportion across the years for each field type, females make up more than 60% of the proportion in Non-S&E fields throughout all the years, but make up less than 50% of the proportion in science-related fields. In the more recent years (2014-2016), the proportion of females in science-related fields have decreased but have increased for Non-S&E. These trends are more exaggerated when separating the different degree types. Females are least represented throughout the years in science-related fields when looking at PhD degrees, while they are about equally represented in BS degrees and in between BS and PhD representation for MS degrees. Female proportion in Non-S&E are similar throughout the years for BS and PhD degrees (although less consistent for PhD), while proportion in MS degrees is a bit higher.
+**Answer:** For Non-S&E fields, there have consistently been about 1.5 as many female as male receiving degrees throughout the years and degree types (with a little less of a difference in PhD than BS). For science-related fields, there have consistently throughout the years been an equal amount of BS degrees awarded, a slightly higher amount of MS degrees awarded for males, and a slightly higher amount than seen in the MS degrees in PhD degrees. When looking at the trend for female proportion across the years for each field type, females make up more than 60% of the proportion in Non-S&E fields throughout all the years, but make up less than 50% of the proportion in science-related fields. In the more recent years (2014-2016), the proportion of females in science-related fields have decreased but have increased for Non-S&E. These trends are more exaggerated when separating the different degree types. Females are least represented throughout the years in science-related fields when looking at PhD degrees (41%), while they are about equally represented in BS degrees (50%) and in between BS and PhD representation for MS degrees (45%). Female proportion in Non-S&E are similar throughout the years for BS and PhD degrees at about 61% (although less consistent for PhD), while proportion in MS degrees is a bit higher at 64%.
 
 ## Women in Data Science
 
@@ -494,6 +501,8 @@ degree_data %>%
 ## Final brief report
 
 Summarize your findings focusing on answering the questions regarding if we see consistent patterns that more males pursue science-related fields. Any concerns with the data set? How could we improve on the study?
+
+**Answer:** The proportion of females vs males in science-related fields have stayed pretty consistent over time, even when separating my degree type. However, when separating my degree type, the proportion of females vs males in science-related fields change. The higher the degree type, the less females there is proportionately receiving degrees. There is about an equal amount of BS degrees awarded to females as males (50%), then there is less MS degrees proportionately awarded (45%), and even less PhD degrees proportionately awarded (41%). As the degree type increases, there is about a 5% decrease in representation of females proportionately to males. Therefore, there is evidence to suggest that more males pursue science related fields with higher degree types. One concern with the data set is that the report states "Surveys conducted by the National Center for Science and Engineering Statistics (NCSES) within the National Science Foundation provided a large portion of the data used in this report", we wonder if the surveys were represented of the whole population. We can improve on the study by looking into other ways to be involved in the sciences besides degrees like technical school certificates.
 
 ## Appendix
 
