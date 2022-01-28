@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.width=8, fig.height=4)
 options(scipen = 0, digits = 3)  # controls base R output
 # check if you have ISLR package, if not, install it
 if(!require('pacman')) {install.packages('pacman')}
-pacman::p_load(ISLR, readxl, tidyverse, magrittr, dplyr, ggplot2)
+pacman::p_load(ISLR, readxl, tidyverse, magrittr, dplyr, ggplot2, gridExtra)
 ```
 
 
@@ -296,7 +296,7 @@ Notice the data came in as an Excel file. We need to use the package `readxl` an
 
 
 ```{r}
-install.packages("readxl")
+#install.packages("readxl")
 library("readxl")
 ```
 
