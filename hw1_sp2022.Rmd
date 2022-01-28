@@ -512,7 +512,7 @@ To help out, we have included some R-codes here as references. You should make y
 
 1. Clean data
 
-```{r data wrangling, echo = FALSE, warning = FALSE}
+```{r data wrangling, echo = FALSE, warning = FALSE, eval = FALSE}
 # For the demonstration purpose, we show this R-chunk by taking echo=TRUE
 # In your final report you should hide all the R-chunks to keep your report flowing well.
 wsci <- read_excel("WomenData_06_16.xlsx")
@@ -528,7 +528,7 @@ wsci
 ```
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval = FALSE}
 wsci %<>%
   rename(Field = "Field and sex",
          Number = "Degrees Awarded") %>%
@@ -541,7 +541,7 @@ wsci %<>%
 
 2. A number of sample analyses 
 
-```{r eval = FALSE, echo = FALSE}
+```{r eval = FALSE, echo = FALSE, eval = FALSE}
 wsci %>%  # to get the average number of ppl by gender
   group_by(Field, Sex) %>%
   summarise(deg = mean(Number))
@@ -736,7 +736,7 @@ summary(data_agg)
 
 ```{r}
 # now let's look at the averages on a plot and see if there is some relationship
-install.packages("ggrepel")
+#install.packages("ggrepel")
 library(ggrepel)
 data_agg %>%
   ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
