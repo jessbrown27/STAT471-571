@@ -654,12 +654,10 @@ i. To describe the increment of payroll in each year there are several possible 
     - option 1: diff: payroll_2013 - payroll_2012
     - option 2: log diff: log(payroll_2013) - log(payroll_2012)
 
-```{r}
+```{r, echo=TRUE}
 #let's look at the differences for 2013
-payData$p2013 - payData$p2012
-log(payData$p2013) - log(payData$p2012)
-summary(payData$p2013 - payData$p2012)
-summary(log(payData$p2013) - log(payData$p2012))
+print(summary(payData$p2013 - payData$p2012))
+print(summary(log(payData$p2013) - log(payData$p2012)))
 ```
 We can see that the values in the first set have a much larger range from -81.7 to 121.5, whereas the second set using the log  the values lie closer together and the range is from about -1 to 1.
 
