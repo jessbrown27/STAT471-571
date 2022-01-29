@@ -124,10 +124,10 @@ lapply(cleaned_survey_data, unique)
 ```
 
 
-**Answer:** We found that there were 35 rows with at least one missing value or unspecified answer (exclusive or). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondent did not answer the question. For the gender question in particular, it could be possible that the NAs were people who don't identify as male or female, something the survey did not account for; however, we also want to avoid making this assumption as it's very possible they just didn't answer the question. For the numeric columns, the NAs may also include entries which contained characters which would be turned into an NA value when we made the column numeric. To be standardized, for this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
+**Answer:** We found that there were 37 rows with at least one missing value or unspecified answer (including those with both). For most columns, this correlated to an NA value, except for education there are "select one" responses which likely indicate a drop down option where the respondent did not answer the question. For the gender question in particular, it could be possible that the NAs were people who don't identify as male or female, something the survey did not account for; however, we also want to avoid making this assumption as it's very possible they just didn't answer the question. For the numeric columns, the NAs may also include entries which contained characters which would be turned into an NA value when we made the column numeric. To be standardized, for this small sample of surveys not completely filled out, we opted to remove them to preserve the integrity of the data. 
 
 ```{r}
-print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, cleaned_survey_data$education == "select one"), ]))
+print(nrow(cleaned_survey_data[xor(rowSums(is.na(cleaned_survey_data)) > 0, cleaned_survey_data$education == "select one") | (rowSums(is.na(cleaned_survey_data)) > 0 & cleaned_survey_data$education == "select one"), ]))
 ```
 
 ```{r}
@@ -146,7 +146,7 @@ We could reasonably assume that the 223 person meant 22 or 23 and that the 4-yea
 final_survey_data = final_survey_data %>% filter(age != 4 & age != 223)
 ```
 
-Overall, we ended up removing only 37 rows from our dataset. Our overall sample is big enough that we still have enough datapoints to work with after removing these points, but it's also small enough that incorrect estimations for the missing or wrongly entered questions could make a tangible impact on our results. 
+Overall, we ended up removing only 39 rows from our dataset. Our overall sample is big enough that we still have enough datapoints to work with after removing these points, but it's also small enough that incorrect estimations for the missing or wrongly entered questions could make a tangible impact on our results. 
 
 iii. Brief summary 
 
