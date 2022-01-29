@@ -754,8 +754,8 @@ Above we created a new data set that found the average difference payroll on the
 library(ggrepel)
 data_agg %>%
   ggplot(aes(x = diff_log_avg, y = win_pct_ave)) + 
-  geom_point(color = "blue", size= 3, alpha = .8) + 
-  geom_text_repel(aes(label = team), size = 5) +
+  geom_point(color = "blue", size= 2, alpha = .8) + 
+  geom_text_repel(aes(label = team), size = 3) +
   labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
        x = "Average Change in Payroll", 
        y = "Win_pct_ave")
@@ -773,7 +773,7 @@ baseballSubset <- subset(baseball, !is.na(diff_log) & !is.na(win_pct_change))
 
 baseballSubset %>%
   ggplot(aes(x = diff_log, y = win_pct_change)) + 
-  geom_point(color = "blue", size= 3) + 
+  geom_point(color = "blue", size= 2) + 
   labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
        x = "Change in Payroll", 
        y = "Change in Win Percentage")
@@ -810,14 +810,14 @@ there is a visual correlation as well.
 ```{r}
 baseballSubset %>%
   ggplot(aes(x = diff_log, y = win_pct_change)) + 
-  geom_point(color = "blue", size= 3) + 
+  geom_point(color = "blue", size= 2) + 
   labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
        x = "Change in Payroll", 
        y = "Change in Win Percentage")
 
 baseballSubset %>%
   ggplot(aes(x = payroll, y = win_pct_change)) + 
-  geom_point(color = "blue", size= 3) + 
+  geom_point(color = "blue", size= 2) + 
   labs(title = "MLB Team's Win Percent  vs. Change in Payroll", 
        x = "Change in Payroll", 
        y = "Change in Win Percentage")
