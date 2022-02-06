@@ -249,10 +249,38 @@ x_patient <- fread("data/brca_x_patient.csv")
 This question utilizes the `Auto` dataset from ISLR. The original dataset contains 408 observations about cars. It is similar to the CARS dataset that we use in our lectures. To get the data, first install the package ISLR. The `Auto` dataset should be loaded automatically. We'll use this dataset to practice the methods learn so far. 
 Original data source is here: https://archive.ics.uci.edu/ml/datasets/auto+mpg
 
+```{r}
+?ISLR::Auto
+names(Auto)
+```
+
 Get familiar with this dataset first. Tip: you can use the command `?ISLR::Auto` to view a description of the dataset. 
+
 
 ## EDA
 Explore the data, with particular focus on pairwise plots and summary statistics. Briefly summarize your findings and any peculiarities in the data.
+
+```{r}
+names(Auto)
+Auto[1:5,]
+summary(Auto)
+```
+```{r}
+Auto %>% 
+  ggplot(aes(x=weight, y=mpg)) +
+  geom_point(size = 3) + 
+  labs(title = "Weight of Car vs MPG", 
+       x = "Weight", 
+       y = "MPG") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+cor(Auto$weight, Auto$mpg)
+```
+By looking at the above scatter plot and the correlation between the weight of the car and the MPG, we can said that there is a strong, negative correlation between the two variables, -0.832 is a strong indication that as the weight of the car increases, the MPG will decrease.
+
+
+
 
 
 ## What effect does `time` have on `MPG`?
