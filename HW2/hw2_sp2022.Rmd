@@ -279,7 +279,12 @@ cor(Auto$weight, Auto$mpg)
 ```
 By looking at the above scatter plot and the correlation between the weight of the car and the MPG, we can said that there is a strong, negative correlation between the two variables, -0.832 is a strong indication that as the weight of the car increases, the MPG will decrease.
 
+```{r}
+Auto %>% ggplot() +
+  geom_histogram(aes(x = cylinders), bins = 6, fill = "light blue") +
+  labs( title = "Histogram of Cylinders", x = "Number of Cylinders" , y = "Frequency")
 
+```
 
 
 
