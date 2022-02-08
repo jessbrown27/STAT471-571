@@ -264,7 +264,10 @@ Explore the data, with particular focus on pairwise plots and summary statistics
 names(Auto)
 Auto[1:5,]
 summary(Auto)
+sum(is.na(Auto))
 ```
+Note that there are no NA values in the data set, meaning there are no missing values. 
+
 ```{r}
 Auto %>% 
   ggplot(aes(x=weight, y=mpg)) +
@@ -285,16 +288,20 @@ Auto %>% ggplot() +
   labs( title = "Histogram of Cylinders", x = "Number of Cylinders" , y = "Frequency")
 
 ```
-
+We can see that the majority of the cars have an even number of cylinders. 
 
 
 ## What effect does `time` have on `MPG`?
 
 a) Start with a simple regression of `mpg` vs. `year` and report R's `summary` output. Is `year` a significant variable at the .05 level? State what effect `year` has on `mpg`, if any, according to this model. 
 
+
 b) Add `horsepower` on top of the variable `year` to your linear model. Is `year` still a significant variable at the .05 level? Give a precise interpretation of the `year`'s effect found here. 
 
+
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
+
+
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
 
