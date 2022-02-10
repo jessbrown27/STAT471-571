@@ -321,12 +321,25 @@ Although there are years where the median MPG of all the cars decreases, in gene
 
 a) Start with a simple regression of `mpg` vs. `year` and report R's `summary` output. Is `year` a significant variable at the .05 level? State what effect `year` has on `mpg`, if any, according to this model. 
 
+```{r}
+auto.fit <- lm(mpg~year, data = Auto)
+summary(auto.fit)
+```
+**Answer:** At the 0.05 level, we can see that year is a significant variable, as the p-value is <2e-16 and that is significantly less than 0.05. This means that we would reject the null hypothesis that $\beta_{year} = 0$. Thus we get that year has some effect on MPG. According to this model, as the year increases by one, we see that MPG increases by 1.23 mpg. 
+
 
 b) Add `horsepower` on top of the variable `year` to your linear model. Is `year` still a significant variable at the .05 level? Give a precise interpretation of the `year`'s effect found here. 
 
+```{r}
+auto.fit2 <- lm(mpg~year+horsepower, data = Auto)
+summary(auto.fit2)
+```
+**Answer:** At the 0.05 level, we can see that year is a significant variable, as the p-value is <2e-16 and that is significantly less than 0.05. This means that we would reject the null hypothesis that $\beta_{year} = 0$. 
+
+According to this model, holding horsepower constant, as the year increases by one, we see that MPG increases by 0.65727 mpg. 
+
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
-
 
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
