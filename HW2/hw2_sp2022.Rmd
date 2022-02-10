@@ -249,10 +249,6 @@ x_patient <- fread("data/brca_x_patient.csv")
 This question utilizes the `Auto` dataset from ISLR. The original dataset contains 408 observations about cars. It is similar to the CARS dataset that we use in our lectures. To get the data, first install the package ISLR. The `Auto` dataset should be loaded automatically. We'll use this dataset to practice the methods learn so far. 
 Original data source is here: https://archive.ics.uci.edu/ml/datasets/auto+mpg
 
-```{r}
-?ISLR::Auto
-names(Auto)
-```
 
 Get familiar with this dataset first. Tip: you can use the command `?ISLR::Auto` to view a description of the dataset. 
 
@@ -271,7 +267,7 @@ Note that there are no NA values in the data set, meaning there are no missing v
 ```{r}
 Auto %>% 
   ggplot(aes(x=weight, y=mpg)) +
-  geom_point(size = 3) + 
+  geom_point(size = 3, color = "dark green") + 
   labs(title = "Weight of Car vs MPG", 
        x = "Weight", 
        y = "MPG") +
@@ -288,7 +284,37 @@ Auto %>% ggplot() +
   labs( title = "Histogram of Cylinders", x = "Number of Cylinders" , y = "Frequency")
 
 ```
-We can see that the majority of the cars have an even number of cylinders. 
+We can see that the majority of the cars have an even number of cylinders. This is likely for efficiency in the balancing of the engine and allowing for symmetry when making the car. 
+
+```{r}
+Auto %>% 
+  ggplot(aes(x=horsepower, y=acceleration)) +
+  geom_point(size = 3, color = "blue") + 
+  labs(title = "Horsepower vs. Acceleration", 
+       x = "Horsepower", 
+       y = "Acceleration") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+cor(Auto$horsepower, Auto$acceleration)
+```
+From the above graph and the correlation between horsepower and acceleration, we can see that as the horsepower for a car increases, the acceleration decreases. 
+
+```{r}
+Auto %>%
+  ggplot(aes(x = year, y = mpg, group = year, fill = year)) + 
+  geom_boxplot() +
+  xlab("Year") +
+  ylab("MPG") +
+  ggtitle("MPG by Year") + 
+  theme(legend.position = "none",
+        # adjust for margins around the plot; t: top; r: right; b: bottom; l: left
+        plot.margin = margin(t = 5, r = 50, b = 5, l = 0, unit = "pt"), 
+        axis.text.x = element_text(angle = -60, vjust = 0, hjust = 0))
+
+```
+
+Although there are years where the median MPG of all the cars decreases, in general as the years go by there is an increase in MPG of the cars. This could be due to new developments in technology and inventions and innovations. 
 
 
 ## What effect does `time` have on `MPG`?
