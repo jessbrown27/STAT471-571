@@ -134,6 +134,20 @@ The following 10 questions are answered as 1: strongly agree, 2: agree, 3: disag
 
 Load the data. Do a quick EDA to get familiar with the data set. Pay attention to the unit of each variable. Are there any missing values?
 
+```{R}
+#library(dplyr)
+#library(readr)
+#library(tidyverse)
+esteem_data <- read.csv("data/NLSY79.csv")
+esteem_data
+str(esteem_data)
+summary(esteem_data)
+esteem_unique <- lapply(esteem_data, unique)
+esteem_unique
+sum(is.na(esteem_data))
+```
+
+There are no missing values. However, there are negatives numbers in variables that does not make sense. For Income87 the minimum value is -2 and for HeightFeet05 the minimum value is -4.
 
 ## Self esteem evaluation
 
@@ -249,21 +263,112 @@ x_patient <- fread("data/brca_x_patient.csv")
 This question utilizes the `Auto` dataset from ISLR. The original dataset contains 408 observations about cars. It is similar to the CARS dataset that we use in our lectures. To get the data, first install the package ISLR. The `Auto` dataset should be loaded automatically. We'll use this dataset to practice the methods learn so far. 
 Original data source is here: https://archive.ics.uci.edu/ml/datasets/auto+mpg
 
+
 Get familiar with this dataset first. Tip: you can use the command `?ISLR::Auto` to view a description of the dataset. 
+
 
 ## EDA
 Explore the data, with particular focus on pairwise plots and summary statistics. Briefly summarize your findings and any peculiarities in the data.
+
+```{r}
+names(Auto)
+Auto[1:5,]
+summary(Auto)
+sum(is.na(Auto))
+```
+Note that there are no NA values in the data set, meaning there are no missing values. 
+
+```{r}
+Auto %>% 
+  ggplot(aes(x=weight, y=mpg)) +
+  geom_point(size = 3, color = "dark green") + 
+  labs(title = "Weight of Car vs MPG", 
+       x = "Weight", 
+       y = "MPG") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+cor(Auto$weight, Auto$mpg)
+```
+By looking at the above scatter plot and the correlation between the weight of the car and the MPG, we can said that there is a strong, negative correlation between the two variables, -0.832 is a strong indication that as the weight of the car increases, the MPG will decrease.
+
+```{r}
+Auto %>% ggplot() +
+  geom_histogram(aes(x = cylinders), bins = 6, fill = "light blue") +
+  labs( title = "Histogram of Cylinders", x = "Number of Cylinders" , y = "Frequency")
+
+```
+We can see that the majority of the cars have an even number of cylinders. This is likely for efficiency in the balancing of the engine and allowing for symmetry when making the car. 
+
+```{r}
+Auto %>% 
+  ggplot(aes(x=horsepower, y=acceleration)) +
+  geom_point(size = 3, color = "blue") + 
+  labs(title = "Horsepower vs. Acceleration", 
+       x = "Horsepower", 
+       y = "Acceleration") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+cor(Auto$horsepower, Auto$acceleration)
+```
+From the above graph and the correlation between horsepower and acceleration, we can see that as the horsepower for a car increases, the acceleration decreases. 
+
+```{r}
+Auto %>%
+  ggplot(aes(x = year, y = mpg, group = year, fill = year)) + 
+  geom_boxplot() +
+  xlab("Year") +
+  ylab("MPG") +
+  ggtitle("MPG by Year") + 
+  theme(legend.position = "none",
+        # adjust for margins around the plot; t: top; r: right; b: bottom; l: left
+        plot.margin = margin(t = 5, r = 50, b = 5, l = 0, unit = "pt"), 
+        axis.text.x = element_text(angle = -60, vjust = 0, hjust = 0))
+
+```
+
+Although there are years where the median MPG of all the cars decreases, in general as the years go by there is an increase in MPG of the cars. This could be due to new developments in technology and inventions and innovations. 
 
 
 ## What effect does `time` have on `MPG`?
 
 a) Start with a simple regression of `mpg` vs. `year` and report R's `summary` output. Is `year` a significant variable at the .05 level? State what effect `year` has on `mpg`, if any, according to this model. 
 
+```{r}
+auto.fit <- lm(mpg~year, data = Auto)
+summary(auto.fit)
+```
+**Answer:** At the 0.05 level, we can see that year is a significant variable, as the p-value is <2e-16 and that is significantly less than 0.05. This means that we would reject the null hypothesis that $\beta_{year} = 0$. Thus we get that year has some effect on MPG. According to this model, as the year increases by one, we see that MPG increases by 1.23 mpg. 
+
+
 b) Add `horsepower` on top of the variable `year` to your linear model. Is `year` still a significant variable at the .05 level? Give a precise interpretation of the `year`'s effect found here. 
+
+```{r}
+auto.fit2 <- lm(mpg~year+horsepower, data = Auto)
+summary(auto.fit2)
+```
+**Answer:** At the 0.05 level, we can see that year is a significant variable, as the p-value is <2e-16 and that is significantly less than 0.05. This means that we would reject the null hypothesis that $\beta_{year} = 0$. 
+
+According to this model, holding horsepower constant, as the year increases by one, we see that MPG increases by 0.65727 mpg. 
+
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
+A 95% Confidence interval for the mean given a set of predictors:
+
+ŷ ±t∗.025×se(ŷ )
+
+
+
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
+
+```{r}
+auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
+summary(auto.fit3)
+```
+Here we are modeling horsepower by year. 
+
 
 ## Categorical predictors
 
@@ -287,83 +392,4 @@ a) Describe the final model. Include diagnostic plots with particular focus on t
 b) Summarize the effects found.
 
 c) Predict the `mpg` of the following car: A red car built in the US in 1983 that is 180 inches long, has eight cylinders, displaces 350 cu. inches, weighs 4000 pounds, and has a horsepower of 260. Also give a 95% CI for your prediction.
-
-
-# Simple Regression through simulations (option)
-    
-## Linear model through simulations
-
-This exercise is designed to help you understand the linear model using simulations. In this exercise, we will generate $(x_i, y_i)$ pairs so that all linear model assumptions are met.
-
-Presume that $\mathbf{x}$ and $\mathbf{y}$ are linearly related with a normal error $\boldsymbol{\varepsilon}$ , such that $\mathbf{y} = 1 + 1.2\mathbf{x} + \boldsymbol{\varepsilon}$. The standard deviation of the error $\varepsilon_i$ is $\sigma = 2$. 
-
-We can create a sample input vector ($n = 40$) for $\mathbf{x}$ with the following code:
-
-```{r, eval = F, echo = TRUE}
-# Generates a vector of size 40 with equally spaced values between 0 and 1, inclusive
-x <- seq(0, 1, length = 40)
-```
-
-
-### Generate data
-
-Create a corresponding output vector for $\mathbf{y}$ according to the equation given above. Use `set.seed(1)`. Then, create a scatterplot with $(x_i, y_i)$ pairs. Base R plotting is acceptable, but if you can, please attempt to use `ggplot2` to create the plot. Make sure to have clear labels and sensible titles on your plots.
-
-
-### Understand the model
-i. Find the LS estimates of $\boldsymbol{\beta}_0$ and $\boldsymbol{\beta}_1$, using the `lm()` function. What are the true values of $\boldsymbol{\beta}_0$ and $\boldsymbol{\beta}_1$? Do the estimates look to be good? 
-
-ii. What is your RSE for this linear model fit? Is it close to $\sigma = 2$? 
-
-ii. What is the 95% confidence interval for $\boldsymbol{\beta}_1$? Does this confidence interval capture the true $\boldsymbol{\beta}_1$?
-
-iii. Overlay the LS estimates and the true lines of the mean function onto a copy of the scatterplot you made above.
-
-
-### diagnoses
-
-i. Provide residual plot where fitted $\mathbf{y}$-values are on the x-axis and residuals are on the y-axis. 
-
-ii. Provide a normal QQ plot of the residuals.
-
-iii. Comment on how well the model assumptions are met for the sample you used. 
-
-
-
-## Understand sampling distribution and confidence intervals
-
-This part aims to help you understand the notion of sampling statistics and confidence intervals. Let's concentrate on estimating the slope only.  
-
-Generate 100 samples of size $n = 40$, and estimate the slope coefficient from each sample. We include some sample code below, which should guide you in setting up the simulation. Note: this code is easier to follow but suboptimal; see the appendix for a more optimal R-like way to run this simulation.
-```{r, eval = F, echo = TRUE}
-# Inializing variables. Note b_1, upper_ci, lower_ci are vectors
-x <- seq(0, 1, length = 40) 
-n_sim <- 100              # number of simulations
-b1 <- 0                   # n_sim many LS estimates of beta_1 (=1.2). Initialize to 0 for now
-upper_ci <- 0             # upper bound for beta_1. Initialize to 0 for now.
-lower_ci <- 0             # lower bound for beta_1. Initialize to 0 for now.
-t_star <- qt(0.975, 38)   # Food for thought: why 38 instead of 40? What is t_star?
-
-# Perform the simulation
-for (i in 1:n_sim){I l
-  y <- 1 + 1.2 * x + rnorm(40, sd = 2)
-  lse <- lm(y ~ x)
-  lse_output <- summary(lse)$coefficients
-  se <- lse_output[2, 2]
-  b1[i] <- lse_output[2, 1]
-  upper_ci[i] <- b1[i] + t_star * se
-  lower_ci[i] <- b1[i] - t_star * se
-}
-results <- as.data.frame(cbind(se, b1, upper_ci, lower_ci))
-
-# remove unecessary variables from our workspace
-rm(se, b1, upper_ci, lower_ci, x, n_sim, b1, t_star, lse, lse_out) 
-```
-
-i. Summarize the LS estimates of $\boldsymbol{\beta}_1$ (stored in `results$b1`). Does the sampling distribution agree with theory? 
-
-ii.  How many of your 95% confidence intervals capture the true $\boldsymbol{\beta}_1$? Display your confidence intervals graphically. 
-
-
-
 
