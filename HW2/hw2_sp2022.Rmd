@@ -355,16 +355,28 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
-β̂ i±t∗.025se(β̂ i).
+**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is diffeent here is because you are changing more featuers of the car as you test it. 
 
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
+```{r}
+ggplot(Auto, aes(x = horsepower, y = mpg, color=year)) + 
+  geom_point() + 
+  geom_smooth(method = "lm" , se =F) + 
+  facet_wrap(~ year) + labs(title="MPG by Year")
+```
+Here we can see that for each year the slope for the interaction between horsepower and mpg differs, however we will run a model and confirm with a hypothesis test that the year has some impact. 
+
 
 ```{r}
 auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
 summary(auto.fit3)
+anova(auto.fit2, auto.fit3)
+anova(auto.fit3)
 ```
-Here we are modeling horsepower by year. 
+**Answer:** Here we are modeling horsepower by year. This allows us to see if horsepower depends at all on the year.
+
+We do reject the null hypothesis with a p-value of <2e-16. That indicates some interaction effect of HP and Year.
 
 
 ## Categorical predictors
@@ -373,7 +385,22 @@ Remember that the same variable can play different roles! Take a quick look at t
 
 a) Fit a model that treats `cylinders` as a continuous/numeric variable. Is `cylinders` significant at the 0.01 level? What effect does `cylinders` play in this model?
 
+First let's only include the variable that make sense for the regression
+```{r}
+names(Auto)
+names.exclude <- names(Auto) %in% c("name")
+auto2 <- Auto[!names.exclude]  # Take a subset with all var's but "Make.Model","MPG_Hwy","Make"
+names(auto2)    #str(data2)   table(data2$Transmission)
+```
+
+```{r}
+fit.cyl.number <- lm(mpg~. , auto2)
+summary(fit.cyl.number)
+```
+
 b) Fit a model that treats `cylinders` as a categorical/factor. Is `cylinders` significant at the .01 level? What is the effect of `cylinders` in this model? Describe the `cylinders` effect over `mpg`. 
+
+
 
 c) What are the fundamental differences between treating `cylinders` as a continuous and categorical variable in your models? 
 
