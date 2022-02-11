@@ -134,6 +134,20 @@ The following 10 questions are answered as 1: strongly agree, 2: agree, 3: disag
 
 Load the data. Do a quick EDA to get familiar with the data set. Pay attention to the unit of each variable. Are there any missing values?
 
+```{R}
+#library(dplyr)
+#library(readr)
+#library(tidyverse)
+esteem_data <- read.csv("data/NLSY79.csv")
+esteem_data
+str(esteem_data)
+summary(esteem_data)
+esteem_unique <- lapply(esteem_data, unique)
+esteem_unique
+sum(is.na(esteem_data))
+```
+
+There are no missing values. However, there are negatives numbers in variables that does not make sense. For Income87 the minimum value is -2 and for HeightFeet05 the minimum value is -4.
 
 ## Self esteem evaluation
 
