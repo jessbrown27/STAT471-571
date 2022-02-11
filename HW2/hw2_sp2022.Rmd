@@ -341,8 +341,20 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
+A 95% Confidence interval for the mean given a set of predictors:
+
+ŷ ±t∗.025×se(ŷ )
+
+
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
+
+```{r}
+auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
+summary(auto.fit3)
+```
+Here we are modeling horsepower by year. 
+
 
 ## Categorical predictors
 
