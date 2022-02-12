@@ -134,6 +134,17 @@ The following 10 questions are answered as 1: strongly agree, 2: agree, 3: disag
 
 Load the data. Do a quick EDA to get familiar with the data set. Pay attention to the unit of each variable. Are there any missing values?
 
+```{R}
+esteem_data <- read.csv("data/NLSY79.csv")
+esteem_data
+str(esteem_data)
+summary(esteem_data)
+esteem_unique <- lapply(esteem_data, unique)
+esteem_unique
+sum(is.na(esteem_data))
+```
+
+There are no missing values. However, there are negatives numbers in variables that does not make sense. For Income87 the minimum value is -2 and for HeightFeet05 the minimum value is -4.
 
 ## Self esteem evaluation
 
@@ -141,11 +152,37 @@ Let concentrate on Esteem scores evaluated in 87.
 
 1. Reverse Esteem 1, 2, 4, 6, and 7 so that a higher score corresponds to higher self-esteem. (Hint: if we store the esteem data in `data.esteem`, then `data.esteem[,  c(1, 2, 4, 6, 7)]  <- 5 - data.esteem[,  c(1, 2, 4, 6, 7)]` to reverse the score.)
 
+```{R}
+esteem87 <- esteem_data[,  c(37:46)]
+esteem87[,  c(1, 2, 4, 6, 7)] <- 5 - esteem87[,  c(1, 2, 4, 6, 7)]
+esteem87
+```
+
 2. Write a brief summary with necessary plots about the 10 esteem measurements.
+
+```{R}
+ggplot(gather(esteem87), aes(value)) + 
+    geom_histogram(bins = 4) + 
+    facet_wrap(~key, scales = 'free_x')
+```
+
+**Answer:** A majority of the responses for all the esteem measurements fall on the higher end (3 or 4). However there are esteem measurements that have higher counts of 4s (1, 2, 3, and 5), relatively equal counts of 3s and 4s as the majority (4, 6, and 10), and ones that have a higher count of 3s (7, 8, and 9).
 
 3. Do esteem scores all positively correlated? Report the pairwise correlation table and write a brief summary.
 
+```{R}
+pairs(esteem87, xlim=c(1, 4), ylim=c(1, 4), pch=16)
+cor(esteem87)
+```
+
+**Answer:** The esteem scores are all positively correlated with each other. Esteem 1 and 2 have the strongest pairwise correlation with an r of 0.704. Esteem score 8 seems to have the weakest correlation with the other esteems with none of the r values being above 0.5. Esteem score 7 and 9 is also on the weaker side. The esteem scores that have a similar histogram as in part 2 have a stronger correlation while having a weeker correlation with histograms that differ in shape. 
+
 4. PCA on 10 esteem measurements. (centered but no scaling)
+
+```{R}
+esteem_pc <- prcomp(esteem87, scale=TRUE)
+esteem_pc
+```
 
     a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal? 
   
@@ -384,8 +421,29 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
+**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is diffeent here is because you are changing more featuers of the car as you test it. 
+
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
+```{r}
+ggplot(Auto, aes(x = horsepower, y = mpg, color=year)) + 
+  geom_point() + 
+  geom_smooth(method = "lm" , se =F) + 
+  facet_wrap(~ year) + labs(title="MPG by Year")
+```
+Here we can see that for each year the slope for the interaction between horsepower and mpg differs, however we will run a model and confirm with a hypothesis test that the year has some impact. 
+
+
+```{r}
+auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
+summary(auto.fit3)
+anova(auto.fit2, auto.fit3)
+anova(auto.fit3)
+```
+**Answer:** Here we are modeling horsepower by year. This allows us to see if horsepower depends at all on the year.
+
+We do reject the null hypothesis with a p-value of <2e-16. That indicates some interaction effect of HP and Year.
+
 
 ## Categorical predictors
 
@@ -393,7 +451,22 @@ Remember that the same variable can play different roles! Take a quick look at t
 
 a) Fit a model that treats `cylinders` as a continuous/numeric variable. Is `cylinders` significant at the 0.01 level? What effect does `cylinders` play in this model?
 
+First let's only include the variable that make sense for the regression
+```{r}
+names(Auto)
+names.exclude <- names(Auto) %in% c("name")
+auto2 <- Auto[!names.exclude]  # Take a subset with all var's but "Make.Model","MPG_Hwy","Make"
+names(auto2)    #str(data2)   table(data2$Transmission)
+```
+
+```{r}
+fit.cyl.number <- lm(mpg~. , auto2)
+summary(fit.cyl.number)
+```
+
 b) Fit a model that treats `cylinders` as a categorical/factor. Is `cylinders` significant at the .01 level? What is the effect of `cylinders` in this model? Describe the `cylinders` effect over `mpg`. 
+
+
 
 c) What are the fundamental differences between treating `cylinders` as a continuous and categorical variable in your models? 
 
