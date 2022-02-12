@@ -135,9 +135,6 @@ The following 10 questions are answered as 1: strongly agree, 2: agree, 3: disag
 Load the data. Do a quick EDA to get familiar with the data set. Pay attention to the unit of each variable. Are there any missing values?
 
 ```{R}
-#library(dplyr)
-#library(readr)
-#library(tidyverse)
 esteem_data <- read.csv("data/NLSY79.csv")
 esteem_data
 str(esteem_data)
@@ -155,11 +152,37 @@ Let concentrate on Esteem scores evaluated in 87.
 
 1. Reverse Esteem 1, 2, 4, 6, and 7 so that a higher score corresponds to higher self-esteem. (Hint: if we store the esteem data in `data.esteem`, then `data.esteem[,  c(1, 2, 4, 6, 7)]  <- 5 - data.esteem[,  c(1, 2, 4, 6, 7)]` to reverse the score.)
 
+```{R}
+esteem87 <- esteem_data[,  c(37:46)]
+esteem87[,  c(1, 2, 4, 6, 7)] <- 5 - esteem87[,  c(1, 2, 4, 6, 7)]
+esteem87
+```
+
 2. Write a brief summary with necessary plots about the 10 esteem measurements.
+
+```{R}
+ggplot(gather(esteem87), aes(value)) + 
+    geom_histogram(bins = 4) + 
+    facet_wrap(~key, scales = 'free_x')
+```
+
+**Answer:** A majority of the responses for all the esteem measurements fall on the higher end (3 or 4). However there are esteem measurements that have higher counts of 4s (1, 2, 3, and 5), relatively equal counts of 3s and 4s as the majority (4, 6, and 10), and ones that have a higher count of 3s (7, 8, and 9).
 
 3. Do esteem scores all positively correlated? Report the pairwise correlation table and write a brief summary.
 
+```{R}
+pairs(esteem87, xlim=c(1, 4), ylim=c(1, 4), pch=16)
+cor(esteem87)
+```
+
+**Answer:** The esteem scores are all positively correlated with each other. Esteem 1 and 2 have the strongest pairwise correlation with an r of 0.704. Esteem score 8 seems to have the weakest correlation with the other esteems with none of the r values being above 0.5. Esteem score 7 and 9 is also on the weaker side. The esteem scores that have a similar histogram as in part 2 have a stronger correlation while having a weeker correlation with histograms that differ in shape. 
+
 4. PCA on 10 esteem measurements. (centered but no scaling)
+
+```{R}
+esteem_pc <- prcomp(esteem87, scale=TRUE)
+esteem_pc
+```
 
     a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal? 
   
