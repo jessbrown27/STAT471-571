@@ -408,7 +408,7 @@ Remember that the same variable can play different roles! Take a quick look at t
 
 a) Fit a model that treats `cylinders` as a continuous/numeric variable. Is `cylinders` significant at the 0.01 level? What effect does `cylinders` play in this model?
 
-First let's only include the variable that make sense for the regression
+First let's only include the variables that make sense for the regression
 ```{r}
 names(Auto)
 names.exclude <- names(Auto) %in% c("name")
@@ -421,11 +421,21 @@ fit.cyl.number <- lm(mpg~. , auto2)
 summary(fit.cyl.number)
 ```
 
+**Answer:** With a significance level of 0.1278, we fail to reject the null hypothesis that $\beta_{cylinders} = 0$. Thus when cylinders is accounted for as a numerical variable, it cannot be considered significant. 
+
 b) Fit a model that treats `cylinders` as a categorical/factor. Is `cylinders` significant at the .01 level? What is the effect of `cylinders` in this model? Describe the `cylinders` effect over `mpg`. 
 
-
+```{r}
+auto2$cylinders <- as.factor(auto2$cylinders)
+fit.cyl.factor <- lm(mpg~. , auto2)
+anova(fit.cyl.factor)
+```
+**Answer:** Cylinders here, is very significant as a categorical/factor variable. With a p-value of < 2e-16, we reject the null hypthesis that cylinders has no impact on MPG. Rather is it a significant variable, with the coefficient not equal to zero. 
 
 c) What are the fundamental differences between treating `cylinders` as a continuous and categorical variable in your models? 
+
+**Answer:** Although the variable `cylinders` is numeric in nature, it is highly, non linear as we saw in it's histogram in the EDA. This means that it is more valuable to consider this variable as a factor instead of it's numeric value. By having cylinders as a factor, we can look at the affect that the number of cylinders has on the car by breaking up the one variable into many. 
+
 
 d) Can you test the null hypothesis: fit0: `mpg` is linear in `cylinders` vs. fit1: `mpg` relates to `cylinders` as a categorical variable at .01 level?  
 
