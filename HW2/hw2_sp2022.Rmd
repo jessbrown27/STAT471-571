@@ -1,7 +1,7 @@
 ---
 title: "Modern Data Mining, HW 2"
 author:
-- Jess Brown
+- Jessica Brown
 - Sarah Hayward
 - Annie Vo
 date: 'Due: 11:59 PM,  Sunday, 02/13'
@@ -215,17 +215,60 @@ brca <- brca[,-1]
 1. Summary and transformation
 
     a) How many patients are there in each sub-type? 
+    
+```{r}
+table(brca_subtype)
+```
+
 
     b) Randomly pick 5 genes and plot the histogram by each sub-type.
+```{r}
+#randomly select 5 genes
+set.seed(5)
+sample_idx <- sample(ncol(brca), 5)
+
+#plot histogram
+brca %>%
+  select(all_of(sample_idx)) %>% # select column by index
+  pivot_longer(cols = everything()) %>% # for facet(0)
+  ggplot(aes(x = value, y = ..density..)) +
+  geom_histogram(aes(fill = name)) +
+  facet_wrap(~name, scales = "free") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+    
 
     c) Remove gene with zero count and no variability. Then apply logarithmic transform.
+```{r}
+keep_cols <- which(colSums(abs(brca)) != 0)
+brca_sub <- brca[, keep_cols, with = F]
+
+#log 
+brca_sub <- log2(as.matrix(brca_sub+1e-10))
+```
 
 
 2. Apply kmeans on the transformed dataset with 4 centers and output the discrepancy table between the real sub-type `brca_subtype` and the cluster labels.
 
+```{r}
+brca_sub_kmeans <- kmeans(x = brca_sub, 4)
+```
+
+```{r}
+#output discrepancy table
+table(brca_subtype, brca_sub_kmeans$cluster)
+```
+
+
 3. Spectrum clustering: to scale or not to scale?
 
     a) Apply PCA on the centered and scaled dataset. How many PCs should we use and why? You are encouraged to use `irlba::irlba()`.
+```{r}
+brca_sub_scaled <- scale(as.matrix(brca_sub), center = T, scale = T)
+svd_ret <- irlba::irlba(brca_sub_scaled)
+```
+    
     
     b) Plot PC1 vs PC2 of the centered and scaled data and PC1 vs PC2 of the centered but unscaled data side by side. Should we scale or not scale for clustering propose? Why? (Hint: to put plots side by side, use `gridExtra::grid.arrange()` or `ggpubr::ggrrange()` or `egg::ggrrange()` for ggplots; use `fig.show="hold"` as chunk option for base plots)
 
