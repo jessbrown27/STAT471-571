@@ -1,7 +1,7 @@
 ---
 title: "Modern Data Mining, HW 2"
 author:
-- Jess Brown
+- Jessica Brown
 - Sarah Hayward
 - Annie Vo
 date: 'Due: 11:59 PM,  Sunday, 02/13'
@@ -134,17 +134,6 @@ The following 10 questions are answered as 1: strongly agree, 2: agree, 3: disag
 
 Load the data. Do a quick EDA to get familiar with the data set. Pay attention to the unit of each variable. Are there any missing values?
 
-```{R}
-esteem_data <- read.csv("data/NLSY79.csv")
-esteem_data
-str(esteem_data)
-summary(esteem_data)
-esteem_unique <- lapply(esteem_data, unique)
-esteem_unique
-sum(is.na(esteem_data))
-```
-
-There are no missing values. However, there are negatives numbers in variables that does not make sense. For Income87 the minimum value is -2 and for HeightFeet05 the minimum value is -4.
 
 ## Self esteem evaluation
 
@@ -152,156 +141,34 @@ Let concentrate on Esteem scores evaluated in 87.
 
 1. Reverse Esteem 1, 2, 4, 6, and 7 so that a higher score corresponds to higher self-esteem. (Hint: if we store the esteem data in `data.esteem`, then `data.esteem[,  c(1, 2, 4, 6, 7)]  <- 5 - data.esteem[,  c(1, 2, 4, 6, 7)]` to reverse the score.)
 
-```{R}
-esteem87 <- esteem_data[,  c(37:46)]
-esteem87_transformed <- esteem87
-esteem87_transformed[,  c(1, 2, 4, 6, 7)] <- 5 - esteem87_transformed[,  c(1, 2, 4, 6, 7)]
-esteem87
-esteem87_transformed
-```
-
 2. Write a brief summary with necessary plots about the 10 esteem measurements.
-
-```{R}
-ggplot(gather(esteem87_transformed), aes(value)) + 
-    geom_histogram(bins = 4) + 
-    facet_wrap(~key, scales = 'free_x')
-```
-
-**Answer:** A majority of the responses for all the esteem measurements fall on the higher end (3 or 4). However there are esteem measurements that have higher counts of 4s (1, 2, 3, and 5), relatively equal counts of 3s and 4s as the majority (4, 6, and 10), and ones that have a higher count of 3s (7, 8, and 9).
 
 3. Do esteem scores all positively correlated? Report the pairwise correlation table and write a brief summary.
 
-```{R}
-pairs(esteem87_transformed, xlim=c(1, 4), ylim=c(1, 4), pch=16)
-cor(esteem87_transformed)
-```
-
-**Answer:** The esteem scores are all positively correlated with each other. Esteem 1 and 2 have the strongest pairwise correlation with an r of 0.704. Esteem score 8 seems to have the weakest correlation with the other esteems with none of the r values being above 0.5. Esteem score 7 and 9 is also on the weaker side. The esteem scores that have a similar histogram as in part 2 have a stronger correlation while having a weeker correlation with histograms that differ in shape. 
-
 4. PCA on 10 esteem measurements. (centered but no scaling)
 
-```{R}
-esteem_pc <- prcomp(esteem87_transformed, scale=TRUE)
-esteem_pc
-```
-
-    a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal?
-    
-    ```{R}
-    esteem_pc$rotation[, c(1, 2)]
-    ```
-    
-    By definition, all loadings are unit 1 so they are unit vectors and they are all perpendicular.
-    
+    a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal? 
+  
     b) Are there good interpretations for PC1 and PC2? (If loadings are all negative, take the positive loadings for the ease of interpretation)
-    
-    PC1 is the weighted sum of the scores and also shows which are more strongly correlated with each other. The loadings for esteem score 8 and 9 align with the answer in question 3 that they have a weaker correlation. Esteem score 2 and 6 seem to have the stronger ones. PC2 shows the difference of the esteems, as some increase (esteem 3, 5, 7, 8, 9, 10), the others decrease (esteem 1, 2, 4, 6) and vice versa. 
-    
+  
     c) How is the PC1 score obtained for each subject? Write down the formula.
     
-    The PC1 score is obtained by multiplying the actual values by the loadings. In this case it would be: Esteem87_1 * 0.324 + Esteem87_2 * 0.333 + Esteem87_3 * 0.322 + Esteem87_4 * 0.324 + Esteem87_5 * 0.315 + Esteem87_6 * 0.347 + Esteem87_7 * 0.315 + Esteem87_8 * 0.280 + Esteem87_9 * 0.277 + Esteem87_10 * 0.318
+    d) Are PC1 scores and PC2 scores in the data uncorrelated? 
     
-    d) Are PC1 scores and PC2 scores in the data uncorrelated?
-    
-    All PC scores are uncorrelated.
-    
-    e) Plot PVE (Proportion of Variance Explained) and summarize the plot.
-    
-    ```{R}
-    summary(esteem_pc)$importance
-    plot(esteem_pc)
-    plot(summary(esteem_pc)$importance[2, ],  # PVE
-     ylab="PVE",
-     xlab="Number of PC's",
-     pch = 16, 
-     main="Scree Plot of PVE for Esteem")
-    ```
-    
-    The plot has a steep drop at 2 PCs so that indicates that 2 leading PCs should be enough for most purposes since a large portion of the variances can be explained by those 2. At 1 PC, there is nearly a 0.5 PVE then the chart drops when at 2 PCs to a bit above 0.1 PVE. After the second PC, the PVE levels out a bit.
+    e) Plot PVE (Proportion of Variance Explained) and summarize the plot. 
   
     f) Also plot CPVE (Cumulative Proportion of Variance Explained). What proportion of the variance in the data is explained by the first two principal components?
-    
-    ```{R}
-    plot(summary(esteem_pc)$importance[3, ], pch=16,
-     ylab="Cumulative PVE",
-     xlab="Number of PC's",
-     main="Scree Plot of Cumulative PVE for Esteem")
-    ```
-    
-    About 0.6 of the variance in the data is explained by the first two principal components.
   
     g) PC’s provide us with a low dimensional view of the self-esteem scores. Use a biplot with the first two PC's to display the data.  Give an interpretation of PC1 and PC2 from the plot. (try `ggbiplot` if you could, much prettier!)
-    
-    ```{R}
-    biplot(esteem_pc, cex=0.5, xlim=c(-.03, .03),
-       ylim=c(-.03, .03),
-       main="Biplot for first 2 PCs")
-    abline(h=0, v=0, col="red", lwd=2)
-    ```
-    
-    Loadings for PC1 are similar in magnitudes and with same signs. PC2 captures the difference of total of esteem 3, 5, 7, 8, 9, 10 and total of esteem 1, 2, 4, 6. Esteem 1 and 2 are highly correlated with each other. 3 and 7 are also highly coorelated, as well as 8 and 10.
 
 5. Apply k-means to cluster subjects on the original esteem scores
 
     a) Find a reasonable number of clusters using within sum of squared with elbow rules.
     
-    ```{R}
-    #install.packages("factoextra")
-    #library(factoextra)
-    set.seed(0)
-    fviz_nbclust(esteem87[,-1], kmeans, method = "wss")
-    ```
-    
-    There is a bend at number of clusters = 2 so a reasonable number of clusters to use is 2.
-    
     b) Can you summarize common features within each cluster?
     
-    ```{R}
-    esteem_kmeans <- kmeans(esteem87, centers = 2 )
-    str(esteem_kmeans)
-    esteem_kmeans$centers
-    ```
-    
-    From looking at the centers for the two clusters, the first cluster has more extreme scores (either closer to 1 or 4). Meanwhile the second cluster has more mild scores (closer to the middle range of scores (2 and 3)).
-    
     c) Can you visualize the clusters with somewhat clear boundaries? You may try different pairs of variables and different PC pairs of the esteem scores.
-    
-    ```{R}
-    data.frame(
-        education = esteem_data$Education05,
-        AFQT = esteem_data$AFQT,   
-        group = as.factor(esteem_kmeans$cluster)) %>%
-    ggplot(aes(x = education, y = AFQT, col = group)) +
-    geom_point() +
-    ggtitle("Clustering over education in 2005 and AFQT in 1981")
-    
-    data.frame(
-        income = esteem_data$Income05,
-        family_income = esteem_data$FamilyIncome78,   
-        group = as.factor(esteem_kmeans$cluster)) %>%
-    ggplot(aes(x = income, y = family_income, col = group)) +
-    geom_point() +
-    ggtitle("Clustering over income in 2005 and family income in 1978")
-    
-    data.frame(
-        weight = esteem_data$Weight05,
-        height = esteem_data$HeightFeet05 * 12 + esteem_data$HeightInch05,   
-        group = as.factor(esteem_kmeans$cluster)) %>%
-    ggplot(aes(x = weight, y = height, col = group)) +
-    geom_point() +
-    ggtitle("Clustering over weight and height in 2005")
-    
-    data.frame(
-        pc1 = esteem_pc$x[, 1], 
-        pc2 = esteem_pc$x[, 2],
-        group = as.factor(esteem_kmeans$cluster)) %>%
-    ggplot(aes(x = pc1, y = pc2, col = group)) +
-    geom_point() +
-    ggtitle("Clustering over PC1 and PC2")
-    ```
-    
-    For education and AFQT, there is not much of a clear boundry on the clusters. However, a majority of the people with education less than 10 does seem to fall under the second cluster. When looking at income and family income, there is a larger clump of cluster 2 wiht a lower income and family income. There does not seem to be any clear boundaries with the clusters when looking at height and weight. When looking at PC1, there is a clear separation between the two clusters. Points with a negative PC1 are largely in cluster 2 while positive PC1s are largely cluster 1.
+
 
 6. We now try to find out what factors are related to self-esteem? PC1 of all the Esteem scores is a good variable to summarize one's esteem scores. We take PC1 as our response variable.
 
@@ -443,27 +310,141 @@ brca <- brca[,-1]
 1. Summary and transformation
 
     a) How many patients are there in each sub-type? 
+    
+```{r}
+table(brca_subtype)
+```
+This table shows the amount of patients in each subtype. 
 
     b) Randomly pick 5 genes and plot the histogram by each sub-type.
+```{r}
+#randomly select 5 genes
+set.seed(5)
+sample_idx <- sample(ncol(brca), 5)
+
+#plot histogram
+brca %>% 
+  select(all_of(sample_idx)) %>% # select column by index
+  mutate(subtype = brca_subtype) %>%
+  pivot_longer(cols = !starts_with("subtype"), values_to = "value") %>% # for facet(0)
+  ggplot(aes(x = value, y = ..density..)) +
+  geom_histogram(aes(fill = name)) +
+  facet_wrap(subtype ~ name, scales = "free") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+    
 
     c) Remove gene with zero count and no variability. Then apply logarithmic transform.
+```{r}
+library("matrixStats")
+keep_cols <- which(colSums(abs(brca)) != 0 & colSds(as.matrix(brca)) > 0.0001)
+brca_sub <- brca[, keep_cols, with = F]
+
+#log 
+brca_sub <- log2(as.matrix(brca_sub+1e-10))
+```
 
 
 2. Apply kmeans on the transformed dataset with 4 centers and output the discrepancy table between the real sub-type `brca_subtype` and the cluster labels.
 
+```{r}
+brca_sub_kmeans <- kmeans(x = brca_sub, 4)
+```
+
+```{r}
+#output discrepancy table
+table(brca_subtype, brca_sub_kmeans$cluster)
+```
+
+
 3. Spectrum clustering: to scale or not to scale?
 
     a) Apply PCA on the centered and scaled dataset. How many PCs should we use and why? You are encouraged to use `irlba::irlba()`.
+```{r}
+brca_sub_scaled <- scale(as.matrix(brca_sub), center = T, scale = T)
+svd_ret <- irlba::irlba(brca_sub_scaled, nv = 10, center = colMeans(brca_sub_scaled))
+
+#plot the PVE
+svd_var <- svd_ret$d^2 / (nrow(brca_sub_scaled) - 1)
+pve_apx <- svd_var / ncol(brca)
+plot(pve_apx, type="b", pch = 19, frame = FALSE)
+```
+We should use 4 PCs given that it is the elbow of the graph of the approximated proportion of variance explained. Essentially, until PC4, there are more dramatic increases in PVE and it starts leveling out after that. 
     
     b) Plot PC1 vs PC2 of the centered and scaled data and PC1 vs PC2 of the centered but unscaled data side by side. Should we scale or not scale for clustering propose? Why? (Hint: to put plots side by side, use `gridExtra::grid.arrange()` or `ggpubr::ggrrange()` or `egg::ggrrange()` for ggplots; use `fig.show="hold"` as chunk option for base plots)
+```{r}
+set.seed(10)
+pc_score_scaled <- brca_sub_scaled %*% svd_ret$v[, 1:2]
+
+brca_sub_unscaled <- scale(as.matrix(brca_sub), center = T, scale = F)
+svd_ret_unscaled <- irlba::irlba(brca_sub_unscaled, nv = 10, center = colMeans(brca_sub_scaled))
+pc_score_unscaled <- brca_sub_unscaled %*% svd_ret_unscaled$v[, 1:2]
+
+plot1 <- data.table(x = pc_score_scaled[,1],
+         y = pc_score_scaled[,2]) %>% ggplot() + 
+         geom_point(aes(x = x, y = y))
+
+plot2 <- data.table(x = pc_score_unscaled[,1],
+         y = pc_score_unscaled[,2]) %>% ggplot() + 
+         geom_point(aes(x = x, y = y))
+
+gridExtra::grid.arrange(plot1, plot2, ncol = 2)
+```
+From these plots, the unscaled data actually seems to be better for clustering, as the data in the scaled plot is much more similar and it seems harder to distinguish groups from the data. Meanwhile, in the unscaled graph we can easily see 2 groups and the data would be easier to split into clusters. 
 
 4. Spectrum clustering: center but do not scale the data
 
     a) Use the first 4 PCs of the centered and unscaled data and apply kmeans. Find a reasonable number of clusters using within sum of squared with the elbow rule.
-    
+```{r}
+library(factoextra)
+
+pc_score_spectrum <- brca_sub_unscaled %*% svd_ret_unscaled$v[, 1:4]
+
+fviz_nbclust(pc_score_spectrum, kmeans, method = "wss")
+```
+Using the elbow rule, we can reasonably decide on k = 3 or 4, but given the context of this case, we'll use 4 clusters.
+
     b) Choose an optimal cluster number and apply kmeans. Compare the real sub-type and the clustering label as follows: Plot scatter plot of PC1 vs PC2. Use point color to indicate the true cancer type and point shape to indicate the clustering label. Plot the kmeans centroids with black dots. Summarize how good is clustering results compared to the real sub-type.
     
+```{r fig.height= 4, fig.width=5}
+set.seed(4)
+kmean_ret <- kmeans(x = pc_score_spectrum, 4)
+
+kmeans_table <- data.table(x = pc_score_spectrum[, 1],
+  y = pc_score_spectrum[, 2],
+  col = as.factor(brca_subtype),
+  cl = as.factor(kmean_ret$cluster))
+
+kmeans_plot <- ggplot() +
+  geom_point(data = kmeans_table, mapping = aes(x = x, y = y, col = col, shape = cl)) +
+  scale_color_manual(labels = c("basal", "Her2", "lumA", "lumB"),
+  values = scales::hue_pal()(4)) +
+  scale_shape_manual(labels = c("Clulster 1", "Cluster 2", "Cluster 3", "Cluster 4"),
+  values = c(4, 16, 6, 5)) +
+  geom_point(mapping = aes_string(x = kmean_ret$centers[, 1], y = kmean_ret$centers[, 2]), color = "black", size = 3) + 
+  theme_bw() +
+  labs(color = "Cancer type", shape = "Cluster") +
+  xlab("PC1") +
+  ylab("PC2")
+
+kmeans_plot
+```
+Our results are pretty good for some subtypes of cancer. We can see that Cluster 3 in particular is a great fit for basal, as it is the group we observed earlier which we noticed was most separate from the rest of the data. We can also see that although there are many lumA datapoints, Cluster 1 almost entirely consists of them. For lumB, we can see that most of the points are in Cluster 2. HER-2 cancers seem to be the one category that is unable to be captured at all by our clusters. These data points are so spread out and it lead to Cluster 4 capturing a wide variety of subtypes instead. 
+    
     c) Compare the clustering result from applying kmeans to the original data and the clustering result from applying kmeans to 4 PCs. Does PCA help in kmeans clustering? What might be the reasons if PCA helps?
+    
+We can compare the discrepancy tables for the original data and after applying kmeans to the 4PCs. 
+```{r}
+#original 
+table(brca_subtype, brca_sub_kmeans$cluster)
+```
+
+```{r}
+#with PCA
+table(brca_subtype, kmean_ret$cluster)
+```
+From these tables, we see similar performance with grouping the basal subtype, although some of the others seemingly performing worse with PCA. Particularly, Her-2 still performs pretty bad under both clustering, but is noticably more spread out amongst the clusters with PCA. LumA also still has a high concentration in one cluster, but noticably less points in that cluster with PCA with more in other clusters. The only subtype that seems to do marginally better with PCA is the LumB subtype. In our case, PCA likely only helped speed up computation of our clusters, as it doesn't seem to have had any improvement with grouping the subtypes. 
     
     d) Now we have an x patient with breast cancer but with unknown sub-type. We have this patient's mRNA sequencing data. Project this x patient to the space of PC1 and PC2. (Hint: remember we remove some gene with no counts or no variablity, take log and centered) Plot this patient in the plot in iv) with a black dot. Calculate the Euclidean distance between this patient and each of centroid of the cluster. Can you tell which sub-type this patient might have? 
     
@@ -471,6 +452,35 @@ brca <- brca[,-1]
 x_patient <- fread("data/brca_x_patient.csv")
 ```
 
+We will add this x patient to the graph with a dark red dot to distinguish it from the black dots which represent the cluster centers. 
+```{r fig.height=1.8, fig.width=3}
+xpat_sub <- x_patient[, keep_cols, with = F]
+
+#log 
+xpat_sub <- log2(as.matrix(xpat_sub+1e-10))
+xpat_center <- xpat_sub - colMeans(brca_sub)
+
+xpat_pc <- xpat_center %*% svd_ret_unscaled$v[, 1:2]
+
+xpat_plot <- ggplot() +
+  geom_point(data = kmeans_table, mapping = aes(x = x, y = y, col = col, shape = cl)) +
+  scale_color_manual(labels = c("basal", "Her2", "lumA", "lumB"),
+  values = scales::hue_pal()(4)) +
+  scale_shape_manual(labels = c("Clulster 1", "Cluster 2", "Cluster 3", "Cluster 4"),
+  values = c(4, 16, 6, 5)) +
+  labs(color = "Cancer type", shape = "Cluster") +
+  xlab("PC1") +
+  ylab("PC2") +
+  geom_point(mapping = aes_string(x = kmean_ret$centers[, 1], y = kmean_ret$centers[, 2]), color = "black", size = 2) + 
+  geom_point(mapping = aes_string(x = xpat_pc[, 1], y = xpat_pc[, 2]), color = "dark red", size = 3)
+  theme_bw()
+
+xpat_plot
+```
+```{r}
+apply(kmean_ret$centers, 1, function(x) sqrt((x[1] - xpat_pc[, 1])^2 + (x[2] - xpat_pc[, 2])^2))
+```
+We can see that the euclidean distance to cluster 1's centroid is 498, to cluster 2's it's 534, to cluster 3's it's 135 and to cluster 4's it's 577. Using these distances we can say that patient x is part of cluster 3, which as discussed before, almost entirely consists of those with basal-like breast cancer. This means the patient might have the subtype of basal-like breast cancer. 
 
 # Case study 3: Auto data set
 
@@ -569,29 +579,8 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
-**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is diffeent here is because you are changing more featuers of the car as you test it. 
-
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
-```{r}
-ggplot(Auto, aes(x = horsepower, y = mpg, color=year)) + 
-  geom_point() + 
-  geom_smooth(method = "lm" , se =F) + 
-  facet_wrap(~ year) + labs(title="MPG by Year")
-```
-Here we can see that for each year the slope for the interaction between horsepower and mpg differs, however we will run a model and confirm with a hypothesis test that the year has some impact. 
-
-
-```{r}
-auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
-summary(auto.fit3)
-anova(auto.fit2, auto.fit3)
-anova(auto.fit3)
-```
-**Answer:** Here we are modeling horsepower by year. This allows us to see if horsepower depends at all on the year.
-
-We do reject the null hypothesis with a p-value of <2e-16. That indicates some interaction effect of HP and Year.
-
 
 ## Categorical predictors
 
@@ -599,42 +588,11 @@ Remember that the same variable can play different roles! Take a quick look at t
 
 a) Fit a model that treats `cylinders` as a continuous/numeric variable. Is `cylinders` significant at the 0.01 level? What effect does `cylinders` play in this model?
 
-First let's only include the variables that make sense for the regression
-```{r}
-names(Auto)
-names.exclude <- names(Auto) %in% c("name")
-auto2 <- Auto[!names.exclude]  # Take a subset with all var's but "Make.Model","MPG_Hwy","Make"
-names(auto2)    #str(data2)   table(data2$Transmission)
-```
-
-```{r}
-fit.cyl.number <- lm(mpg~. , auto2)
-summary(fit.cyl.number)
-```
-
-**Answer:** With a significance level of 0.1278, we fail to reject the null hypothesis that $\beta_{cylinders} = 0$. Thus when cylinders is accounted for as a numerical variable, it cannot be considered significant. 
-
 b) Fit a model that treats `cylinders` as a categorical/factor. Is `cylinders` significant at the .01 level? What is the effect of `cylinders` in this model? Describe the `cylinders` effect over `mpg`. 
-
-```{r}
-auto2$cylinders <- as.factor(auto2$cylinders)
-fit.cyl.factor <- lm(mpg~. , auto2)
-summary(fit.cyl.factor)
-anova(fit.cyl.factor)
-```
-**Answer:** Cylinders here, is very significant as a categorical/factor variable. With a p-value of < 2e-16, we reject the null hypthesis that cylinders has no impact on MPG. Rather is it a significant variable, with the coefficient not equal to zero. 
 
 c) What are the fundamental differences between treating `cylinders` as a continuous and categorical variable in your models? 
 
-**Answer:** Although the variable `cylinders` is numeric in nature, it is highly, non linear as we saw in it's histogram in the EDA. This means that it is more valuable to consider this variable as a factor instead of it's numeric value. By having cylinders as a factor, we can look at the affect that the number of cylinders has on the car by breaking up the one variable into many. We can analyze the different affects of the cylinders since it is not significant when viewed as a numerical value. In fact, we can see in the summary of our regression that each of the cylinders has a different affect on the mpg, with different coefficients and p-values. 
-
-
 d) Can you test the null hypothesis: fit0: `mpg` is linear in `cylinders` vs. fit1: `mpg` relates to `cylinders` as a categorical variable at .01 level?  
-
-```{r}
-anova(fit.cyl.number, fit.cyl.factor)
-```
-With a null hypothesis that the two different fits are the same, we reject the null hypothesis at a level of 0.01, as the p-value is 1.8e-12 which is less than 0.01. Thus, we get that the two fits are significantly different. 
 
 
 ## Results
@@ -643,50 +601,7 @@ Final modeling question: we want to explore the effects of each feature as best 
   
 a) Describe the final model. Include diagnostic plots with particular focus on the model residuals and diagnoses.
 
-We are once again gonna focus on all of the variables that make sense in a model. As we found out above, cylinders makes more sense as a factor so once again we will have that. We also below make origin into a factor variable. 
-```{r}
-auto2$origin <- as.factor(auto2$origin)
-```
-
-We will be using backwards elimination to eliminate variables until all of them are significant. We will use a significant value of 0.05 for the t-tests. 
-
-First, we start with the model including all possible predictors.
-```{r}
-fit0 <- lm(mpg~., auto2)
-drop1(fit0, test = "F")
-```
-For fit0, acceleration has the highest p-value of 0.7802. It is also greater than 0.05 which means we will drop that variable from the model.
-
-```{r}
-fit1 <- lm(mpg ~ cylinders + displacement + horsepower 
-           + weight + year + origin, auto2)
-drop1(fit1, test = "F")
-```
-After dropping acceleration and running the associated F-tests, we get that all of the p-values are less than 0.05. We then want to check the plots for our new model to make sure all our assumptions are met.
-
-```{r}
-plot(fit1,1)
-plot(fit1,2)
-```
-We can see that both of the plots look normal. Thus we will use fit1 as our final model.
-
-
 b) Summarize the effects found.
 
-Our final model includes the variables cylinders, displacement, horsepower, weight, year, and origin to predict the mpg for a car. In our model, we have both cylinders and origin as factors since the variables are non-linear and are not of significance in a linear model if kept as numerical values. Lastly, we performing backwards regression, we found that the variable of acceleration is not significant and could be eliminated. 
-
-
 c) Predict the `mpg` of the following car: A red car built in the US in 1983 that is 180 inches long, has eight cylinders, displaces 350 cu. inches, weighs 4000 pounds, and has a horsepower of 260. Also give a 95% CI for your prediction.
-
-```{r}
-predict(fit1, newdata = data.frame(cylinders = as.factor(8), displacement = 350, horsepower = 260, weight = 4000, year = 83, origin = as.factor(1)), interval = "prediction", level = 0.95)
-```
-
-The prediction interval for the given car is [12 mpg, 25.2 mpg]. This means that we can be 95% confident that the next new observation of a car with these specifications will fall within this range of 12 mpg to 25.2 mpg.
-
-```{r}
-predict(fit1, newdata = data.frame(cylinders = as.factor(8), displacement = 350, horsepower = 260, weight = 4000, year = 83, origin = as.factor(1)), interval = "confidence", level = 0.95)
-```
-
-The confidence interval for the car with the above specifications is [16.1 mpg, 21.2 mpg]. If an infinite number of samples were drawn from the same population of this car and a 95% CI calculated for each sample, we would expect the population mean to be found within 95% of these CIs. We also can note that the confidence interval is narrower as the prediction interval has an added uncertainty of predicting the exact value rather than the mean value. 
 
