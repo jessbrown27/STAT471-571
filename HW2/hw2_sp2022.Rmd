@@ -140,35 +140,156 @@ Load the data. Do a quick EDA to get familiar with the data set. Pay attention t
 Let concentrate on Esteem scores evaluated in 87. 
 
 1. Reverse Esteem 1, 2, 4, 6, and 7 so that a higher score corresponds to higher self-esteem. (Hint: if we store the esteem data in `data.esteem`, then `data.esteem[,  c(1, 2, 4, 6, 7)]  <- 5 - data.esteem[,  c(1, 2, 4, 6, 7)]` to reverse the score.)
+```{R}
+esteem87 <- esteem_data[,  c(37:46)]
+esteem87_transformed <- esteem87
+esteem87_transformed[,  c(1, 2, 4, 6, 7)] <- 5 - esteem87_transformed[,  c(1, 2, 4, 6, 7)]
+esteem87
+esteem87_transformed
+```
 
 2. Write a brief summary with necessary plots about the 10 esteem measurements.
 
+```{R}
+ggplot(gather(esteem87_transformed), aes(value)) + 
+    geom_histogram(bins = 4) + 
+    facet_wrap(~key, scales = 'free_x')
+```
+
+**Answer:** A majority of the responses for all the esteem measurements fall on the higher end (3 or 4). However there are esteem measurements that have higher counts of 4s (1, 2, 3, and 5), relatively equal counts of 3s and 4s as the majority (4, 6, and 10), and ones that have a higher count of 3s (7, 8, and 9).
+
 3. Do esteem scores all positively correlated? Report the pairwise correlation table and write a brief summary.
+
+```{R}
+pairs(esteem87_transformed, xlim=c(1, 4), ylim=c(1, 4), pch=16)
+cor(esteem87_transformed)
+```
+
+**Answer:** The esteem scores are all positively correlated with each other. Esteem 1 and 2 have the strongest pairwise correlation with an r of 0.704. Esteem score 8 seems to have the weakest correlation with the other esteems with none of the r values being above 0.5. Esteem score 7 and 9 is also on the weaker side. The esteem scores that have a similar histogram as in part 2 have a stronger correlation while having a weeker correlation with histograms that differ in shape. 
 
 4. PCA on 10 esteem measurements. (centered but no scaling)
 
-    a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal? 
-  
+```{R}
+esteem_pc <- prcomp(esteem87_transformed, scale=TRUE)
+esteem_pc
+```
+
+    a) Report the PC1 and PC2 loadings. Are they unit vectors? Are they orthogonal?
+    
+    ```{R}
+    esteem_pc$rotation[, c(1, 2)]
+    ```
+    
+    By definition, all loadings are unit 1 so they are unit vectors and they are all perpendicular.
+    
     b) Are there good interpretations for PC1 and PC2? (If loadings are all negative, take the positive loadings for the ease of interpretation)
-  
+    
+    PC1 is the weighted sum of the scores and also shows which are more strongly correlated with each other. The loadings for esteem score 8 and 9 align with the answer in question 3 that they have a weaker correlation. Esteem score 2 and 6 seem to have the stronger ones. PC2 shows the difference of the esteems, as some increase (esteem 3, 5, 7, 8, 9, 10), the others decrease (esteem 1, 2, 4, 6) and vice versa. 
+    
     c) How is the PC1 score obtained for each subject? Write down the formula.
     
-    d) Are PC1 scores and PC2 scores in the data uncorrelated? 
+    The PC1 score is obtained by multiplying the actual values by the loadings. In this case it would be: Esteem87_1 * 0.324 + Esteem87_2 * 0.333 + Esteem87_3 * 0.322 + Esteem87_4 * 0.324 + Esteem87_5 * 0.315 + Esteem87_6 * 0.347 + Esteem87_7 * 0.315 + Esteem87_8 * 0.280 + Esteem87_9 * 0.277 + Esteem87_10 * 0.318
     
-    e) Plot PVE (Proportion of Variance Explained) and summarize the plot. 
+    d) Are PC1 scores and PC2 scores in the data uncorrelated?
+    
+    All PC scores are uncorrelated.
+    
+    e) Plot PVE (Proportion of Variance Explained) and summarize the plot.
+    
+    ```{R}
+    summary(esteem_pc)$importance
+    plot(esteem_pc)
+    plot(summary(esteem_pc)$importance[2, ],  # PVE
+     ylab="PVE",
+     xlab="Number of PC's",
+     pch = 16, 
+     main="Scree Plot of PVE for Esteem")
+    ```
+    
+    The plot has a steep drop at 2 PCs so that indicates that 2 leading PCs should be enough for most purposes since a large portion of the variances can be explained by those 2. At 1 PC, there is nearly a 0.5 PVE then the chart drops when at 2 PCs to a bit above 0.1 PVE. After the second PC, the PVE levels out a bit.
   
     f) Also plot CPVE (Cumulative Proportion of Variance Explained). What proportion of the variance in the data is explained by the first two principal components?
+    
+    ```{R}
+    plot(summary(esteem_pc)$importance[3, ], pch=16,
+     ylab="Cumulative PVE",
+     xlab="Number of PC's",
+     main="Scree Plot of Cumulative PVE for Esteem")
+    ```
+    
+    About 0.6 of the variance in the data is explained by the first two principal components.
   
     g) PC’s provide us with a low dimensional view of the self-esteem scores. Use a biplot with the first two PC's to display the data.  Give an interpretation of PC1 and PC2 from the plot. (try `ggbiplot` if you could, much prettier!)
+    
+    ```{R}
+    biplot(esteem_pc, cex=0.5, xlim=c(-.03, .03),
+       ylim=c(-.03, .03),
+       main="Biplot for first 2 PCs")
+    abline(h=0, v=0, col="red", lwd=2)
+    ```
+    
+    Loadings for PC1 are similar in magnitudes and with same signs. PC2 captures the difference of total of esteem 3, 5, 7, 8, 9, 10 and total of esteem 1, 2, 4, 6. Esteem 1 and 2 are highly correlated with each other. 3 and 7 are also highly coorelated, as well as 8 and 10.
 
 5. Apply k-means to cluster subjects on the original esteem scores
 
     a) Find a reasonable number of clusters using within sum of squared with elbow rules.
     
+    ```{R}
+    #install.packages("factoextra")
+    #library(factoextra)
+    set.seed(0)
+    fviz_nbclust(esteem87[,-1], kmeans, method = "wss")
+    ```
+    
+    There is a bend at number of clusters = 2 so a reasonable number of clusters to use is 2.
+    
     b) Can you summarize common features within each cluster?
     
+    ```{R}
+    esteem_kmeans <- kmeans(esteem87, centers = 2 )
+    str(esteem_kmeans)
+    esteem_kmeans$centers
+    ```
+    
+    From looking at the centers for the two clusters, the first cluster has more extreme scores (either closer to 1 or 4). Meanwhile the second cluster has more mild scores (closer to the middle range of scores (2 and 3)).
+    
     c) Can you visualize the clusters with somewhat clear boundaries? You may try different pairs of variables and different PC pairs of the esteem scores.
-
+    
+    ```{R}
+    data.frame(
+        education = esteem_data$Education05,
+        AFQT = esteem_data$AFQT,   
+        group = as.factor(esteem_kmeans$cluster)) %>%
+    ggplot(aes(x = education, y = AFQT, col = group)) +
+    geom_point() +
+    ggtitle("Clustering over education in 2005 and AFQT in 1981")
+    
+    data.frame(
+        income = esteem_data$Income05,
+        family_income = esteem_data$FamilyIncome78,   
+        group = as.factor(esteem_kmeans$cluster)) %>%
+    ggplot(aes(x = income, y = family_income, col = group)) +
+    geom_point() +
+    ggtitle("Clustering over income in 2005 and family income in 1978")
+    
+    data.frame(
+        weight = esteem_data$Weight05,
+        height = esteem_data$HeightFeet05 * 12 + esteem_data$HeightInch05,   
+        group = as.factor(esteem_kmeans$cluster)) %>%
+    ggplot(aes(x = weight, y = height, col = group)) +
+    geom_point() +
+    ggtitle("Clustering over weight and height in 2005")
+    
+    data.frame(
+        pc1 = esteem_pc$x[, 1], 
+        pc2 = esteem_pc$x[, 2],
+        group = as.factor(esteem_kmeans$cluster)) %>%
+    ggplot(aes(x = pc1, y = pc2, col = group)) +
+    geom_point() +
+    ggtitle("Clustering over PC1 and PC2")
+    ```
+    
+    For education and AFQT, there is not much of a clear boundry on the clusters. However, a majority of the people with education less than 10 does seem to fall under the second cluster. When looking at income and family income, there is a larger clump of cluster 2 wiht a lower income and family income. There does not seem to be any clear boundaries with the clusters when looking at height and weight. When looking at PC1, there is a clear separation between the two clusters. Points with a negative PC1 are largely in cluster 2 while positive PC1s are largely cluster 1.
 
 6. We now try to find out what factors are related to self-esteem? PC1 of all the Esteem scores is a good variable to summarize one's esteem scores. We take PC1 as our response variable.
 
