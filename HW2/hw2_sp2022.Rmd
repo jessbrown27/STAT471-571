@@ -579,8 +579,37 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
+```{r}
+
+```
+
+×β̂ i±t∗.025se(β̂ i)
+
++**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is diffeent here is because you are changing more featuers of the car as you test it. 
+
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
+
+```{r}
+ggplot(Auto, aes(x = horsepower, y = mpg, color=year)) + 
+  geom_point() + 
+  geom_smooth(method = "lm" , se =F) + 
+  facet_wrap(~ year) + labs(title="MPG by Year")
+```
+Here we can see that for each year the slope for the interaction between horsepower and mpg differs, however we will run a model and confirm with a hypothesis test that the year has some impact. 
+
+
+```{r}
+auto.fit3 <- lm(mpg ~ year * horsepower, data = Auto)
+summary(auto.fit3)
+anova(auto.fit2, auto.fit3)
+anova(auto.fit3)
+```
+
+**Answer:** Here we are modeling horsepower by year. This allows us to see if horsepower depends at all on the year.
+
+We do reject the null hypothesis with a p-value of <2e-16. That indicates some interaction effect of HP and Year.
+
 
 ## Categorical predictors
 
@@ -588,12 +617,40 @@ Remember that the same variable can play different roles! Take a quick look at t
 
 a) Fit a model that treats `cylinders` as a continuous/numeric variable. Is `cylinders` significant at the 0.01 level? What effect does `cylinders` play in this model?
 
+First let's only include the variables that make sense for the regression
+```{r}
+names(Auto)
+names.exclude <- names(Auto) %in% c("name")
+auto2 <- Auto[!names.exclude]  # Take a subset with all var's but "Make.Model","MPG_Hwy","Make"
+names(auto2)    #str(data2)   table(data2$Transmission)
+```
+
+```{r}
+fit.cyl.number <- lm(mpg~. , auto2)
+summary(fit.cyl.number)
+```
+
+**Answer:** With a significance level of 0.1278, we fail to reject the null hypothesis that $\beta_{cylinders} = 0$. Thus when cylinders is accounted for as a numerical variable, it cannot be considered significant. 
+
 b) Fit a model that treats `cylinders` as a categorical/factor. Is `cylinders` significant at the .01 level? What is the effect of `cylinders` in this model? Describe the `cylinders` effect over `mpg`. 
+```{r}
+auto2$cylinders <- as.factor(auto2$cylinders)
+fit.cyl.factor <- lm(mpg~. , auto2)
+anova(fit.cyl.factor)
+```
+**Answer:** Cylinders here, is very significant as a categorical/factor variable. With a p-value of < 2e-16, we reject the null hypothesis that cylinders has no impact on MPG. Rather is it a significant variable, with the coefficient not equal to zero. 
+
 
 c) What are the fundamental differences between treating `cylinders` as a continuous and categorical variable in your models? 
 
+**Answer:** Although the variable `cylinders` is numeric in nature, it is highly, non linear as we saw in it's histogram in the EDA. This means that it is more valuable to consider this variable as a factor instead of it's numeric value. By having cylinders as a factor, we can look at the affect that the number of cylinders has on the car by breaking up the one variable into many. We can analyze the different affects of the cylinders since it is not significant when viewed as a numerical value. In fact, we can see in the summary of our regression that each of the cylinders has a different affect on the mpg, with different coefficients and p-values. 
+
 d) Can you test the null hypothesis: fit0: `mpg` is linear in `cylinders` vs. fit1: `mpg` relates to `cylinders` as a categorical variable at .01 level?  
 
+```{r}
+anova(fit.cyl.number, fit.cyl.factor)
+```
+With a null hypothesis that the two different fits are the same, we reject the null hypothesis at a level of 0.01, as the p-value is 1.8e-12 which is less than 0.01. Thus, we get that the two fits are significantly different. 
 
 ## Results
 
@@ -601,7 +658,49 @@ Final modeling question: we want to explore the effects of each feature as best 
   
 a) Describe the final model. Include diagnostic plots with particular focus on the model residuals and diagnoses.
 
+We are once again gonna focus on all of the variables that make sense in a model. As we found out above, cylinders makes more sense as a factor so once again we will have that. We also below make origin into a factor variable. 
+```{r}
+auto2$origin <- as.factor(auto2$origin)
+```
+
+We will be using backwards elimination to eliminate variables until all of them are significant. We will use a significant value of 0.05 for the t-tests. 
+
+First, we start with the model including all possible predictors.
+```{r}
+fit0 <- lm(mpg~., auto2)
+drop1(fit0, test = "F")
+```
+For fit0, acceleration has the highest p-value of 0.7802. It is also greater than 0.05 which means we will drop that variable from the model.
+
+```{r}
+fit1 <- lm(mpg ~ cylinders + displacement + horsepower 
+           + weight + year + origin, auto2)
+drop1(fit1, test = "F")
+```
+After dropping acceleration and running the associated F-tests, we get that all of the p-values are less than 0.05. We then want to check the plots for our new model to make sure all our assumptions are met.
+
+```{r}
+plot(fit1,1)
+plot(fit1,2)
+```
+We can see that both of the plots look normal. Thus we will use fit1 as our final model.
+
 b) Summarize the effects found.
 
+Our final model includes the variables cylinders, displacement, horsepower, weight, year, and origin to predict the mpg for a car. In our model, we have both cylinders and origin as factors since the variables are non-linear and are not of significance in a linear model if kept as numerical values. Lastly, we performing backwards regression, we found that the variable of acceleration is not significant and could be eliminated. 
+
 c) Predict the `mpg` of the following car: A red car built in the US in 1983 that is 180 inches long, has eight cylinders, displaces 350 cu. inches, weighs 4000 pounds, and has a horsepower of 260. Also give a 95% CI for your prediction.
+
+```{r}
+predict(fit1, newdata = data.frame(cylinders = as.factor(8), displacement = 350, horsepower = 260, weight = 4000, year = 83, origin = as.factor(1)), interval = "prediction", level = 0.95)
+```
+
+The prediction interval for the given car is [12 mpg, 25.2 mpg]. This means that we can be 95% confident that the next new observation of a car with these specifications will fall within this range of 12 mpg to 25.2 mpg.
+
+```{r}
+predict(fit1, newdata = data.frame(cylinders = as.factor(8), displacement = 350, horsepower = 260, weight = 4000, year = 83, origin = as.factor(1)), interval = "confidence", level = 0.95)
+```
+
+The confidence interval for the car with the above specifications is [16.1 mpg, 21.2 mpg]. If an infinite number of samples were drawn from the same population of this car and a 95% CI calculated for each sample, we would expect the population mean to be found within 95% of these CIs. We also can note that the confidence interval is narrower as the prediction interval has an added uncertainty of predicting the exact value rather than the mean value. 
+
 
