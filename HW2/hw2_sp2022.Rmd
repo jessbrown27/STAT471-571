@@ -303,15 +303,41 @@ esteem_pc
     
     For education and AFQT, there is not much of a clear boundry on the clusters. However, a majority of the people with education less than 10 does seem to fall under the second cluster. When looking at income and family income, there is a larger clump of cluster 2 wiht a lower income and family income. There does not seem to be any clear boundaries with the clusters when looking at height and weight. When looking at PC1, there is a clear separation between the two clusters. Points with a negative PC1 are largely in cluster 2 while positive PC1s are largely cluster 1.
 
-6. We now try to find out what factors are related to self-esteem? PC1 of all the Esteem scores is a good variable to summarize one's esteem scores. We take PC1 as our response variable. 
+6. We now try to find out what factors are related to self-esteem? PC1 of all the Esteem scores is a good variable to summarize one's esteem scores. We take PC1 as our response variable.
 
     a) Prepare possible factors/variables:
 
-      - Personal information: gender, education (05, problematic), log(income) in 87, job type in 87, Body mass index as a measure of health (The BMI is defined as the body mass divided by the square of the body height, and is universally expressed in units of kg/m²). Since BMI is measured in 05, this will not be a good practice to be inclueded as possible variables. 
+      - Personal information: gender, education (05, problematic), log(income) in 87, job type in 87, Body mass index as a measure of health (The BMI is defined as the body mass divided by the square of the body height, and is universally expressed in units of kg/m²). Since BMI is measured in 05, this will not be a good practice to be inclueded as possible variables.
           
       - Household environment: Imagazine, Inewspaper, Ilibrary, MotherEd, FatherEd, FamilyIncome78. Do set indicators `Imagazine`, `Inewspaper` and `Ilibrary` as factors. 
     
       - Use PC1 of SVABS as level of intelligence
+
+```{R}
+#create a BMI variable
+esteem_data <- esteem_data %>% mutate(BMI = ((Weight05 / 2.205) / ((HeightFeet05 * 12 + HeightInch05) / 39.37)^2))
+
+#create a PC1 variable
+esteem_data <- esteem_data %>% mutate(PC1 = Esteem87_1 * 0.324 + Esteem87_2 * 0.333 + Esteem87_3 * 0.322 + Esteem87_4 * 0.324 + Esteem87_5 * 0.315 + Esteem87_6 * 0.347 + Esteem87_7 * 0.315 + Esteem87_8 * 0.280 + Esteem87_9 * 0.277 + Esteem87_10 * 0.318)
+
+#select the variables of interest
+esteem_prepared <- esteem_data[,c('Gender','Education05','Income87', 'Job05', 'BMI', 'Imagazine', 'Inewspaper',
+                                  'Ilibrary', 'MotherEd', 'FatherEd', 'FamilyIncome78', 'PC1')]
+
+summary(esteem_prepared$Income87) #there are some values less than 0 so taking log would be problematic for those cases
+#set all negative income values to 0
+esteem_prepared <- esteem_prepared %>% mutate(Income87 = ifelse(Income87 < 0, 0, Income87))
+#log transformation for income, add one so log of 0 will not give an error
+esteem_prepared <- esteem_prepared %>% mutate(LogIncome87 = log(Income87))
+
+#doing the same log transformation with FamilyIncome78 to be consistent with units as Income87
+summary(esteem_prepared$FamilyIncome78) #no negative values
+#log transformation for family income, add one so log of 0 will not give an error
+esteem_prepared <- esteem_prepared %>% mutate(LogFamilyIncome78 = log(FamilyIncome78 + 1))
+
+#changing Imagazine, Inewspaper, and Ilibrary to factors
+esteem_prepared <- esteem_prepared %>% mutate(Imagazine = as.factor(Imagazine), Inewspaper = as.factor(Inewspaper), Ilibrary = as.factor(Ilibrary))
+```
         
     b)   Run a few regression models between PC1 of all the esteem scores and suitable variables listed in a). Find a final best model with your own criterion. 
 
@@ -319,6 +345,75 @@ esteem_pc
         
       - Write a summary of your findings. In particular, explain what and how the variables in the model affect one's self-esteem. 
         
+```{R}
+#after running the graphs with the 0s, we saw there was some skewness with the 0 values so we decided to also run everything excluding the 0 income values
+esteem_prepared_remove0 <- esteem_prepared %>% filter(LogIncome87 != 0, LogFamilyIncome78 != 0)
+
+ggplot(esteem_prepared, aes(x = Gender , y = PC1)) + 
+  geom_boxplot()
+
+ggplot(esteem_prepared, aes(x = Education05 , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared, aes(x = LogIncome87 , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared_remove0, aes(x = LogIncome87 , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared, aes(x = Job05 , y = PC1)) + 
+  geom_boxplot()
+
+ggplot(esteem_prepared, aes(x = BMI , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared, aes(x = Imagazine , y = PC1)) + 
+  geom_boxplot()
+
+ggplot(esteem_prepared, aes(x = Inewspaper , y = PC1)) + 
+  geom_boxplot()
+
+ggplot(esteem_prepared, aes(x = Ilibrary , y = PC1)) + 
+  geom_boxplot()
+
+ggplot(esteem_prepared, aes(x = MotherEd , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared, aes(x = FatherEd , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared, aes(x = LogFamilyIncome78 , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+ggplot(esteem_prepared_remove0, aes(x = LogFamilyIncome78 , y = PC1)) + 
+  geom_point() +
+  geom_smooth(method="lm",se=F)
+
+#running regression tests with all the variables to see if there are variables that are more significant than others
+esteem_regression <- lm(PC1 ~ Education05 + LogIncome87 + BMI + Imagazine + Inewspaper + Ilibrary + MotherEd + FatherEd + LogFamilyIncome78, data = esteem_prepared)
+summary(esteem_regression)
+
+#running regression tests with all the variables to see if there are variables that are more significant than others leaving out 0 income values
+esteem_regression_remove0 <- lm(PC1 ~ Education05 + LogIncome87 + BMI + Imagazine + Inewspaper + Ilibrary + MotherEd + FatherEd + LogFamilyIncome78, data = esteem_prepared_remove0)
+summary(esteem_regression_remove0)
+
+#from the past regression tests, running one with variables with a lower p value.
+esteem_regression_remove0_limited <- lm(PC1 ~ LogIncome87 + Imagazine + LogFamilyIncome78, data = esteem_prepared_remove0)
+summary(esteem_regression_remove0_limited)
+
+#model diagnosis to see if the linear model assumptions are met
+par(mfrow=c(1,2))
+plot(esteem_regression_remove0_limited, 1) 
+plot(esteem_regression_remove0_limited, 2) 
+```
+    **Answer:** Our final model is PC1 = 6.6764 + 0.0598 * LogIncome87 + 0.0492 * Imagazine + 0.0281 * LogFamilyIncome78. To come to this model, we picked out the variables with stronger correlations when running the regression models between PC1 and all of the esteem scores. We also ran regression tests with all the variables and picked out ones that had a more significant p value. From the Residuals vs Fitted and qqnormal Plot, the linear model assumptions are reasonably met. Overall, we found that LogIncome87 had the strongest positive correlation with self-esteem, then Imagazine, and then LogFamilyIncome78 should everything else be held constant. In other words, someone in a household where someone regularly reads magazines and with a higher personal and family income tends to have a higher self-esteem.
 
 
 # Case study 2: Breast cancer sub-type
