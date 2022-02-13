@@ -195,7 +195,7 @@ summary(esteem_prepared$Income87) #there are some values less than 0 so taking l
 #set all negative income values to 0
 esteem_prepared <- esteem_prepared %>% mutate(Income87 = ifelse(Income87 < 0, 0, Income87))
 #log transformation for income, add one so log of 0 will not give an error
-esteem_prepared <- esteem_prepared %>% mutate(LogIncome87 = log(Income87))
+esteem_prepared <- esteem_prepared %>% mutate(LogIncome87 = log(Income87 + 1))
 
 #doing the same log transformation with FamilyIncome78 to be consistent with units as Income87
 summary(esteem_prepared$FamilyIncome78) #no negative values
