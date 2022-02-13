@@ -579,13 +579,30 @@ According to this model, holding horsepower constant, as the year increases by o
 
 c) The two 95% CI's for the coefficient of year differ among (i) and (ii). How would you explain the difference to a non-statistician?
 
+For the confidence interval we will use 1.96 as there are greater than 30 observations so we can assume a normal sampling distribution. 
 ```{r}
-
+x <- 1.2300
+e <- 0.0874
+upper <- x + 1.96*e
+lower <- x - 1.96*e
+print(lower)
+print(upper)
 ```
 
-×β̂ i±t∗.025se(β̂ i)
+For the first confidence interval we have [1.06, 1.40].
 
-+**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is diffeent here is because you are changing more featuers of the car as you test it. 
+```{r}
+x <- 0.65727
+e <- 0.06626 
+upper <- x + 1.96*e
+lower <- x - 1.96*e
+print(lower)
+print(upper)
+```
+
+The second confidence interval is [0.527, 0.767]
+
++**Answer:** The reason that the confidence intervals differ is because they are looking at different characteristics of the car. The first confidence interval is looking at how only the year affects the mpg of a car. So this would mean that each year the car you are test has the same length, weight, cylinders, displacement, etc. and the only difference in the year. The second confidence interval is changing two different characteristics and seeing how they affect the mpg, those being horsepower and year. The reason that the interval for the coefficient is different here is because you are changing more features of the car as you test it. 
 
 
 d) Create a model with interaction by fitting `lm(mpg ~ year * horsepower)`. Is the interaction effect significant at .05 level? Explain the year effect (if any). 
