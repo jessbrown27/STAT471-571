@@ -357,6 +357,7 @@ From these tables, we see similar performance with grouping the basal subtype, a
 x_patient <- fread("data/brca_x_patient.csv")
 ```
 
+We will add this x patient to the graph with a dark red dot to distinguish it from the black dots which represent the cluster centers. 
 ```{r fig.height=1.8, fig.width=3}
 xpat_sub <- x_patient[, keep_cols, with = F]
 
