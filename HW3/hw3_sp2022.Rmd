@@ -1,9 +1,9 @@
 ---
 title: "Modern Data Mining, HW 3"
 author:
-- Group Member 1
-- Group Member 2
-- Group Member 3
+- Group Member Annie Vo
+- Group Member Jessica Brown
+- Group Member Sarah Hayward
 date: 'Due: 11:59Pm,  2/27, 2022'
 output:
   pdf_document:
