@@ -130,13 +130,19 @@ covid_rate %>% group_by(State, week) %>% summarise(cum_cases = sum(cum_cases), s
 
 iii) Summarize the COVID case trend among states based on the plot in ii). What could be the possible reasons to explain the variabilities? 
 
-The COVID case trend 
+The COVID case trend shows local maximums around week 12 and week 24 with minimums afterwards, before a large global maximum around week 42. It's evident that cases were increasing more rapidly in the weeks at the end of the year. The variability between states is likely due to varying covid restrictions and degree of lockdowns. WRITE MORE
 
 iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lockdown in flattening the curve.
+
 
 ## COVID death trend
 
 i) For each month in 2020, plot the monthly deaths per 100k heatmap by state on US map. Use the same color range across months. (Hints: Set `limits` argument in `scale_fill_gradient()` or use `facet_wrap()`; use `lubridate::month()` and `lubridate::year()` to extract month and year from date; use `tidyr::complete(state, month, fill = list(new_case_per100k = NA))` to complete the missing months with no cases.)
+
+```{r}
+covid_rate %>% mutate(month = month(date), ) %>% group_by(State, month, year) %>% summarise(cum_deaths = sum(cum_deaths)
+```
+
 
 ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal any systematic way to capture the dynamic changes among states? (Hints: Follow *Appendix 3: Plotly heatmap::* in Module 6 regularization lecture to plot the heatmap using `plotly`. Use `frame` argument in `add_trace()` for animation. `plotly` only recognizes abbreviation of state names. Use `unique(us_map(regions = "states") %>% select(abbr, full))` to get the abbreviation and merge with the data to get state abbreviation.)
 
