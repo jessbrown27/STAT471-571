@@ -1,9 +1,9 @@
 ---
 title: "COVID-19 Case Study"
 author:
-- Group Member 1
-- Group Member 2
-- Group Member 3
+- Annie Vo
+- Sarah Hayward
+- Jessica Brown
 date: 'Due before midnight, Feb 27'
 output:
   html_document:
@@ -90,22 +90,47 @@ county_data <- fread("data/covid_county.csv")
 # county-level COVID case and death
 covid_rate <- fread("data/covid_rates.csv")
 # county-level lockdown dates 
-# covid_intervention <- fread("data/covid_intervention.csv")
+covid_intervention <- fread("data/covid_intervention.csv")
 ```
 
 ## Understand the data
 
 The detailed description of variables is in `Appendix 1: Data description`. Please get familiar with the variables. Summarize the two data briefly.
 
+```{r}
+ncol(county_data)
+summary(county_data %>% select('FIPS', 'County', 'State', 'PovertyAllAgesPct', 'MedHHInc', 'TotalPopEst2019', 'PopDensity2010', 'AvgHHSize', 'UnempRate2019'))
+```
+
+```{r}
+summary(covid_rate)
+```
+
+```{r}
+summary(covid_intervention)
+```
+
+
 ## COVID case trend
 
 It is crucial to decide the right granularity for visualization and analysis. We will compare daily vs weekly total new cases by state and we will see it is hard to interpret daily report.
 
 i) Plot **new** COVID cases in NY, WA and FL by state and by day. Any irregular pattern? What is the biggest problem of using single day data? 
+```{r}
+covid_rate %>% filter(State %in% c('New York', 'Washington', 'Florida')) %>% group_by(State, date) %>% summarise(cum_cases = sum(cum_cases)) %>% arrange(State, date) %>% mutate(new_cases = c(cum_cases[1], diff(cum_cases))) %>% ggplot(aes(x = date, y = new_cases, group = State, color = State)) + geom_line() + ggtitle("Plot of Daily New Covid Cases") + ylab("new cases")
+```
+We can see that there are some really large fluctuations in the daily data, particularly for Florida around January 2021. With using single day data, the data can easily jump up or down depending on factors like how many people test that day. For example, the Florida rates drop dramatically on certain days during the holiday season when people would be less inclined to get tested, even if they're symptomatic (ex: people don't want to get tested on Christmas). The small time frame leads to a lot more volatility and makes it harder to show the rate of new cases. 
 
 ii) Create **weekly new** cases per 100k `weekly_case_per100k`. Plot the spaghetti plots of `weekly_case_per100k` by state. Use `TotalPopEst2019` as population.
 
+```{r fig.height= 5, fig.width= 10}
+covid_rate %>% group_by(State, week) %>% summarise(cum_cases = sum(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = c(cum_cases[1], diff(cum_cases)) / (state_pop / 100000)) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
+```
+
+
 iii) Summarize the COVID case trend among states based on the plot in ii). What could be the possible reasons to explain the variabilities? 
+
+The COVID case trend 
 
 iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lockdown in flattening the curve.
 
