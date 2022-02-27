@@ -254,10 +254,14 @@ v) If necessary, reduce the model from iv) to a final model with all variables b
 final_df <-with_dummies %>% select(c("log_total_death_per100k", final.var))
 regression <- lm(log_total_death_per100k~., data = final_df)
 summary(regression)
-anova(regression)
+#anova(regression)
+```
+```{r}
 plot(regression, 1)
 plot(regression, 2)
 ```
+
+
 All of the variables beside state meet the 0.05 significance level.There are some states that are not at the .05 significance level, however, given that they are a part of a categorical variable for state, we did not take them out. The residual and normal quantile plot show that there is a slight skewness and deviation from the linear model distribution.
 
 vi) It has been shown that COVID affects elderly the most. It is also claimed that the COVID death rate among African Americans and Latinos is higher. Does your analysis support these arguments?
@@ -269,6 +273,8 @@ vii) Based on your final model, summarize your findings. In particular, summariz
 When
 
 viii) What else can we do to improve our model? What other important information we may have missed? 
+
+While our model considered important demographic information regarding different counties, there were some factors that were never considered which could affect the death rate. For example, there are many medical factors which have been shown to impact certain states like number of hospitals in the county and ICU beds. Many rural counties and states have significantly less of these resources. On that same note, the percentage of the population insured would also impact our model, since people may be less willing to seek treatment due to financial reasons. Also, rates of respiratory diseases within the population would also be interesting to try and include, especially given that it may reduce the effect of the elderly variable. 
 
 ix) (Optional) Would your findings be very different if you had refined the data in some way or imputed the missing values in part ii). Check PCA lecture, section 10 for imputations via `softImpute`. 
 
