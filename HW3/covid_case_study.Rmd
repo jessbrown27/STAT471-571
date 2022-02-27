@@ -266,7 +266,9 @@ Our analysis supports that the COVID death rate among the elderly is higher, the
 
 vii) Based on your final model, summarize your findings. In particular, summarize the state effect controlling for others. Provide intervention recommendations to policy makers to reduce COVID death rate.
 
-When
+When controlling for other factors, counties that had a higher percentage of employment in construction or agriculture had a negative effect on the covid death percentage rate per 100k people (with negative coefficients). Counties with a higher percentage in children (under 18) and people aged 65 and older had a positive effect on the covid death percentage (with a positive coefficient). Higher education percentage (some college or college plus) counties also had a negative effect showing that more educated populations had lower covid death rates. Higher net migration rate also had a negative effect so places that more people move to then out of had lower covid death rates.
+
+State effects that we found are that states such as Louisiana, Montana, North Dakota, New Jersey, and South Dakota had some of the highest positive effect for covid death percentages per 100k people while Maine, Vermont, New Hampshire, Utah, and West Virgina had the highest negative effects. There seemed to not be a regional component because there were states with positive and negative effects North, South, and in the Midwest. There also does not seem to be any biparsianal effects on the covid death rates because there was no clear split between the states with strong positive effects and strong negative effects. Montana, North Dakota, and South Dakota are geographically close together and all had positive effects for covid death rates. While Maine, Vermont, and New Hampshire are also geographically close together and all had a negative effects.
 
 viii) What else can we do to improve our model? What other important information we may have missed? 
 
