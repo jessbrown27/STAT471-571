@@ -205,7 +205,7 @@ plot(fit.fl.cv$lambda,
      ylab = "Lambda Value",
      type = "l")
 
-#using lambda - 0.03 because it is between lambda.min and lambda.1se and is the elbow area on the plot.
+#using lambda 0.0365 from lambda.1se
 fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 0.0365)
 coef(fit.fl.lambda)
 coef.100 <- coef(fit.fl.lambda, s=100)
@@ -214,7 +214,14 @@ coef.100
 nrow(as.matrix(coef.100))
 ```
 
-iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in State** in the process. 
+iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in State** in the process.
+
+```{r}
+library(leaps)
+fit.final <- regsubsets(log_total_death_per100k~., nvmax = 15, method = "exhau", county_data_sub_omit)
+plot(summary(fit.final)$cp)
+```
+
 
 v) If necessary, reduce the model from iv) to a final model with all variables being significant at 0.05 level. Are the linear model assumptions all reasonably met?
 
