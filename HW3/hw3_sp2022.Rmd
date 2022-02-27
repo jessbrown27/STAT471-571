@@ -6,10 +6,6 @@ author:
 - Group Member Sarah Hayward
 date: 'Due: 11:59Pm,  2/27, 2022'
 output:
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: '4'
   html_document:
     code_folding: hide
     highlight: haddock
@@ -18,6 +14,10 @@ output:
     toc: yes
     toc_depth: 4
     toc_float: yes
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '4'
   word_document:
     toc: yes
     toc_depth: '4'
@@ -26,11 +26,11 @@ urlcolor: blue
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, fig.width=8, fig.height=4)
+knitr::opts_chunk$set(include = TRUE, echo = TRUE, fig.width=8, fig.height=4)
 options(scipen = 0, digits = 3)  # controls base R output
 # check if you have ISLR package, if not, install it
 if(!require('pacman')) {install.packages('pacman')}
-pacman::p_load(ISLR, readxl, magrittr, dplyr, ggplot2) # add the packages needed
+pacman::p_load(ISLR, readxl, magrittr, dplyr, ggplot2, GGally, leaps) # add the packages needed
 ```
 
 
@@ -85,11 +85,154 @@ Final modelling question: We want to explore the effects of each feature as best
 
 a) You may explore the possibility of variable transformations. We normally do not suggest to transform $x$ for the purpose of interpretation. You may consider to transform $y$ to either correct the violation of the linear model assumptions or if you feel a transformation of $y$ makes more sense from some theory. In this case we suggest you to look into `GPM=1/MPG`. Compare residual plots of MPG or GPM as responses and see which one might yield a more satisfactory patterns. 
 
-In addition, can you provide some background knowledge to support the notion: it makes more sense to model `GPM`?  
+In addition, can you provide some background knowledge to support the notion: it makes more sense to model `GPM`?
 
 b) You may also explore by adding interactions and higher order terms. The model(s) should be as *parsimonious* (simple) as possible, unless the gain in accuracy is significant from your point of view. 
 
 c) Use Mallow's $C_p$ or BIC to select the model.
+
+
+```{r}
+head(Auto,3)
+```
+
+```{r}
+dim(Auto)
+```
+We have 392 cars (observations) and 9 variables
+```{r}
+names(Auto)
+```
+
+```{r}
+str(Auto)
+```
+Here we want to note that all of the variables types are numbers except for name which is a factor that contains 304 different level. This may want to be removed as it would not allow us to perform a plausible regression. There is also little detail that the name of a car can give us to predict the mpg of the car. 
+
+We can also see that origin and cylinder have many of the same values appearing, thus we may want to look into those as factors. 
+
+```{r}
+summary(Auto)
+```
+```{r}
+sum(is.na(Auto))
+```
+Here we see that there are no missing values in our data set. 
+
+Now let's do some data visualization. 
+```{r}
+Auto %>%
+  select(mpg, displacement, horsepower, weight, acceleration, year) %>%
+  ggpairs() 
+```
+Hear we can see the pairwise scatter plots for all numerical variables excluding cylinders and origin as those are likely factor variables and would not be beneficial to display in a scatter plot. Based on these graphs, we can see that the correlation between mpg and displacement/horsepower/weight is very strong and is negative. The relationship between mpg and acceleration/year is moderately strong and positive. 
+
+```{r}
+Auto %>% select_if(is.numeric) %>%
+  cor()  # pairwise cor's among all quantitative var's
+```
+If we look at the correlations between all of the variables we see that highest two correlated variables is displacement and cylinders which makes sense since those values depend on one another when you are building and engineering the car. 
+
+If you regress mpg  vs. each variable, one at a time, we can see that weight would yield the highest $R^2$ value as $r^2 = R^2$ is the weight of the car. 
+
+Now let's look at the residual plots for MPG vs GPM to decide which is the best for the regression.
+
+```{r}
+Auto$gpm = 1/Auto$mpg
+```
+
+```{r}
+plot(lm(gpm ~ weight, data=Auto), 1)
+plot(lm(mpg ~ weight, data=Auto), 1)
+```
+
+From this graph, we can see that the GPM regression with weight is a better option. For GPM, the residuals are spread randomly around the 0 line. This suggests that the assumption that the relationship is linear is reasonable for this model. The graph also suggests that the variances of the error term are normal, i.e., we have Homoscedasticity.
+
+```{r}
+plot(lm(gpm ~ weight, data=Auto), 2)
+```
+We also have the normality assumption met for GPM. 
+
+Thus for our linear model, we will select to use GPM as the assumptions are all met with GPM.
+
+Another reason to not use MPG, is MPG will tell you the range of the car's gas tank, this means that it could vary significantly between cars as all tank sizes are not the same. GPM is useful when you are comparing different cars as it allows you to better captures the fuel consumption of the car. By using GPM, you can tell how much gas you will need to use for a certain length of driving. This allows for efficiency in comparing  different cars to one uniform distance. 
+
+Before we begin the model, we are going to look at whether or not we should use cylinders as a numeric or a factor. Clearly origin should be a factor as it is three specific values that represent a categorical variable, however, cylinders in numeric in nature. 
+
+First let's only include the variables that make sense for the regression, i.e., we will not be including names for the regression and we removed MPG as we will be using GPM. 
+```{r}
+names.exclude <- names(Auto) %in% c("name", "mpg")
+Auto2 <- Auto[!names.exclude]  
+names(Auto2)    
+```
+
+We  will make origin into a factor here.
+```{r}
+Auto2$origin <- as.factor(Auto2$origin)
+str(Auto2$origin)
+```
+
+Now we will compare the regression for cylinder as a numeric and cylinder as a factor. 
+```{r}
+fit.cyl.number <- lm(gpm~. , Auto2)
+```
+
+```{r}
+Auto2$cylinders <- as.factor(Auto2$cylinders)
+fit.cyl.factor <- lm(gpm~. , Auto2)
+anova(fit.cyl.number, fit.cyl.factor)
+```
+Although the variable `cylinders` is numeric in nature, it is highly, non linear. This means that it is more valuable to consider this variable as a factor instead of it's numeric value. Further looking at the analysis of variance for the two variables, with a null hypothesis that the two different fits are the same, we reject the null hypothesis at a level of 0.01, as the p-value is 0.001. Thus, we get that the two fits are significantly different and from our analysis, it would be beneficial to use cylinders as a factor. 
+ 
+Now with our variables as the correct types,we can begin our model selection process. 
+
+```{r}
+names(Auto2)
+```
+
+```{r}
+fit.all <-lm(gpm ~., data=Auto2)
+summary(fit.all)
+```
+
+```{r}
+fit.exh <- regsubsets(gpm ~., Auto2 , nvmax=12, method="exhaustive")
+```
+
+```{r}
+summary(fit.exh)
+```
+```{r}
+f.e <- summary(fit.exh)
+names(f.e)
+str(f.e)
+```
+We want to use the Cp criterion to determine which of the models has the lowest prediction error. 
+
+```{r}
+f.e$cp
+plot(f.e$cp, xlab="Number of predictors", 
+     ylab="Cp", col="red", pch=16)
+```
+
+Based on the Cp values it appears that the model with the lowest Cp is the one that has all 10 variables. The Cp for that model has a value of 15.7. Let's look at that model. 
+
+```{r}
+coef(fit.exh,10) 
+```
+
+```{r}
+opt.size <- which.min(f.e$cp) 
+opt.size
+```
+This chunk above confirms that the optimal model using the Cp criterion has 7 variables. 
+
+Let's look at which variables are selected
+```{r}
+fit.exh.var <- f.e$which
+fit.exh.var[opt.size,] 
+```
+
 
 2) Describe the final model and its accuracy. Include diagnostic plots with particular focus on the model residuals.
 
