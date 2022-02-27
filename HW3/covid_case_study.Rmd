@@ -90,12 +90,32 @@ county_data <- fread("data/covid_county.csv")
 # county-level COVID case and death
 covid_rate <- fread("data/covid_rates.csv")
 # county-level lockdown dates 
-# covid_intervention <- fread("data/covid_intervention.csv")
+covid_intervention <- fread("data/covid_intervention.csv")
 ```
 
 ## Understand the data
 
 The detailed description of variables is in `Appendix 1: Data description`. Please get familiar with the variables. Summarize the two data briefly.
+
+```{R}
+ncol(county_data)
+nrow(county_data)
+summary(county_data %>% select('PovertyAllAgesPct', 'MedHHInc', 'TotalPopEst2019', 'PopDensity2010', 'AvgHHSize', 'UnempRate2019'))
+
+ncol(covid_rate)
+nrow(covid_rate)
+summary(covid_rate)
+
+ncol(covid_intervention)
+nrow(covid_intervention)
+summary (covid_intervention)
+```
+
+**Answer:** In the county dataset, there are 208 variables (columns) to describe the 3279 counties (rows) included. A variable we thought was important in this case study was the poverty percentage in the county which ranges from 2.6% to 54% with an average of 15.1%. Another variable was median household income which ranges from 25,385 to 140,382 with an average of 52,945, total population estimate in 2019 which ranges from 86 to 328,000,000 with an average of 302,000, population density which ranges from 0 to 69,468 with an average of 285, average household size which ranges from 1.34 to 4.97 with an average 2.53, and unemployment rate which ranges 0.70 to 19.30 with an average of 4.14. There are a few NA instances.
+
+In the covid rate dataset, there are 8 variables (columns) and 1,008,984 entries. The data ranges from January 21, 2020 to February 20, 2021. The data ranges from week 1 to week 57. Total population estimated in 2019 ranges from 169 to 10,039,107. The maximum cumulative number of cases in a county is 1,179,633 and maximum cumulative number of deaths in a county is 19,793.
+
+In the covid intervention dataset, there are 16 variables (columns), 13 of which are intervention dates. There are 3,272 counties (rows) being reported on. Of the 13 interventions, the >500 gatherings and foreign travel ban seemed to be implemented first with the first implementations being on March 12, 2020. The first rollbacks first were implemented April 25, 2020. There are a few NA instances.
 
 ## COVID case trend
 
