@@ -196,12 +196,13 @@ summary(fit.all)
 ```
 
 ```{r}
-fit.exh <- regsubsets(gpm ~., Auto2 , nvmax=12, method="exhaustive")
+fit.exh <- regsubsets(gpm ~., Auto2 , nvmax=11, method="exhaustive")
 ```
 
 ```{r}
 summary(fit.exh)
 ```
+
 ```{r}
 f.e <- summary(fit.exh)
 names(f.e)
@@ -215,7 +216,7 @@ plot(f.e$cp, xlab="Number of predictors",
      ylab="Cp", col="red", pch=16)
 ```
 
-Based on the Cp values it appears that the model with the lowest Cp is the one that has all 10 variables. The Cp for that model has a value of 15.7. Let's look at that model. 
+Based on the Cp values it appears that the model with the lowest Cp is the one that has all 10 variables. The Cp for that model has a value of 10.5. Let's look at that model. 
 
 ```{r}
 coef(fit.exh,10) 
@@ -232,13 +233,88 @@ Let's look at which variables are selected
 fit.exh.var <- f.e$which
 fit.exh.var[opt.size,] 
 ```
+We can see here that the variable this model would remove is cylinders8, however, this is part of a factor variable and we cannot just removed that one part, so let's run another model that excludes the entire cylinders variable and compart the prediction errors. 
 
+
+```{r}
+fit.exh2 <- regsubsets(gpm ~ displacement + horsepower + weight + acceleration + year + origin, Auto2 , nvmax=7, method="exhaustive")
+```
+
+```{r}
+summary(fit.exh2)
+```
+
+```{r}
+f.e2 <- summary(fit.exh2)
+names(f.e2)
+str(f.e2)
+```
+
+```{r}
+f.e2$cp
+plot(f.e2$cp, xlab="Number of predictors", 
+     ylab="Cp", col="red", pch=16)
+```
+Here we see that the lowest Cp value is 6.83.
+
+
+Let's find the model with the optimal size.
+```{r}
+opt.size <- which.min(f.e2$cp) 
+opt.size
+```
+
+```{r}
+fit.exh.var2 <- f.e2$which
+fit.exh.var2[opt.size,] 
+```
+So the optimal model here is the one with 6 variables as it has the lowest prediction error. We see that this model does not include displacement.
+
+Let's make one more model that excludes displacement but includes cylinders and see what the Cp for that would be.
+
+```{r}
+fit3 <- regsubsets(gpm ~ cylinders + horsepower + weight + acceleration + year + origin, Auto2 , nvmax=11, method="exhaustive")
+summary(fit3)
+fe.3 <- summary(fit3)
+fe.3$cp
+```
+We can see here that none of the Cp values are less than the model that excluded displacement and cylinders.
 
 2) Describe the final model and its accuracy. Include diagnostic plots with particular focus on the model residuals.
 
   * Summarize the effects found.
   * Predict the `mpg` of a car that is: built in 1983, in the US, red, 180 inches long, 8 cylinders, 350 displacement, 260 as horsepower, and weighs 4,000 pounds. Give a 95% CI.
   * Any suggestions as to how to improve the quality of the study?
+
+The final model we selected predicts GPM for a car using horsepower, weight, acceleration, year, and origin. In our model we have origin as a factor variable since the variable is non-linear and are not of significance in a linear model if kept as numerical values. We used the all subsets method to select a model with the lowest prediction area using the Cp criterion. The Cp for our final model was equal to 6.83. 
+
+```{r}
+final.fit <- lm(gpm~horsepower + weight + acceleration + year + origin, Auto2)
+summary(final.fit)
+```
+We have a $R^2$ value of 0.884 which is fairly high. THe variables are also all significant here. 
+
+```{r}
+par(mfrow=c(1,2))
+plot(final.fit, 1)
+plot(final.fit, 2)
+```
+
+From the above graphs we can see that our final model meets the assumptions of Homoscedasticity and normality. 
+
+
+Note: we aren't given acceleration, so I will remove that variable. 
+```{r}
+final.fit0 <- lm(gpm~horsepower + weight  + year + origin, Auto2)
+predict(final.fit0, newdata = data.frame(horsepower = 260, weight = 4000, year = 83, origin = as.factor(1)), interval = "confidence", level = 0.95)
+1/0.0595
+1/0.0684
+```
+
+The confidence interval for the car with the above specifications is [0.0595 GPM, 0.0684 GPM] or [14.6 mpg, 16.8 mpg] . If an infinite number of samples were drawn from the same population of this car and a 95% CI calculated for each sample, we would expect the population mean to be found within 95% of these CIs. We also can note that the confidence interval is narrower as the prediction interval has an added uncertainty of predicting the exact value rather than the mean value. 
+
+In the future, it may be beneficial to run the model using cylinders in a different way as the variable could be more significant based on whether it is a factor or a numerical variable. Potentially exploring R packages to figure this out could be beneficial as well. Further, in the future it could be interesting to look at more cars that are from the same company. For instance, most of the cars were from different companies which could impact the car in a different varaible we cannot record. Further, most of the cars are from the later 1900s. It would be interesting to see if anything has changed with new technologies. 
+
 
 
 # Case study 2: COVID
