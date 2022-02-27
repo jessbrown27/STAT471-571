@@ -117,14 +117,14 @@ It is crucial to decide the right granularity for visualization and analysis. We
 
 i) Plot **new** COVID cases in NY, WA and FL by state and by day. Any irregular pattern? What is the biggest problem of using single day data? 
 ```{r}
-covid_rate %>% filter(State %in% c('New York', 'Washington', 'Florida')) %>% group_by(State, date) %>% summarise(cum_cases = sum(cum_cases)) %>% arrange(State, date) %>% mutate(new_cases = c(cum_cases[1], diff(cum_cases))) %>% ggplot(aes(x = date, y = new_cases, group = State, color = State)) + geom_line() + ggtitle("Plot of Daily New Covid Cases") + ylab("new cases")
+covid_rate %>% filter(State %in% c('New York', 'Washington', 'Florida')) %>% group_by(State, date) %>% summarise(cum_cases = sum(cum_cases)) %>% arrange(State, date) %>% mutate(new_cases = ifelse(State != lag(State) | row_number() == 1, cum_cases, cum_cases - lag(cum_cases))) %>% ggplot(aes(x = date, y = new_cases, group = State, color = State)) + geom_line() + ggtitle("Plot of Daily Covid Cases")
 ```
 We can see that there are some really large fluctuations in the daily data, particularly for Florida around January 2021. With using single day data, the data can easily jump up or down depending on factors like how many people test that day. For example, the Florida rates drop dramatically on certain days during the holiday season when people would be less inclined to get tested, even if they're symptomatic (ex: people don't want to get tested on Christmas). The small time frame leads to a lot more volatility and makes it harder to show the rate of new cases. 
 
 ii) Create **weekly new** cases per 100k `weekly_case_per100k`. Plot the spaghetti plots of `weekly_case_per100k` by state. Use `TotalPopEst2019` as population.
 
-```{r fig.height= 5, fig.width= 10}
-covid_rate %>% group_by(State, week) %>% summarise(cum_cases = sum(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = c(cum_cases[1], diff(cum_cases)) / (state_pop / 100000)) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
+```{r fig.height= 4, fig.width= 7}
+covid_rate %>% group_by(State, week) %>% summarise(cum_cases = max(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_cases / (state_pop / 100000), (cum_cases - lag(cum_cases)) / (state_pop / 100000))) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
 ```
 
 
@@ -140,7 +140,12 @@ iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lock
 i) For each month in 2020, plot the monthly deaths per 100k heatmap by state on US map. Use the same color range across months. (Hints: Set `limits` argument in `scale_fill_gradient()` or use `facet_wrap()`; use `lubridate::month()` and `lubridate::year()` to extract month and year from date; use `tidyr::complete(state, month, fill = list(new_case_per100k = NA))` to complete the missing months with no cases.)
 
 ```{r}
-covid_rate %>% mutate(month = month(date), ) %>% group_by(State, month, year) %>% summarise(cum_deaths = sum(cum_deaths)
+covid_rate %>% mutate(month = month(date), year = year(date)) %>% filter(year == 2020) %>% group_by(County, State, month) %>% summarise(cum_deaths = max(cum_deaths), county_pop = max(TotalPopEst2019)) %>% group_by(State, month) %>% summarise(cum_deaths = sum(cum_deaths), state_pop = sum(county_pop)) %>% complete(State, month, fill = list(cum_deaths = NA)) %>% arrange(State, month) %>% mutate(new_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_deaths / (state_pop / 100000), (cum_deaths - lag(cum_deaths) / (state_pop / 100000)))) 
+
+#%>% plot_usmap(regions = State, values = new_case_per100k, color = "black") +
+#scale_fill_gradient(low = "white", high = "red",
+#name = "Number of ",
+#label = scales::comma)
 ```
 
 
