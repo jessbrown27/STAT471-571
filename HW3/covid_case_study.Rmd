@@ -185,12 +185,28 @@ iii) Use LASSO to choose a parsimonious model with all available sensible county
 
 ```{r}
 #library(glmnet)
-county_data_sub_omit <- na.omit(county_data_sub) %>% select(-County, -FIPS)
-county_data_sub_omit$State <- as.factor(county_data_sub_omit$State)
-Y <- county_data_sub_omit[, log_total_death_per100k] # extract Y
-X <- model.matrix(log_total_death_per100k~., data=county_data_sub_omit)[, -1]
-fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 100) # alpha =1 corresponding to LASSO solutions
-fit.fl.lambda$beta
+county_data_sub_omit <- na.omit(county_data_sub) %>% select(-State, -County, -FIPS)
+
+set.seed(10)
+Y <- county_data_sub_omit[, log_total_death_per100k] 
+X <- model.matrix(log_total_death_per100k~., data=county_data_sub_omit)
+
+fit.fl.cv <- cv.glmnet(X, Y, alpha=1, nfolds=10)
+
+fit.fl.cv$lambda.1se
+plot(fit.fl.cv$lambda,
+     main = "There are 100 lambda used",
+     xlab = "Lambda Index",
+     ylab = "Lambda Value",
+     type = "l")
+
+#using lambda - 0.03 because it is between lambda.min and lambda.1se and is the elbow area on the plot.
+fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 0.0365)
+coef(fit.fl.lambda)
+coef.100 <- coef(fit.fl.lambda, s=100)
+coef.100 <- coef.100[which(coef.100 !=0),]
+coef.100
+nrow(as.matrix(coef.100))
 ```
 
 iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in State** in the process. 
