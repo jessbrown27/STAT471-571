@@ -202,10 +202,8 @@ fit.fl.cv <- cv.glmnet(X, Y, alpha=1, nfolds=10)
 
 fit.fl.cv$lambda.1se
 
-<<<<<<< HEAD
 #using lambda 0.0365 from lambda.1se
-=======
->>>>>>> 2ce02e089244f18f76148ee847a03243876a39e9
+
 fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 0.0365)
 coef(fit.fl.lambda)
 coef.100 <- coef(fit.fl.lambda, s=100)
@@ -217,13 +215,14 @@ nrow(as.matrix(coef.100))
 library(caret)
 
 with_state <- na.omit(county_data_sub)
-temp_df <- with_state %>% select(c("State", rownames(as.matrix(coef.100))[-1]))
+temp_df <- with_state %>% select(c("State", "log_total_death_per100k", rownames(as.matrix(coef.100))[-1]))
 
-with_dummies = as.matrix(temp_df %>% mutate(dummy = 1) %>% spread(key=State, value=dummy, fill=0))
+with_dummies = temp_df %>% mutate(dummy = 1) %>% spread(key=State, value=dummy, fill=0)
+X = as.matrix(with_dummies %>% select(-log_total_death_per100k))
 
-state_ind <- c(rep(1, ncol(with_dummies)-48), rep(0, 48))
+state_ind <- c(rep(1, ncol(with_dummies)-49), rep(0, 48))
 
-fit.fl.force.cv <- cv.glmnet(with_dummies, Y, alpha=1, nfolds=10, intercept = T,
+fit.fl.force.cv <- cv.glmnet(X, Y, alpha=1, nfolds=10, intercept = T,
 penalty.factor = state_ind)
 
 coef.force <- coef(fit.fl.force.cv, s="lambda.1se")
@@ -236,8 +235,16 @@ iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in Sta
 
 ```{r}
 library(leaps)
-fit.final <- regsubsets(log_total_death_per100k~., nvmax = 15, method = "exhau", county_data_sub_omit)
-plot(summary(fit.final)$cp)
+temp_df <- with_dummies %>% select(c("log_total_death_per100k", var.force))
+fit.final <- regsubsets(log_total_death_per100k~., temp_df, force.in = c(12:59),
+nvmax=59, 
+method="exhaustive",really.big=T)
+plot(summary(fit.final)$cp) 
+#elbow at 7
+
+fit.var <- summary(fit.final)$which
+final.var <- colnames(fit.var)[fit.var[7, ]][-1]
+final.var
 ```
 
 
