@@ -155,9 +155,27 @@ plot_usmap(regions = "state", data = monthly_deaths, values = "new_case_per100k"
 
 ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal any systematic way to capture the dynamic changes among states? (Hints: Follow *Appendix 3: Plotly heatmap::* in Module 6 regularization lecture to plot the heatmap using `plotly`. Use `frame` argument in `add_trace()` for animation. `plotly` only recognizes abbreviation of state names. Use `unique(us_map(regions = "states") %>% select(abbr, full))` to get the abbreviation and merge with the data to get state abbreviation.)
 ```{r}
-death_plot = plot_usmap(regions = "state", data = (monthly_deaths %>% merge((unique(us_map(regions = "states") %>% select(abbr, full))), by.x = "state", by.y = "full")), values = "new_case_per100k", exclude = c("Hawaii", "Alaska")) + scale_fill_gradient(low = "white", high = "red", name = "Monthly deaths per 100k", limits = c(0, max(monthly_deaths$new_case_per100k))) + facet_wrap(~month) + theme(legend.position = "right")
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  lakecolor = toRGB('white'))
 
-#add_trace(ggplotly(death_plot))
+map_data = monthly_deaths %>% merge((unique(us_map(regions = "states") %>% select(abbr, full))), by.x = "state", by.y = "full") %>% mutate(hover =  paste(state, '<br>', 'death rate per 100k', round(new_case_per100k, 2), '<br>'))
+
+fig <- plot_geo(map_data, locationmode = 'USA-states')
+fig <- fig %>% add_trace(
+    z = ~new_case_per100k, text = ~hover, locations = ~abbr, frame = ~month, 
+    color = ~new_case_per100k, colors = 'Purples',
+    zmin = min(map_data$new_case_per100k, na.rm = TRUE), zmax = max(map_data$new_case_per100k, na.rm = TRUE)
+  )
+
+fig <- fig %>% colorbar(title = "Covid Death Rate Per 100k")
+fig <- fig %>% layout(
+    title = 'Covid Monthly New Death Rate Per 100k People',
+    geo = g
+  )
+
+fig
 ```
 
 # COVID factor
