@@ -257,7 +257,7 @@ anova(regression)
 plot(regression, 1)
 plot(regression, 2)
 ```
-
+All of the variables beside state meet the 0.05 significance levle.There are some states that are not at the .05 significance level, however, given that they are a part of a categorical variable for state, we did not take them out
 
 vi) It has been shown that COVID affects elderly the most. It is also claimed that the COVID death rate among African Americans and Latinos is higher. Does your analysis support these arguments?
 
