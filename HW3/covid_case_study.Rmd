@@ -253,15 +253,20 @@ v) If necessary, reduce the model from iv) to a final model with all variables b
 ```{r}
 final_df <-with_dummies %>% select(c("log_total_death_per100k", final.var))
 regression <- lm(log_total_death_per100k~., data = final_df)
+summary(regression)
 anova(regression)
 plot(regression, 1)
 plot(regression, 2)
 ```
-All of the variables beside state meet the 0.05 significance levle.There are some states that are not at the .05 significance level, however, given that they are a part of a categorical variable for state, we did not take them out
+All of the variables beside state meet the 0.05 significance level.There are some states that are not at the .05 significance level, however, given that they are a part of a categorical variable for state, we did not take them out. The residual and normal quantile plot show that there is a slight skewness and deviation from the linear model distribution.
 
 vi) It has been shown that COVID affects elderly the most. It is also claimed that the COVID death rate among African Americans and Latinos is higher. Does your analysis support these arguments?
 
+Our analysis supports that the COVID death rate among the elderly is higher, there is a positive 0.05134 coefficient for the Age65AndOlderPct2010 variable that has a statistically significant P value. However, our analysis does not support that COVID death rate among African Americans and Latinx is higher because those variables were not found to be significant in building our model. 
+
 vii) Based on your final model, summarize your findings. In particular, summarize the state effect controlling for others. Provide intervention recommendations to policy makers to reduce COVID death rate.
+
+When
 
 viii) What else can we do to improve our model? What other important information we may have missed? 
 
