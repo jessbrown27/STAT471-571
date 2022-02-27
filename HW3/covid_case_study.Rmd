@@ -131,7 +131,7 @@ We can see that there are some really large fluctuations in the daily data, part
 ii) Create **weekly new** cases per 100k `weekly_case_per100k`. Plot the spaghetti plots of `weekly_case_per100k` by state. Use `TotalPopEst2019` as population.
 
 ```{r fig.height= 4, fig.width= 7}
-covid_rate %>% group_by(State, week) %>% summarise(cum_cases = max(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_cases / (state_pop / 100000), (cum_cases - lag(cum_cases)) / (state_pop / 100000))) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
+covid_rate %>% group_by(State, County, week) %>% summarise(cum_cases = max(cum_cases), county_pop = sum(TotalPopEst2019)) %>% group_by(State, week) %>% summarise(state_pop = sum(county_pop), cum_cases = sum(cum_cases)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_cases / (state_pop / 100000), (cum_cases - lag(cum_cases)) / (state_pop / 100000))) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
 ```
 
 
@@ -146,17 +146,15 @@ iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lock
 
 i) For each month in 2020, plot the monthly deaths per 100k heatmap by state on US map. Use the same color range across months. (Hints: Set `limits` argument in `scale_fill_gradient()` or use `facet_wrap()`; use `lubridate::month()` and `lubridate::year()` to extract month and year from date; use `tidyr::complete(state, month, fill = list(new_case_per100k = NA))` to complete the missing months with no cases.)
 
-```{r}
-covid_rate %>% mutate(month = month(date), year = year(date)) %>% filter(year == 2020) %>% group_by(County, State, month) %>% summarise(cum_deaths = max(cum_deaths), county_pop = max(TotalPopEst2019)) %>% group_by(State, month) %>% summarise(cum_deaths = sum(cum_deaths), state_pop = sum(county_pop)) %>% complete(State, month, fill = list(cum_deaths = NA)) %>% arrange(State, month) %>% mutate(new_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_deaths / (state_pop / 100000), (cum_deaths - lag(cum_deaths) / (state_pop / 100000)))) 
+```{r fig.height= 3, fig.width= 5}
+monthly_deaths = covid_rate %>% mutate(month = month(date), year = year(date)) %>% filter(year == 2020) %>% group_by(County, State, month) %>% summarise(cum_deaths = max(cum_deaths), county_pop = max(TotalPopEst2019)) %>% group_by(State, month) %>% summarise(cum_deaths = sum(cum_deaths), state_pop = sum(county_pop)) %>% arrange(State, month) %>% mutate(new_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_deaths / (state_pop / 100000), (cum_deaths - lag(cum_deaths) / (state_pop / 100000)))) %>% rename(state = State) %>% group_by() %>% complete(state, month, fill = list(new_case_per100k = NA))
 
-#%>% plot_usmap(regions = State, values = new_case_per100k, color = "black") +
-#scale_fill_gradient(low = "white", high = "red",
-#name = "Number of ",
-#label = scales::comma)
+plot_usmap(regions = "state", data = monthly_deaths, values = "new_case_per100k", exclude = c("Hawaii", "Alaska")) + scale_fill_gradient(low = "white", high = "red", name = "Monthly deaths per 100k", limits = c(0, max(monthly_deaths$new_case_per100k))) + facet_wrap(~month) + theme(legend.position = "right")
 ```
 
 
 ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal any systematic way to capture the dynamic changes among states? (Hints: Follow *Appendix 3: Plotly heatmap::* in Module 6 regularization lecture to plot the heatmap using `plotly`. Use `frame` argument in `add_trace()` for animation. `plotly` only recognizes abbreviation of state names. Use `unique(us_map(regions = "states") %>% select(abbr, full))` to get the abbreviation and merge with the data to get state abbreviation.)
+
 
 # COVID factor
 
