@@ -131,7 +131,7 @@ We can see that there are some really large fluctuations in the daily data, part
 ii) Create **weekly new** cases per 100k `weekly_case_per100k`. Plot the spaghetti plots of `weekly_case_per100k` by state. Use `TotalPopEst2019` as population.
 
 ```{r fig.height= 5, fig.width= 10}
-covid_rate %>% group_by(State, week) %>% summarise(cum_cases = sum(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = c(cum_cases[1], diff(cum_cases)) / (state_pop / 100000)) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
+covid_rate %>% group_by(State, County, week) %>% summarise(cum_cases = max(cum_cases), county_pop = sum(TotalPopEst2019)) %>% group_by(State, week) %>% summarise(state_pop = sum(county_pop), cum_cases = sum(cum_cases)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_cases / (state_pop / 100000), (cum_cases - lag(cum_cases)) / (state_pop / 100000))) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k People")
 ```
 
 
@@ -147,7 +147,9 @@ iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lock
 i) For each month in 2020, plot the monthly deaths per 100k heatmap by state on US map. Use the same color range across months. (Hints: Set `limits` argument in `scale_fill_gradient()` or use `facet_wrap()`; use `lubridate::month()` and `lubridate::year()` to extract month and year from date; use `tidyr::complete(state, month, fill = list(new_case_per100k = NA))` to complete the missing months with no cases.)
 
 ```{r}
-covid_rate %>% mutate(month = month(date), ) %>% group_by(State, month, year) %>% summarise(cum_deaths = sum(cum_deaths)
+monthly_deaths = covid_rate %>% mutate(month = month(date), year = year(date)) %>% filter(year == 2020) %>% group_by(County, State, month) %>% summarise(cum_deaths = max(cum_deaths), county_pop = max(TotalPopEst2019)) %>% group_by(State, month) %>% summarise(cum_deaths = sum(cum_deaths), state_pop = sum(county_pop)) %>% arrange(State, month) %>% mutate(new_case_per100k = ifelse(State != lag(State) | row_number() == 1, cum_deaths / (state_pop / 100000), (cum_deaths - lag(cum_deaths) / (state_pop / 100000)))) %>% rename(state = State) %>% group_by() %>% complete(state, month, fill = list(new_case_per100k = NA))
+
+plot_usmap(regions = "state", data = monthly_deaths, values = "new_case_per100k", exclude = c("Hawaii", "Alaska")) + scale_fill_gradient(low = "white", high = "red", name = "Monthly deaths per 100k", limits = c(0, max(monthly_deaths$new_case_per100k))) + facet_wrap(~month) + theme(legend.position = "right")
 ```
 
 
@@ -155,7 +157,7 @@ ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal an
 ```{r}
 death_plot = plot_usmap(regions = "state", data = (monthly_deaths %>% merge((unique(us_map(regions = "states") %>% select(abbr, full))), by.x = "state", by.y = "full")), values = "new_case_per100k", exclude = c("Hawaii", "Alaska")) + scale_fill_gradient(low = "white", high = "red", name = "Monthly deaths per 100k", limits = c(0, max(monthly_deaths$new_case_per100k))) + facet_wrap(~month) + theme(legend.position = "right")
 
-add_trace(ggplotly(death_plot))
+#add_trace(ggplotly(death_plot))
 ```
 
 # COVID factor
@@ -189,13 +191,22 @@ which(is.na(county_data_sub))
 iii) Use LASSO to choose a parsimonious model with all available sensible county-level information. **Force in State** in the process. Why we need to force in State? You may use `lambda.1se` to choose a smaller model.
 
 ```{r}
-#library(glmnet)
-county_data_sub_omit <- na.omit(county_data_sub) %>% select(-County, -FIPS)
-county_data_sub_omit$State <- as.factor(county_data_sub_omit$State)
+library(glmnet)
+library(caret)
+set.seed(5)
+
+county_data_sub_omit <- na.omit(county_data_sub) %>% select(-County, -FIPS) %>% mutate(dummy = 1) %>% spread(key=State, value=dummy, fill=0) 
+
 Y <- county_data_sub_omit[, log_total_death_per100k] # extract Y
-X <- model.matrix(log_total_death_per100k~., data=county_data_sub_omit)[, -1]
-fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 100) # alpha =1 corresponding to LASSO solutions
-fit.fl.lambda$beta
+X <- as.matrix(county_data_sub_omit %>% select(-log_total_death_per100k))
+
+state_ind <- c(rep(0, 48), rep(1, ncol(X)-48))
+
+fit.fl.cv <- cv.glmnet(X, Y, alpha=1, intercept = T, nfolds = 10, penalty.factor = state_ind)
+fit.fl.cv$lambda.1se
+coef.1se <- coef(fit.fl.cv, s="lambda.1se")
+coef.1se <- coef.1se[which(coef.1se !=0),] # non=zero coefs
+rownames(as.matrix(coef.1se))[-1]
 ```
 
 iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in State** in the process. 
