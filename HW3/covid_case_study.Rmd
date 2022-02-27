@@ -191,22 +191,29 @@ which(is.na(county_data_sub))
 iii) Use LASSO to choose a parsimonious model with all available sensible county-level information. **Force in State** in the process. Why we need to force in State? You may use `lambda.1se` to choose a smaller model.
 
 ```{r}
-library(glmnet)
-library(caret)
-set.seed(5)
+#library(glmnet)
+county_data_sub_omit <- na.omit(county_data_sub) %>% select(-State, -County, -FIPS)
 
-county_data_sub_omit <- na.omit(county_data_sub) %>% select(-County, -FIPS) %>% mutate(dummy = 1) %>% spread(key=State, value=dummy, fill=0) 
+set.seed(10)
+Y <- county_data_sub_omit[, log_total_death_per100k] 
+X <- model.matrix(log_total_death_per100k~., data=county_data_sub_omit)
 
-Y <- county_data_sub_omit[, log_total_death_per100k] # extract Y
-X <- as.matrix(county_data_sub_omit %>% select(-log_total_death_per100k))
+fit.fl.cv <- cv.glmnet(X, Y, alpha=1, nfolds=10)
 
-state_ind <- c(rep(0, 48), rep(1, ncol(X)-48))
-
-fit.fl.cv <- cv.glmnet(X, Y, alpha=1, intercept = T, nfolds = 10, penalty.factor = state_ind)
 fit.fl.cv$lambda.1se
-coef.1se <- coef(fit.fl.cv, s="lambda.1se")
-coef.1se <- coef.1se[which(coef.1se !=0),] # non=zero coefs
-rownames(as.matrix(coef.1se))[-1]
+plot(fit.fl.cv$lambda,
+     main = "There are 100 lambda used",
+     xlab = "Lambda Index",
+     ylab = "Lambda Value",
+     type = "l")
+
+#using lambda - 0.03 because it is between lambda.min and lambda.1se and is the elbow area on the plot.
+fit.fl.lambda <- glmnet(X, Y, alpha=1, lambda = 0.0365)
+coef(fit.fl.lambda)
+coef.100 <- coef(fit.fl.lambda, s=100)
+coef.100 <- coef.100[which(coef.100 !=0),]
+coef.100
+nrow(as.matrix(coef.100))
 ```
 
 iv) Use `Cp` or BIC to fine tune the LASSO model from iii). Again **force in State** in the process. 
