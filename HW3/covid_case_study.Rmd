@@ -1,9 +1,9 @@
 ---
 title: "COVID-19 Case Study"
 author:
-- Group Member 1
-- Group Member 2
-- Group Member 3
+- Annie Vo
+- Sarah Hayward
+- Jessica Brown
 date: 'Due before midnight, Feb 27'
 output:
   html_document:
@@ -97,6 +97,7 @@ covid_intervention <- fread("data/covid_intervention.csv")
 
 The detailed description of variables is in `Appendix 1: Data description`. Please get familiar with the variables. Summarize the two data briefly.
 
+<<<<<<< HEAD
 ```{R}
 ncol(county_data)
 nrow(county_data)
@@ -116,22 +117,54 @@ summary (covid_intervention)
 In the covid rate dataset, there are 8 variables (columns) and 1,008,984 entries. The data ranges from January 21, 2020 to February 20, 2021. The data ranges from week 1 to week 57. Total population estimated in 2019 ranges from 169 to 10,039,107. The maximum cumulative number of cases in a county is 1,179,633 and maximum cumulative number of deaths in a county is 19,793.
 
 In the covid intervention dataset, there are 16 variables (columns), 13 of which are intervention dates. There are 3,272 counties (rows) being reported on. Of the 13 interventions, the >500 gatherings and foreign travel ban seemed to be implemented first with the first implementations being on March 12, 2020. The first rollbacks first were implemented April 25, 2020. There are a few NA instances.
+=======
+```{r}
+ncol(county_data)
+summary(county_data %>% select('FIPS', 'County', 'State', 'PovertyAllAgesPct', 'MedHHInc', 'TotalPopEst2019', 'PopDensity2010', 'AvgHHSize', 'UnempRate2019'))
+```
+
+```{r}
+summary(covid_rate)
+```
+
+```{r}
+summary(covid_intervention)
+```
+
+>>>>>>> 90c6008fd9e79a66f7b0a4f759297c651b985cef
 
 ## COVID case trend
 
 It is crucial to decide the right granularity for visualization and analysis. We will compare daily vs weekly total new cases by state and we will see it is hard to interpret daily report.
 
 i) Plot **new** COVID cases in NY, WA and FL by state and by day. Any irregular pattern? What is the biggest problem of using single day data? 
+```{r}
+covid_rate %>% filter(State %in% c('New York', 'Washington', 'Florida')) %>% group_by(State, date) %>% summarise(cum_cases = sum(cum_cases)) %>% arrange(State, date) %>% mutate(new_cases = c(cum_cases[1], diff(cum_cases))) %>% ggplot(aes(x = date, y = new_cases, group = State, color = State)) + geom_line() + ggtitle("Plot of Daily New Covid Cases") + ylab("new cases")
+```
+We can see that there are some really large fluctuations in the daily data, particularly for Florida around January 2021. With using single day data, the data can easily jump up or down depending on factors like how many people test that day. For example, the Florida rates drop dramatically on certain days during the holiday season when people would be less inclined to get tested, even if they're symptomatic (ex: people don't want to get tested on Christmas). The small time frame leads to a lot more volatility and makes it harder to show the rate of new cases. 
 
 ii) Create **weekly new** cases per 100k `weekly_case_per100k`. Plot the spaghetti plots of `weekly_case_per100k` by state. Use `TotalPopEst2019` as population.
 
+```{r fig.height= 5, fig.width= 10}
+covid_rate %>% group_by(State, week) %>% summarise(cum_cases = sum(cum_cases), state_pop = sum(TotalPopEst2019)) %>% arrange(State, week) %>% mutate(weekly_case_per100k = c(cum_cases[1], diff(cum_cases)) / (state_pop / 100000)) %>% ggplot(aes(x = week, y = weekly_case_per100k, group = State, color = State)) + geom_line() + ggtitle("Plot of Weekly New Covid Cases Per 100k Peopole")
+```
+
+
 iii) Summarize the COVID case trend among states based on the plot in ii). What could be the possible reasons to explain the variabilities? 
 
+The COVID case trend shows local maximums around week 12 and week 24 with minimums afterwards, before a large global maximum around week 42. It's evident that cases were increasing more rapidly in the weeks at the end of the year. The variability between states is likely due to varying covid restrictions and degree of lockdowns. WRITE MORE
+
 iv) (Optional) Use `covid_intervention` to see whether the effectiveness of lockdown in flattening the curve.
+
 
 ## COVID death trend
 
 i) For each month in 2020, plot the monthly deaths per 100k heatmap by state on US map. Use the same color range across months. (Hints: Set `limits` argument in `scale_fill_gradient()` or use `facet_wrap()`; use `lubridate::month()` and `lubridate::year()` to extract month and year from date; use `tidyr::complete(state, month, fill = list(new_case_per100k = NA))` to complete the missing months with no cases.)
+
+```{r}
+covid_rate %>% mutate(month = month(date), ) %>% group_by(State, month, year) %>% summarise(cum_deaths = sum(cum_deaths)
+```
+
 
 ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal any systematic way to capture the dynamic changes among states? (Hints: Follow *Appendix 3: Plotly heatmap::* in Module 6 regularization lecture to plot the heatmap using `plotly`. Use `frame` argument in `add_trace()` for animation. `plotly` only recognizes abbreviation of state names. Use `unique(us_map(regions = "states") %>% select(abbr, full))` to get the abbreviation and merge with the data to get state abbreviation.)
 
