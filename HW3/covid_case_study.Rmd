@@ -99,16 +99,23 @@ The detailed description of variables is in `Appendix 1: Data description`. Plea
 
 ```{r}
 ncol(county_data)
-summary(county_data %>% select('FIPS', 'County', 'State', 'PovertyAllAgesPct', 'MedHHInc', 'TotalPopEst2019', 'PopDensity2010', 'AvgHHSize', 'UnempRate2019'))
-```
+nrow(county_data)
+summary(county_data %>% select('PovertyAllAgesPct', 'MedHHInc', 'TotalPopEst2019', 'PopDensity2010', 'AvgHHSize', 'UnempRate2019'))
 
-```{r}
+ncol(covid_rate)
+nrow(covid_rate)
 summary(covid_rate)
+
+ncol(covid_intervention)
+nrow(covid_intervention)
+summary (covid_intervention)
 ```
 
-```{r}
-summary(covid_intervention)
-```
+**Answer:** In the county dataset, there are 208 variables (columns) to describe the 3279 counties (rows) included. A variable we thought was important in this case study was the poverty percentage in the county which ranges from 2.6% to 54% with an average of 15.1%. Another variable was median household income which ranges from 25,385 to 140,382 with an average of 52,945, total population estimate in 2019 which ranges from 86 to 328,000,000 with an average of 302,000, population density which ranges from 0 to 69,468 with an average of 285, average household size which ranges from 1.34 to 4.97 with an average 2.53, and unemployment rate which ranges 0.70 to 19.30 with an average of 4.14. There are a few NA instances.
+
+In the covid rate dataset, there are 8 variables (columns) and 1,008,984 entries. The data ranges from January 21, 2020 to February 20, 2021. The data ranges from week 1 to week 57. Total population estimated in 2019 ranges from 169 to 10,039,107. The maximum cumulative number of cases in a county is 1,179,633 and maximum cumulative number of deaths in a county is 19,793.
+
+In the covid intervention dataset, there are 16 variables (columns), 13 of which are intervention dates. There are 3,272 counties (rows) being reported on. Of the 13 interventions, the >500 gatherings and foreign travel ban seemed to be implemented first with the first implementations being on March 12, 2020. The first rollbacks first were implemented April 25, 2020. There are a few NA instances.
 
 
 ## COVID case trend
@@ -156,6 +163,14 @@ ii) (Optional) Use `plotly` to animate the monthly maps in i). Does it reveal an
 We now try to build a good parsimonious model to find possible factors related to death rate on county level. Let us not take time series into account for the moment and use the total number as of *Feb 1, 2021*.
 
 i) Create the response variable `total_death_per100k` as the total of number of COVID deaths per 100k by *Feb 1, 2021*. We suggest to take log transformation as `log_total_death_per100k = log(total_death_per100k + 1)`. Merge `total_death_per100k` to `county_data` for the following analysis.
+
+```{r}
+total_death_per100k <- covid_rate %>% filter(date == '2021-02-01') %>% select(c(FIPS, cum_deaths, TotalPopEst2019)) %>% mutate(total_death_per100k = cum_deaths / TotalPopEst2019 * 100000) %>% mutate(log_total_death_per100k = log(total_death_per100k + 1))
+total_death_per100k
+county_data <- merge(county_data, select(total_death_per100k, c(FIPS, total_death_per100k, log_total_death_per100k)), by="FIPS", all = TRUE)
+select(county_data, c(FIPS, total_death_per100k, log_total_death_per100k))
+```
+
 
 ii) Select possible variables in `county_data` as covariates. We provide `county_data_sub`, a subset variables from `county_data`, for you to get started. Please add any potential variables as you wish. 
 
