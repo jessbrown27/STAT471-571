@@ -131,6 +131,7 @@ To save your time we are going to use some data sets cleaned by the group. Thus,
 		
 4) The event of interest is **readmitted within < 30 days**. Note that you need to create this response first by regrouping **Readmission indicator**!
 
+
 # Research approach
 
 From the *Goals* section above, your study should respond to the following:

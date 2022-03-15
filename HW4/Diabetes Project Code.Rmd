@@ -1,0 +1,61 @@
+---
+title: "Predicting readmission probability for diabetes inpatients"
+author: 
+- Annie Vo
+- Sarah Hayward
+- Jessica Brown
+date: ' '
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+  html_document:
+    code_folding: show
+    highlight: haddock
+    theme: lumen
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  word_document:
+    toc: yes
+    toc_depth: '4'
+urlcolor: blue
+---
+
+* to hide source code: echo = FALSE
+* to hide text output: results = 'hide' or results = FALSE
+* hide messages: message = FALSE
+* hide warning messages: warning = FALSE
+* hide plotsL fig.show = 'hide'
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
+if(!require("pacman")) install.packages("pacman")
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table)   #add your packages here
+```
+
+# Executive Summary 
+
+# Data Summary / EDA
+* Nature of the data, origin
+* Necessary quantitative and graphical summaries
+* Are there any problems with the data?
+* Which variables are considered as input 
+
+The original data is from the [Center for Clinical and Translational Research](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) at Virginia Commonwealth University. It covers data on diabetes patients across 130 U.S. hospitals from 1999 to 2008. There are over 100,000 unique hospital admissions in this dataset, from ~70,000 unique patients. The data includes demographic elements, such as age, gender, and race, as well as clinical attributes such as tests conducted, emergency/inpatient visits, etc.
+
+# Analysis 
+* Various appropriate statistical methods: e.g. glmnet 
+* Comparisons various models
+* Final model(s)
+
+# Conclusion
+* Summarize results and the final model
+* Final recommendations
+
+# Appendix
+* Any thing necessary to keep but for which you don’t want them to be in the main report
+* Use Appendices to display lengthy output. 
+
+
+
