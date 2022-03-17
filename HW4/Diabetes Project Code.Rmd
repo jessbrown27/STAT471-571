@@ -62,8 +62,6 @@ Let's look at what other variables should be factors
 ```{r, results = FALSE}
 readmission$race <- as.factor(readmission$race)
 ```
-Here we note that 2273 patients have an unidentified race
-
 ```{r,results = FALSE}
 readmission$gender <- as.factor(readmission$gender)
 ```
