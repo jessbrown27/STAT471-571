@@ -1,0 +1,504 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+\title{Predicting readmission probability for diabetes inpatients}
+\author{Annie Vo \and Sarah Hayward \and Jessica Brown}
+\date{}
+
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Predicting readmission probability for diabetes inpatients},
+  pdfauthor={Annie Vo; Sarah Hayward; Jessica Brown},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={blue},
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\begin{document}
+\maketitle
+
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{4}
+\tableofcontents
+}
+\begin{itemize}
+\tightlist
+\item
+  to hide source code: echo = FALSE
+\item
+  to hide text output: results = `hide' or results = FALSE
+\item
+  hide messages: message = FALSE
+\item
+  hide warning messages: warning = FALSE
+\item
+  hide plotsL fig.show = `hide'
+\end{itemize}
+
+\hypertarget{executive-summary}{%
+\section{Executive Summary}\label{executive-summary}}
+
+\hypertarget{data-summary-eda}{%
+\section{Data Summary / EDA}\label{data-summary-eda}}
+
+\begin{itemize}
+\tightlist
+\item
+  Nature of the data, origin
+\item
+  Necessary quantitative and graphical summaries
+\item
+  Are there any problems with the data?
+\item
+  Which variables are considered as input
+\end{itemize}
+
+\begin{verbatim}
+##   encounter_id patient_nbr            race gender     age weight
+## 1      2278392     8222157       Caucasian Female  [0-10)      ?
+## 2       149190    55629189       Caucasian Female [10-20)      ?
+## 3        64410    86047875 AfricanAmerican Female [20-30)      ?
+## 4       500364    82442376       Caucasian   Male [30-40)      ?
+## 5        16680    42519267       Caucasian   Male [40-50)      ?
+## 6        35754    82637451       Caucasian   Male [50-60)      ?
+##   admission_type_id discharge_disposition_id admission_source_id
+## 1                 6                       25                   1
+## 2                 1                        1                   7
+## 3                 1                        1                   7
+## 4                 1                        1                   7
+## 5                 1                        1                   7
+## 6                 2                        1                   2
+##   time_in_hospital payer_code        medical_specialty num_lab_procedures
+## 1                1          ? Pediatrics-Endocrinology                 41
+## 2                3          ?                        ?                 59
+## 3                2          ?                        ?                 11
+## 4                2          ?                        ?                 44
+## 5                1          ?                        ?                 51
+## 6                3          ?                        ?                 31
+##   num_procedures num_medications number_outpatient number_emergency
+## 1              0               1                 0                0
+## 2              0              18                 0                0
+## 3              5              13                 2                0
+## 4              1              16                 0                0
+## 5              0               8                 0                0
+## 6              6              16                 0                0
+##   number_inpatient diag_1 diag_2 diag_3 number_diagnoses max_glu_serum
+## 1                0 250.83      ?      ?                1          None
+## 2                0    276 250.01    255                9          None
+## 3                1    648    250    V27                6          None
+## 4                0      8 250.43    403                7          None
+## 5                0    197    157    250                5          None
+## 6                0    414    411    250                9          None
+##   A1Cresult metformin repaglinide nateglinide chlorpropamide glimepiride
+## 1      None        No          No          No             No          No
+## 2      None        No          No          No             No          No
+## 3      None        No          No          No             No          No
+## 4      None        No          No          No             No          No
+## 5      None        No          No          No             No          No
+## 6      None        No          No          No             No          No
+##   acetohexamide glipizide glyburide tolbutamide pioglitazone rosiglitazone
+## 1            No        No        No          No           No            No
+## 2            No        No        No          No           No            No
+## 3            No    Steady        No          No           No            No
+## 4            No        No        No          No           No            No
+## 5            No    Steady        No          No           No            No
+## 6            No        No        No          No           No            No
+##   acarbose miglitol troglitazone tolazamide examide citoglipton insulin
+## 1       No       No           No         No      No          No      No
+## 2       No       No           No         No      No          No      Up
+## 3       No       No           No         No      No          No      No
+## 4       No       No           No         No      No          No      Up
+## 5       No       No           No         No      No          No  Steady
+## 6       No       No           No         No      No          No  Steady
+##   glyburide.metformin glipizide.metformin glimepiride.pioglitazone
+## 1                  No                  No                       No
+## 2                  No                  No                       No
+## 3                  No                  No                       No
+## 4                  No                  No                       No
+## 5                  No                  No                       No
+## 6                  No                  No                       No
+##   metformin.rosiglitazone metformin.pioglitazone change diabetesMed readmitted
+## 1                      No                     No     No          No         NO
+## 2                      No                     No     Ch         Yes        >30
+## 3                      No                     No     No         Yes         NO
+## 4                      No                     No     Ch         Yes         NO
+## 5                      No                     No     Ch         Yes         NO
+## 6                      No                     No     No         Yes        >30
+\end{verbatim}
+
+\begin{verbatim}
+##   encounter_id        patient_nbr            race              gender         
+##  Min.   :    12522   Min.   :      135   Length:101766      Length:101766     
+##  1st Qu.: 84961194   1st Qu.: 23413221   Class :character   Class :character  
+##  Median :152388987   Median : 45505143   Mode  :character   Mode  :character  
+##  Mean   :165201646   Mean   : 54330401                                        
+##  3rd Qu.:230270888   3rd Qu.: 87545950                                        
+##  Max.   :443867222   Max.   :189502619                                        
+##      age               weight          admission_type_id
+##  Length:101766      Length:101766      Min.   :1.000    
+##  Class :character   Class :character   1st Qu.:1.000    
+##  Mode  :character   Mode  :character   Median :1.000    
+##                                        Mean   :2.024    
+##                                        3rd Qu.:3.000    
+##                                        Max.   :8.000    
+##  discharge_disposition_id admission_source_id time_in_hospital
+##  Min.   : 1.000           Min.   : 1.000      Min.   : 1.000  
+##  1st Qu.: 1.000           1st Qu.: 1.000      1st Qu.: 2.000  
+##  Median : 1.000           Median : 7.000      Median : 4.000  
+##  Mean   : 3.716           Mean   : 5.754      Mean   : 4.396  
+##  3rd Qu.: 4.000           3rd Qu.: 7.000      3rd Qu.: 6.000  
+##  Max.   :28.000           Max.   :25.000      Max.   :14.000  
+##   payer_code        medical_specialty  num_lab_procedures num_procedures
+##  Length:101766      Length:101766      Min.   :  1.0      Min.   :0.00  
+##  Class :character   Class :character   1st Qu.: 31.0      1st Qu.:0.00  
+##  Mode  :character   Mode  :character   Median : 44.0      Median :1.00  
+##                                        Mean   : 43.1      Mean   :1.34  
+##                                        3rd Qu.: 57.0      3rd Qu.:2.00  
+##                                        Max.   :132.0      Max.   :6.00  
+##  num_medications number_outpatient number_emergency  number_inpatient 
+##  Min.   : 1.00   Min.   : 0.0000   Min.   : 0.0000   Min.   : 0.0000  
+##  1st Qu.:10.00   1st Qu.: 0.0000   1st Qu.: 0.0000   1st Qu.: 0.0000  
+##  Median :15.00   Median : 0.0000   Median : 0.0000   Median : 0.0000  
+##  Mean   :16.02   Mean   : 0.3694   Mean   : 0.1978   Mean   : 0.6356  
+##  3rd Qu.:20.00   3rd Qu.: 0.0000   3rd Qu.: 0.0000   3rd Qu.: 1.0000  
+##  Max.   :81.00   Max.   :42.0000   Max.   :76.0000   Max.   :21.0000  
+##     diag_1             diag_2             diag_3          number_diagnoses
+##  Length:101766      Length:101766      Length:101766      Min.   : 1.000  
+##  Class :character   Class :character   Class :character   1st Qu.: 6.000  
+##  Mode  :character   Mode  :character   Mode  :character   Median : 8.000  
+##                                                           Mean   : 7.423  
+##                                                           3rd Qu.: 9.000  
+##                                                           Max.   :16.000  
+##  max_glu_serum       A1Cresult          metformin         repaglinide       
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##  nateglinide        chlorpropamide     glimepiride        acetohexamide     
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##   glipizide          glyburide         tolbutamide        pioglitazone      
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##  rosiglitazone        acarbose           miglitol         troglitazone      
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##   tolazamide          examide          citoglipton          insulin         
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##  glyburide.metformin glipizide.metformin glimepiride.pioglitazone
+##  Length:101766       Length:101766       Length:101766           
+##  Class :character    Class :character    Class :character        
+##  Mode  :character    Mode  :character    Mode  :character        
+##                                                                  
+##                                                                  
+##                                                                  
+##  metformin.rosiglitazone metformin.pioglitazone    change         
+##  Length:101766           Length:101766          Length:101766     
+##  Class :character        Class :character       Class :character  
+##  Mode  :character        Mode  :character       Mode  :character  
+##                                                                   
+##                                                                   
+##                                                                   
+##  diabetesMed         readmitted       
+##  Length:101766      Length:101766     
+##  Class :character   Class :character  
+##  Mode  :character   Mode  :character  
+##                                       
+##                                       
+## 
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] "encounter_id"             "patient_nbr"             
+##  [3] "race"                     "gender"                  
+##  [5] "age"                      "weight"                  
+##  [7] "admission_type_id"        "discharge_disposition_id"
+##  [9] "admission_source_id"      "time_in_hospital"        
+## [11] "payer_code"               "medical_specialty"       
+## [13] "num_lab_procedures"       "num_procedures"          
+## [15] "num_medications"          "number_outpatient"       
+## [17] "number_emergency"         "number_inpatient"        
+## [19] "diag_1"                   "diag_2"                  
+## [21] "diag_3"                   "number_diagnoses"        
+## [23] "max_glu_serum"            "A1Cresult"               
+## [25] "metformin"                "repaglinide"             
+## [27] "nateglinide"              "chlorpropamide"          
+## [29] "glimepiride"              "acetohexamide"           
+## [31] "glipizide"                "glyburide"               
+## [33] "tolbutamide"              "pioglitazone"            
+## [35] "rosiglitazone"            "acarbose"                
+## [37] "miglitol"                 "troglitazone"            
+## [39] "tolazamide"               "examide"                 
+## [41] "citoglipton"              "insulin"                 
+## [43] "glyburide.metformin"      "glipizide.metformin"     
+## [45] "glimepiride.pioglitazone" "metformin.rosiglitazone" 
+## [47] "metformin.pioglitazone"   "change"                  
+## [49] "diabetesMed"              "readmitted"
+\end{verbatim}
+
+\begin{verbatim}
+##   encounter_id patient_nbr            race gender time_in_hospital
+## 1        12522    48330783       Caucasian Female               13
+## 2        15738    63555939       Caucasian Female               12
+## 3        16680    42519267       Caucasian   Male                1
+## 4        28236    89869032 AfricanAmerican Female                9
+## 5        35754    82637451       Caucasian   Male                3
+## 6        36900    77391171 AfricanAmerican   Male                7
+##   num_lab_procedures num_procedures num_medications number_outpatient
+## 1                 68              2              28                 0
+## 2                 33              3              18                 0
+## 3                 51              0               8                 0
+## 4                 47              2              17                 0
+## 5                 31              6              16                 0
+## 6                 62              0              11                 0
+##   number_emergency number_inpatient number_diagnoses max_glu_serum A1Cresult
+## 1                0                0                8          None      None
+## 2                0                0                8          None      None
+## 3                0                0                5          None      None
+## 4                0                0                9          None      None
+## 5                0                0                9          None      None
+## 6                0                0                7          None      None
+##   metformin glimepiride glipizide glyburide pioglitazone rosiglitazone insulin
+## 1        No          No    Steady        No           No            No  Steady
+## 2        No          No        No        No           No        Steady  Steady
+## 3        No          No    Steady        No           No            No  Steady
+## 4        No          No        No        No           No            No  Steady
+## 5        No          No        No        No           No            No  Steady
+## 6        No          No        No        Up           No            No  Steady
+##   change diabetesMed           disch_disp_modified    adm_src_mod adm_typ_mod
+## 1     Ch         Yes            Discharged to home          Other      Urgent
+## 2     Ch         Yes Discharged/Transferred to SNF          Other    Elective
+## 3     Ch         Yes            Discharged to home Emergency Room   Emergency
+## 4     No         Yes            Discharged to home Emergency Room   Emergency
+## 5     No         Yes            Discharged to home          Other      Urgent
+## 6     Ch         Yes            Discharged to home          Other      Urgent
+##   age_mod diag1_mod diag2_mod diag3_mod readmitted
+## 1     80+     Other       427     Other         NO
+## 2     80+       434     Other     Other         NO
+## 3   20-59     Other     Other       250         NO
+## 4   20-59     Other       403     Other        >30
+## 5   20-59       414       411       250        >30
+## 6   60-79     Other     Other     Other        <30
+\end{verbatim}
+
+\begin{verbatim}
+##   encounter_id        patient_nbr            race              gender         
+##  Min.   :    12522   Min.   :      135   Length:101766      Length:101766     
+##  1st Qu.: 84961194   1st Qu.: 23413221   Class :character   Class :character  
+##  Median :152388987   Median : 45505143   Mode  :character   Mode  :character  
+##  Mean   :165201646   Mean   : 54330401                                        
+##  3rd Qu.:230270888   3rd Qu.: 87545950                                        
+##  Max.   :443867222   Max.   :189502619                                        
+##  time_in_hospital num_lab_procedures num_procedures num_medications
+##  Min.   : 1.000   Min.   :  1.0      Min.   :0.00   Min.   : 1.00  
+##  1st Qu.: 2.000   1st Qu.: 31.0      1st Qu.:0.00   1st Qu.:10.00  
+##  Median : 4.000   Median : 44.0      Median :1.00   Median :15.00  
+##  Mean   : 4.396   Mean   : 43.1      Mean   :1.34   Mean   :16.02  
+##  3rd Qu.: 6.000   3rd Qu.: 57.0      3rd Qu.:2.00   3rd Qu.:20.00  
+##  Max.   :14.000   Max.   :132.0      Max.   :6.00   Max.   :81.00  
+##  number_outpatient number_emergency  number_inpatient  number_diagnoses
+##  Min.   : 0.0000   Min.   : 0.0000   Min.   : 0.0000   Min.   : 1.000  
+##  1st Qu.: 0.0000   1st Qu.: 0.0000   1st Qu.: 0.0000   1st Qu.: 6.000  
+##  Median : 0.0000   Median : 0.0000   Median : 0.0000   Median : 8.000  
+##  Mean   : 0.3694   Mean   : 0.1978   Mean   : 0.6356   Mean   : 7.423  
+##  3rd Qu.: 0.0000   3rd Qu.: 0.0000   3rd Qu.: 1.0000   3rd Qu.: 9.000  
+##  Max.   :42.0000   Max.   :76.0000   Max.   :21.0000   Max.   :16.000  
+##  max_glu_serum       A1Cresult          metformin         glimepiride       
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##   glipizide          glyburide         pioglitazone       rosiglitazone     
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##    insulin             change          diabetesMed        disch_disp_modified
+##  Length:101766      Length:101766      Length:101766      Length:101766      
+##  Class :character   Class :character   Class :character   Class :character   
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character   
+##                                                                              
+##                                                                              
+##                                                                              
+##  adm_src_mod        adm_typ_mod          age_mod           diag1_mod        
+##  Length:101766      Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##   diag2_mod          diag3_mod          readmitted       
+##  Length:101766      Length:101766      Length:101766     
+##  Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character  
+##                                                          
+##                                                          
+## 
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] "encounter_id"        "patient_nbr"         "race"               
+##  [4] "gender"              "time_in_hospital"    "num_lab_procedures" 
+##  [7] "num_procedures"      "num_medications"     "number_outpatient"  
+## [10] "number_emergency"    "number_inpatient"    "number_diagnoses"   
+## [13] "max_glu_serum"       "A1Cresult"           "metformin"          
+## [16] "glimepiride"         "glipizide"           "glyburide"          
+## [19] "pioglitazone"        "rosiglitazone"       "insulin"            
+## [22] "change"              "diabetesMed"         "disch_disp_modified"
+## [25] "adm_src_mod"         "adm_typ_mod"         "age_mod"            
+## [28] "diag1_mod"           "diag2_mod"           "diag3_mod"          
+## [31] "readmitted"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 11357
+\end{verbatim}
+
+Let's look at what other variables should be factors
+
+\begin{verbatim}
+##               ? AfricanAmerican           Asian       Caucasian        Hispanic 
+##            2273           19210             641           76099            2037 
+##           Other 
+##            1506
+\end{verbatim}
+
+Here we note that 2273 patients have an unidentified race
+
+\begin{verbatim}
+##          Female            Male Unknown/Invalid 
+##           54708           47055               3
+\end{verbatim}
+
+List of the variables we want to use as input: race, gender,
+time\_in\_hospital,
+
+The original data is from the
+\href{https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008}{Center
+for Clinical and Translational Research} at Virginia Commonwealth
+University. It covers data on diabetes patients across 130 U.S.
+hospitals from 1999 to 2008. There are over 100,000 unique hospital
+admissions in this dataset, from \textasciitilde70,000 unique patients.
+The data includes demographic elements, such as age, gender, and race,
+as well as clinical attributes such as tests conducted,
+emergency/inpatient visits, etc.
+
+\hypertarget{analysis}{%
+\section{Analysis}\label{analysis}}
+
+\begin{itemize}
+\tightlist
+\item
+  Various appropriate statistical methods: e.g.~glmnet
+\item
+  Comparisons various models
+\item
+  Final model(s)
+\end{itemize}
+
+\hypertarget{conclusion}{%
+\section{Conclusion}\label{conclusion}}
+
+\begin{itemize}
+\tightlist
+\item
+  Summarize results and the final model
+\item
+  Final recommendations
+\end{itemize}
+
+\hypertarget{appendix}{%
+\section{Appendix}\label{appendix}}
+
+\begin{itemize}
+\tightlist
+\item
+  Any thing necessary to keep but for which you don't want them to be in
+  the main report
+\item
+  Use Appendices to display lengthy output.
+\end{itemize}
+
+\end{document}
