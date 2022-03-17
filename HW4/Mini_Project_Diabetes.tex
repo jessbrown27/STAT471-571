@@ -1,0 +1,536 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+\title{Predicting readmission probability for diabetes inpatients}
+\author{Modern Data Mining}
+\date{}
+
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Predicting readmission probability for diabetes inpatients},
+  pdfauthor={Modern Data Mining},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={blue},
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\begin{document}
+\maketitle
+
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{4}
+\tableofcontents
+}
+\hypertarget{instructions}{%
+\section{Instructions}\label{instructions}}
+
+\begin{itemize}
+\tightlist
+\item
+  This is a project. Well organized and well presented write-up is one
+  major motivation here. Please see the section on \texttt{Write\ up}
+  for details.
+\item
+  There is no single correct answer.\\
+\item
+  The entire write up should not be more than \textbf{5} pages. All the
+  R-codes should be hidden. Any R-output used should be formatted
+  neatly. You may put all supporting documents, graphics, or other
+  exhibits into an Appendix, which is not counted in the 5 page limit.
+\end{itemize}
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+\hypertarget{background}{%
+\subsection{Background}\label{background}}
+
+Diabetes is a chronic medical condition affecting millions of Americans,
+but if managed well, with good diet, exercise and medication, patients
+can lead relatively normal lives. However, if improperly managed,
+diabetes can lead to patients being continuously admitted and readmitted
+to hospitals. Readmissions are especially serious - they represent a
+failure of the health system to provide adequate support to the patient
+and are extremely costly to the system. As a result, the Centers for
+Medicare and Medicaid Services announced in 2012 that they would no
+longer reimburse hospitals for services rendered if a patient was
+readmitted with complications within 30 days of discharge.
+
+Given these policy changes, being able to identify and predict those
+patients most at risk for costly readmissions has become a pressing
+priority for hospital administrators.
+
+\hypertarget{goal-of-the-study}{%
+\subsection{Goal of the study}\label{goal-of-the-study}}
+
+In this project, we shall explore how to use the techniques we have
+learned in order to help better manage diabetes patients who have been
+admitted to a hospital. Our goal is to avoid patients being readmitted
+within 30 days of discharge, which reduces costs for the hospital and
+improves outcomes for patients. If we could identify important factors
+relating to the chance of a patient being readmitted within 30 days of
+discharge, effective intervention could be done to reduce the chance of
+being readmitted. Also if we could predict one's chance being readmitted
+well, actions can be taken.
+
+\hypertarget{the-data}{%
+\subsection{The data}\label{the-data}}
+
+The original data is from the
+\href{https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008}{Center
+for Clinical and Translational Research} at Virginia Commonwealth
+University. It covers data on diabetes patients across 130 U.S.
+hospitals from 1999 to 2008. There are over 100,000 unique hospital
+admissions in this dataset, from \textasciitilde70,000 unique patients.
+The data includes demographic elements, such as age, gender, and race,
+as well as clinical attributes such as tests conducted,
+emergency/inpatient visits, etc. Refer to the original documentation for
+more details on the dataset. Three former students Spencer Luster,
+Matthew Lesser and Mridul Ganesh, brought this data set into the class
+and did a wonderful final project. We will use a subset processed by the
+group but with a somewhat different objective.
+
+Data needed (see detailed information below):
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\texttt{diabetic.data.csv}}
+\item
+  \textbf{\texttt{readmission.csv}}
+\end{itemize}
+
+\hypertarget{characteristics-of-the-data-set}{%
+\subsubsection{Characteristics of the Data
+Set}\label{characteristics-of-the-data-set}}
+
+All observations have five things in common:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  They are all hospital admissions
+\item
+  Each patient had some form of diabetes
+\item
+  The patient stayed for between 1 and 14 days.
+\item
+  The patient had laboratory tests performed on him/her.
+\item
+  The patient was given some form of medication during the visit.
+\end{enumerate}
+
+The data was collected during a ten-year period from 1999 to 2008. There
+are over 100,000 unique hospital admissions in the data set, with
+\textasciitilde70,000 unique patients.
+
+\hypertarget{description-of-variables}{%
+\subsubsection{Description of
+variables}\label{description-of-variables}}
+
+The dataset used covers \textasciitilde50 different variables to
+describe every hospital diabetes admission. In this section we give an
+overview and brief description of the variables in this dataset.
+
+\textbf{1) Patient identifiers:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{encounter\_id}: unique identifier for each admission
+\item
+  \texttt{patient\_nbr}: unique identifier for each patient
+\end{enumerate}
+
+\textbf{2) Patient Demographics:}
+
+\texttt{race}, \texttt{age}, \texttt{gender}, \texttt{weight} cover the
+basic demographic information associated with each patient.
+\texttt{Payer\_code} is an additional variable that identifies which
+health insurance (Medicare /Medicaid / Commercial) the patient holds.
+
+\textbf{3) Admission and discharge details:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{admission\_source\_id} and \texttt{admission\_type\_id}
+  identify who referred the patient to the hospital (e.g.~physician
+  vs.~emergency dept.) and what type of admission this was (Emergency
+  vs.~Elective vs.~Urgent).
+\item
+  \texttt{discharge\_disposition\_id} indicates where the patient was
+  discharged to after treatment.
+\end{enumerate}
+
+\textbf{4) Patient Medical History:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{num\_outpatient}: number of outpatient visits by the patient
+  in the year prior to the current encounter
+\item
+  \texttt{num\_inpatient}: number of inpatient visits by the patient in
+  the year prior to the current encounter
+\item
+  \texttt{num\_emergency}: number of emergency visits by the patient in
+  the year prior to the current encounter
+\end{enumerate}
+
+\textbf{5) Patient admission details:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{medical\_specialty}: the specialty of the physician admitting
+  the patient
+\item
+  \texttt{diag\_1}, \texttt{diag\_2}, \texttt{diag\_3}: ICD9 codes for
+  the primary, secondary and tertiary diagnoses of the patient. ICD9 are
+  the universal codes that all physicians use to record diagnoses. There
+  are various easy to use tools to lock up what individual codes mean
+  (Wikipedia is pretty decent on its own)
+\item
+  \texttt{time\_in\_hospital}: the patient's length of stay in the
+  hospital (in days)
+\item
+  \texttt{number\_diagnoses}: Total no. of diagnosis entered for the
+  patient
+\item
+  \texttt{num\_lab\_procedures}: No.~of lab procedures performed in the
+  current encounter
+\item
+  \texttt{num\_procedures}: No.~of non-lab procedures performed in the
+  current encounter
+\item
+  \texttt{num\_medications}: No.~of distinct medications prescribed in
+  the current encounter
+\end{enumerate}
+
+\textbf{6) Clinical Results:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{max\_glu\_serum}: indicates results of the glucose serum test
+\item
+  \texttt{A1Cresult}: indicates results of the A1c test
+\end{enumerate}
+
+\textbf{7) Medication Details:}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  \texttt{diabetesMed}: indicates if any diabetes medication was
+  prescribed
+\item
+  \texttt{change}: indicates if there was a change in diabetes
+  medication
+\item
+  \texttt{24\ medication\ variables}: indicate whether the dosage of the
+  medicines was changed in any manner during the encounter
+\end{enumerate}
+
+\textbf{8) Readmission indicator:}
+
+Indicates whether a patient was readmitted after a particular admission.
+There are 3 levels for this variable: ``NO'' = no readmission,
+``\textless{} 30'' = readmission within 30 days and ``\textgreater{}
+30'' = readmission after more than 30 days. The 30 day distinction is of
+practical importance to hospitals because federal regulations penalize
+hospitals for an excessive proportion of such readmissions.
+
+To save your time we are going to use some data sets cleaned by the
+group. Thus, we provide two datasets:
+
+\textbf{\texttt{diabetic.data.csv}} is the original data. You may use it
+for the purpose of summary if you wish. You will see that the original
+data can't be used directly for your analysis, yet.
+
+\textbf{\texttt{readmission.csv}} is a cleaned version and they are
+modified in the following ways:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  \texttt{Payer\ code}, \texttt{weight} and \texttt{Medical\ Specialty}
+  are not included since they have a large number of missing values.
+\item
+  Variables such as \texttt{acetohexamide},
+  \texttt{glimepiride.pioglitazone}, \texttt{metformin.rosiglitazone},
+  \texttt{metformin.pioglitazone} have little variability, and are as
+  such excluded. This also includes the following variables:
+  \texttt{chlorpropamide}, \texttt{acetohexamide}, \texttt{tolbutamide},
+  \texttt{acarbose}, \texttt{miglitor}, \texttt{troglitazone},
+  \texttt{tolazamide}, \texttt{examide}, \texttt{citoglipton},
+  \texttt{glyburide.metformin}, \texttt{glipizide.metformin}, and
+  \texttt{glimepiride.pioglitazone}.
+\item
+  Some categorical variables have been regrouped. For example,
+  \texttt{Diag1\_mod} keeps some original levels with large number of
+  patients and aggregates other patients as \texttt{others}. This
+  process is known as `binning.'
+\item
+  The event of interest is \textbf{readmitted within \textless{} 30
+  days}. Note that you need to create this response first by regrouping
+  \textbf{Readmission indicator}!
+\end{enumerate}
+
+\hypertarget{research-approach}{%
+\section{Research approach}\label{research-approach}}
+
+From the \emph{Goals} section above, your study should respond to the
+following:
+
+\hypertarget{analyses-suggested}{%
+\subsection{Analyses suggested}\label{analyses-suggested}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  Identify important factors that capture the chance of a readmission
+  within 30 days.
+\end{enumerate}
+
+The set of available predictors is not limited to the raw variables in
+the data set. You may engineer any factors using the data, that you
+think will improve your model's quality.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\item
+  For the purpose of classification, propose a model that can be used to
+  predict whether a patient will be a readmit within 30 days. Justify
+  your choice. Hint: use a decision criterion, such as AUC, to choose
+  among a few candidate models.
+\item
+  Based on a quick and somewhat arbitrary guess, we estimate \textbf{it
+  costs twice as much} to mislabel a readmission than it does to
+  mislabel a non-readmission. Based on this risk ratio, propose a
+  specific classification rule to minimize the cost. If you find any
+  information that could provide a better cost estimate, please justify
+  it in your write-up and use the better estimate in your answer.
+\end{enumerate}
+
+Suggestion: You may use any of the methods covered so far in parts 1)
+and 2), and they need not be the same. Also keep in mind that a
+training/testing data split may be necessary.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  We suggest you to split the data first to Training/Testing/Validation
+  data:
+\end{enumerate}
+
+\begin{itemize}
+\item
+  Use training/testing data to land a final model (If you only use LASSO
+  to land a final model, we will not need testing data since all the
+  decisions are made with cross-validations.)
+\item
+  Evaluate the final model with the validation data to give an honest
+  assessment of your final model.
+\end{itemize}
+
+\hypertarget{the-write-up}{%
+\section{The write up}\label{the-write-up}}
+
+As you all know, it is very important to present your findings well. To
+achieve the best possible results you need to understand your audience.
+
+Your target audience is a manager within the hospital organization. They
+hold an MBA, are familiar with medical terminology (though you do not
+need any previous medical knowledge), and have gone through a similar
+course to our Modern Data Mining with someone like your professor. You
+can assume thus some level of technical familiarity, but should not let
+the paper be bogged down with code or other difficult to understand
+output.
+
+Note then that the most important elements of your report are the
+clarity of your analysis and the quality of your proposals.
+
+A suggested outline of the report would include the following
+components:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  Executive Summary
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  This section should be accessible by people with very little
+  statistical background (avoid using technical words and no direct R
+  output is allowed)
+\item
+  Give a background of the study. You may check the original website or
+  other sources to fill in some details, such as to why the questions we
+  address here are important.
+\item
+  A quick summary about the data.
+\item
+  Methods used and the main findings.
+\item
+  You may use clearly labelled and explained visualizations.
+\item
+  Issues, concerns, limitations of the conclusions. This is an
+  especially important section to be honest in - we might be Penn
+  students, but we are statisticians today.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Detailed process of the analysis
+\end{enumerate}
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  Data Summary /EDA
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Nature of the data, origin
+\item
+  Necessary quantitative and graphical summaries
+\item
+  Are there any problems with the data?
+\item
+  Which variables are considered as input
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Analyses
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Various appropriate statistical methods: e.g.~glmnet
+\item
+  Comparisons various models
+\item
+  Final model(s)
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Conclusion
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Summarize results and the final model
+\item
+  Final recommendations
+\end{itemize}
+
+Maintain a good descriptive flow in the text of your report. Use
+Appendices to display lengthy output.
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Appendix
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Any thing necessary to keep but for which you don't want them to be in
+  the main report.
+\end{itemize}
+
+\end{document}

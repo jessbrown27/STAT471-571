@@ -45,8 +45,6 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps)   #add yo
 
 ```{r, echo=FALSE, results=FALSE}
 diabetes <- read.csv("diabetic.data.csv")
-head(diabetes)
-summary(diabetes)
 names(diabetes)
 ```
 
@@ -150,6 +148,5 @@ ggplot(readmission, aes(x = num_medications)) +
 # Appendix
 * Any thing necessary to keep but for which you don’t want them to be in the main report
 * Use Appendices to display lengthy output. 
-
 
 
