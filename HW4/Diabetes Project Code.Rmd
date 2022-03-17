@@ -42,7 +42,14 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps)   #add yo
 * Are there any problems with the data?
 * Which variables are considered as input 
 
-```{r}
+```{r, echo=FALSE, results=FALSE}
+diab <- read.csv("diabetic.data.csv")
+head(diab)
+summary(diab)
+names(diab)
+```
+
+```{r, echo=FALSE, results=FALSE}
 diabetes <- read.csv("diabetic.data.csv")
 head(diabetes)
 summary(diabetes)
@@ -55,15 +62,6 @@ readmission <- read.csv("readmission.csv")
 head(readmission)
 summary(readmission)
 names(readmission)
-```
-
-
-```{r}
-#create a variable for those readmitted less than 30 days
-readmission$lessThanThirty <- 0
-readmission$lessThanThirty[readmission$readmitted == "<30"] <- 1
-readmission$lessThanThirty <- as.factor(readmission$lessThanThirty)
-sum(readmission$lessThanThirty == 1) #11,357 patients were readmitted in <30 days
 ```
 
 Let's look at what other variables should be factors
@@ -93,7 +91,72 @@ The original data is from the [Center for Clinical and Translational Research](h
 
 For our analysis we will use a cleaned subset of this dataset which excludes variables with lots of missing values and variables with very little variability, as well as applying binning on some categorical variables. 
 
-**TODO:** The event of interest is **readmitted within < 30 days**. Note that you need to create this response first by regrouping **Readmission indicator**!
+The event of interest is **readmitted within < 30 days**. 
+
+```{r}
+#create response variable for readmit within <30 days
+readmission$lessThanThirty <- ifelse(readmission$readmitted == "<30", 1, 0)
+sum(readmission$lessThanThirty)
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(gender), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Greens") + 
+  xlab("gender") +
+  ggtitle("Distribution of Gender in Cleaned Dataset") + 
+  theme_minimal()
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(lessThanThirty), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, position = position_dodge(), color = "black") + 
+  scale_fill_brewer(palette="Greens") + 
+  xlab("Readmitted Within <30 Days") +
+  ggtitle("Distribution of Gender with Response Variable") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(race), fill = race)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Reds") + 
+  xlab("race") +
+  ggtitle("Distribution of Race in Cleaned Dataset") + 
+  theme_minimal()
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(lessThanThirty), fill = race)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Reds") + 
+  xlab("Readmitted Within <30 Days") +
+  ggtitle("Distribution of Race with Response Variable") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(age_mod), fill = age_mod)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Blues") + 
+  labs(title = "Distribution of Age in Cleaned Dataset", fill = "Age group", x = "Age group") + 
+  theme_minimal()
+```
+
+```{r}
+ggplot(readmission, aes(x = factor(age_mod), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, color = "black", position = position_dodge()) + 
+  scale_fill_brewer(palette="Greens") + 
+  labs(title = "Distribution of Gender for Each Age Group", fill = "Gender", x = "Age group") + 
+  theme_minimal()
+```
+```{r}
+ggplot(readmission, aes(x = num_medications)) +
+  geom_boxplot() + 
+  labs(x = "Number of Medications", title = "Distribution of Number of Medications") + 
+  theme_minimal()
+```
+
 
 # Analysis 
 * Various appropriate statistical methods: e.g. glmnet 
