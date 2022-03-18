@@ -6,6 +6,9 @@ author:
 - Jessica Brown
 date: ' '
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
   html_document:
     code_folding: show
     highlight: haddock
@@ -13,9 +16,6 @@ output:
     toc: yes
     toc_depth: 4
     toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
   word_document:
     toc: yes
     toc_depth: '4'
@@ -91,6 +91,7 @@ readmission$lessThanThirty <- ifelse(readmission$readmitted == "<30", 1, 0)
 sum(readmission$lessThanThirty)
 ```
 
+TURN INTO 2 SIDE BY SIDE SUBPLOTS:
 ```{r}
 ggplot(readmission, aes(x = factor(gender), fill = gender)) +
   geom_bar(stat = "count", width = 0.7, color = "black") + 
@@ -147,6 +148,20 @@ ggplot(readmission, aes(x = num_medications)) +
   geom_boxplot() + 
   labs(x = "Number of Medications", title = "Distribution of Number of Medications") + 
   theme_minimal()
+```
+
+Which variables? 
+```{r}
+readmission_sub <- readmission %>% select(-encounter_id, -patient_nbr, -readmitted)
+```
+
+```{r}
+readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?"))
+```
+
+```{r}
+readmission_sub <- readmission_sub %>% filter((race != "?") & (gender != "Unknown/Invalid") & (diag3_mod != "?"))
+#lapply(readmission_sub, unique)
 ```
 
 
