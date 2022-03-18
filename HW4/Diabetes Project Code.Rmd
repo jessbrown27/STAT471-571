@@ -31,7 +31,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table)   #add your packages here
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps)   #add your packages here
 ```
 
 # Executive Summary 
@@ -42,22 +42,14 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table)   #add your packages her
 * Are there any problems with the data?
 * Which variables are considered as input 
 
-```{r, echo=FALSE, results=FALSE}
-diab <- read.csv("diabetic.data.csv")
-head(diab)
-summary(diab)
-names(diab)
-```
 
 ```{r, echo=FALSE, results=FALSE}
 diabetes <- read.csv("diabetic.data.csv")
-head(diabetes)
-summary(diabetes)
 names(diabetes)
 ```
 
 
-```{r}
+```{r, results = FALSE}
 readmission <- read.csv("readmission.csv")
 head(readmission)
 summary(readmission)
@@ -65,19 +57,13 @@ names(readmission)
 ```
 
 Let's look at what other variables should be factors
-```{r}
+```{r, results = FALSE}
 readmission$race <- as.factor(readmission$race)
-summary(readmission$race)
 ```
-Here we note that 2273 patients have an unidentified race
-
-```{r}
+```{r,results = FALSE}
 readmission$gender <- as.factor(readmission$gender)
-summary(readmission$gender)
 ```
 
-
-List of the variables we want to use as input: race, gender, time_in_hospital,
 
 The original data is from the [Center for Clinical and Translational Research](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) at Virginia Commonwealth University. It covers data on diabetes patients across 130 U.S. hospitals from 1999 to 2008. There are over 100,000 unique hospital admissions in this dataset, from ~70,000 unique patients. The data includes demographic elements, such as age, gender, and race, as well as clinical attributes such as tests conducted, emergency/inpatient visits, etc.
 
@@ -85,7 +71,7 @@ For our analysis we will use a cleaned subset of this dataset which excludes var
 
 The event of interest is **readmitted within < 30 days**. 
 
-```{r}
+```{r,results = FALSE}
 #create response variable for readmit within <30 days
 readmission$lessThanThirty <- ifelse(readmission$readmitted == "<30", 1, 0)
 sum(readmission$lessThanThirty)
@@ -177,6 +163,5 @@ readmission_sub <- readmission_sub %>% filter((race != "?") & (gender != "Unknow
 # Appendix
 * Any thing necessary to keep but for which you don’t want them to be in the main report
 * Use Appendices to display lengthy output. 
-
 
 
