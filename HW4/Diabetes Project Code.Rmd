@@ -31,7 +31,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps)   #add your packages here
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso)   #add your packages here
 ```
 
 # Executive Summary 
@@ -189,8 +189,50 @@ beta.min
 ```
 
 ```{r}
-t.logit.1 <- glm(lessThanThirty~ , family=binomial, data = readmission_sub)
+model.1 <- glm(lessThanThirty~ race + time_in_hospital + num_lab_procedures + num_procedures + num_medications + number_outpatient + number_emergency + number_inpatient + number_diagnoses + max_glu_serum + A1Cresult + metformin + glimepiride + glipizide + glyburide + pioglitazone + rosiglitazone + insulin + change + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
 ```
+
+```{r}
+#summary(model.1)
+
+#also takes a very long time
+Anova(model.1)
+```
+
+```{r}
+model.2 <- glm(lessThanThirty~ num_procedures + num_medications + number_emergency + number_inpatient + number_diagnoses + A1Cresult + metformin + glipizide + insulin + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
+
+anova(model.2, model.1, test = "Chisq")
+```
+
+```{r}
+# sooooo loooooong
+Anova(model.2)
+```
+
+```{r}
+# group LASSO
+Y <- (-1)*(Y == 0) + (1)*(Y == 1)
+
+categoricals <- c("race", "gender", "max_glu_serum", "A1Cresult", "metformin", "glimepiride", "glipizide", "glyburide", "pioglitazone", "rosiglitazone", "insulin", "change", "diabetesMed", "disch_disp_modified", "adm_src_mod", "adm_typ_mod", "age_mod", "diag1_mod", "diag2_mod", "diag3_mod")
+readmission_sub[categoricals] <- lapply(readmission_sub[categoricals], as.factor)
+
+group1 = NULL
+for (i in 1:28) {
+  if (is.factor(readmission_sub[,i])) {
+    num_level = nlevels(readmission_sub[,i])
+    group1 = c(group1, rep(i, num_level - 1))
+  } else group1 = c(group1, i)
+}
+length(group1)
+```
+
+```{r}
+#cv_glasso <- cv.gglasso(x = X, y = Y, group=group1, loss="logit", pred.loss="misclass", nfolds=10)
+#names(cv_glasso)
+#plot(cv_glasso)
+```
+
 
 
 # Analysis 
