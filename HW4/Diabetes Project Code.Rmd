@@ -147,7 +147,49 @@ readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?"))
 
 ```{r}
 readmission_sub <- readmission_sub %>% filter((race != "?") & (gender != "Unknown/Invalid") & (diag3_mod != "?"))
+readmission_sub <- droplevels(readmission_sub)
 #lapply(readmission_sub, unique)
+```
+
+```{r}
+X <- model.matrix(lessThanThirty~., readmission_sub)[,-1]
+dim(X)
+```
+
+```{r}
+Y <- readmission_sub$lessThanThirty
+```
+
+```{r}
+#takes a while to run
+set.seed(10)
+fit1.cv <- cv.glmnet(X, Y,  alpha=1, family="binomial", nfolds = 10, type.measure = "deviance")
+plot(fit1.cv)
+```
+
+```{r}
+coef.1se <- coef(fit1.cv, s="lambda.1se")
+coef.1se <- coef.1se[which(coef.1se !=0),]
+coef.1se
+```
+
+```{r}
+rownames(as.matrix(coef.1se))
+```
+
+```{r}
+coef.min <- coef(fit1.cv, s="lambda.min")
+coef.min <- coef.min[which(coef.min !=0), ]
+as.matrix(coef.min)
+```
+
+```{r}
+beta.min <- rownames(as.matrix(coef.min))
+beta.min
+```
+
+```{r}
+t.logit.1 <- glm(lessThanThirty~ , family=binomial, data = readmission_sub)
 ```
 
 
