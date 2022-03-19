@@ -232,7 +232,7 @@ model.3 <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emerg
 Anova(model.3)
 ```
 
-At a significance level of 0.05 we can see that all 12 of variables are significant. We can now compare this model to those that we tested for lambda min
+At a significance level of 0.05 we can see that all 12 of variables are significant. We can now compare this model to those that we tested for lambda min.
 
 ```{r}
 # sooooo loooooong
