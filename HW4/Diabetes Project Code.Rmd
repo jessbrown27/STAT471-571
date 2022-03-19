@@ -235,7 +235,6 @@ Anova(model.3)
 At a significance level of 0.05 we can see that all 12 of variables are significant. We can now compare this model to those that we tested for lambda min.
 
 ```{r}
-# sooooo loooooong
 anova(model.2, model.3, test = "Chisq")
 ```
 We get that for these two models, the p-value is super low meaning there is a significant different between the two models.
