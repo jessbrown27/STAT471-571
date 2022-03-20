@@ -31,7 +31,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra)   #add your packages here
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC)   #add your packages here
 ```
 
 # Executive Summary 
@@ -130,7 +130,6 @@ p6 <- ggplot(readmission, aes(x = factor(age_mod), fill = gender)) +
   theme_minimal()
 
 ggarrange(p5, p6, ncol = 2, nrow = 1)
-
 ```
 
 ```{r}
@@ -146,13 +145,13 @@ readmission_sub <- readmission %>% select(-encounter_id, -patient_nbr, -readmitt
 ```
 
 ```{r, results=FALSE}
-readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?"))
+nrow(readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?")))
 ```
 
 ```{r}
 readmission_sub <- readmission_sub %>% filter((race != "?") & (gender != "Unknown/Invalid") & (diag3_mod != "?"))
 readmission_sub <- droplevels(readmission_sub)
-#lapply(readmission_sub, unique)
+lapply(readmission_sub, unique)
 ```
 
 ```{r}
@@ -193,7 +192,7 @@ as.matrix(coef.min)
 ```{r, results=TRUE}
 #might want to put these results into the apendix
 beta.min <- rownames(as.matrix(coef.min))
-beta.min
+length(beta.min)
 ```
 Here we are looking at the coefficients that LASSO selected for lamda.min. Which is the value of lamda that gives minimum mean cross-validated error. We can note that many more variables were selected in this model with additional levels for some of the factors that were included in the 1se model. We can see that 28 variables were selected for this model, which is every single variable that we are using in this model, however not all of the levels were included for each of the factor variables. 
 
@@ -209,7 +208,7 @@ model.1 <- glm(lessThanThirty~ race + time_in_hospital + num_lab_procedures + nu
 #also takes a very long time
 Anova(model.1)
 ```
-At a significance level of 0.05 we can see that 16 of the 28 variables are significant. We will create a model with just those 16 variables to compare. 
+At a significance level of 0.05 we found that 16 of the 28 variables are significant. We will create a model with just those 16 variables to compare. 
 
 ```{r, results=TRUE}
 model.2 <- glm(lessThanThirty~ num_procedures + num_medications + number_emergency + number_inpatient + number_diagnoses + A1Cresult + metformin + glipizide + insulin + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
@@ -217,12 +216,13 @@ model.2 <- glm(lessThanThirty~ num_procedures + num_medications + number_emergen
 anova(model.2, model.1, test = "Chisq")
 ```
 In running anova on the reduced model and the full model, we can see that there is no significant difference between the two different models.
+
 ```{r}
-# sooooo loooooong
 Anova(model.2)
 ```
+Using Anova, we can determine that all of the variables selected are significant in the model. 
 
-Now we will fit glm to the variables that LASSO selected using lambda se. Once again  we have factor variables in which not all of the levels were selected so we will we force all of the levels in.
+Now we will fit glm to the variables that LASSO selected using lambda 1se. Once again  we have factor variables in which not all of the levels were selected so we will we force all of the levels in.
 
 ```{r}
 model.3 <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
@@ -232,36 +232,51 @@ model.3 <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emerg
 Anova(model.3)
 ```
 
-At a significance level of 0.05 we can see that all 12 of variables are significant. We can now compare this model to those that we tested for lambda min.
+At a significance level of 0.05, the anova results indicated that all of variables used are significant except time in hospital. We can now compare this model to those that we tested for lambda min using anova.
 
 ```{r}
 anova(model.2, model.3, test = "Chisq")
 ```
-We get that for these two models, the p-value is super low meaning there is a significant different between the two models.
+We get that for these two models, the p-value is super low meaning there is a significant difference between the two models. The key variables that differ are: num_procedures, AICresult, metformin, glipizide, adm_src_mod, and time_in_hospital. Time in hospital is the only variable used in the smaller model and it was notably found to not be statistically significant in the model. 
 
 ```{r}
-# group LASSO
-Y <- (-1)*(Y == 0) + (1)*(Y == 1)
-
-categoricals <- c("race", "gender", "max_glu_serum", "A1Cresult", "metformin", "glimepiride", "glipizide", "glyburide", "pioglitazone", "rosiglitazone", "insulin", "change", "diabetesMed", "disch_disp_modified", "adm_src_mod", "adm_typ_mod", "age_mod", "diag1_mod", "diag2_mod", "diag3_mod")
-readmission_sub[categoricals] <- lapply(readmission_sub[categoricals], as.factor)
-
-group1 = NULL
-for (i in 1:28) {
-  if (is.factor(readmission_sub[,i])) {
-    num_level = nlevels(readmission_sub[,i])
-    group1 = c(group1, rep(i, num_level - 1))
-  } else group1 = c(group1, i)
-}
-length(group1)
+#split into train, test, and validation
+# Split the data:
+N <- length(readmission_sub$lessThanThirty)
+n1 <- floor(.6*N)
+n2 <- floor(.2*N)
+set.seed(10)
+# Split data to three portions of .6, .2 and .2 of data size N
+idx_train <- sample(N, n1)
+idx_no_train <- (which(! seq(1:N) %in% idx_train))
+idx_test <- sample( idx_no_train, n2)
+idx_val <- which(! idx_no_train %in% idx_test)
+data.train <- readmission_sub[idx_train,]
+data.test <- readmission_sub[idx_test,]
+data.val <- readmission_sub[idx_val,]
 ```
 
 ```{r}
-#cv_glasso <- cv.gglasso(x = X, y = Y, group=group1, loss="logit", pred.loss="misclass", nfolds=10)
-#names(cv_glasso)
-#plot(cv_glasso)
+model_min <- glm(lessThanThirty ~ num_procedures + num_medications + number_emergency + number_inpatient + number_diagnoses + A1Cresult + metformin + glipizide + insulin + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = data.train)
+
+model_1se <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = data.train)
 ```
 
+```{r}
+min.fitted.test <- predict(model_min, data.test, type="response") # get the prob's
+se.fitted.test <- predict(model_1se, data.test, type="response")
+data.frame(min.fitted.test, se.fitted.test)[1:10, ]
+```
+
+```{r}
+min.test.roc <- roc(data.test$HD, fit1.fitted.test)
+```
+
+```{r}
+confusionMatrix(data = as.factor(final_model.pred.5), # predicted value
+reference = train$lessThanThirty, # true results as reference
+positive = levels(train$lessThanThirty)[2])
+```
 
 
 # Analysis 
