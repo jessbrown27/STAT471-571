@@ -259,23 +259,36 @@ data.val <- readmission_sub[idx_val,]
 ```{r}
 model_min <- glm(lessThanThirty ~ num_procedures + num_medications + number_emergency + number_inpatient + number_diagnoses + A1Cresult + metformin + glipizide + insulin + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = data.train)
 
-model_1se <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = data.train)
+model_1se <- glm(lessThanThirty~ num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = data.train)
 ```
 
 ```{r}
-min.fitted.test <- predict(model_min, data.test, type="response") # get the prob's
+min.fitted.test <- predict(model_min, data.test, type="response") 
 se.fitted.test <- predict(model_1se, data.test, type="response")
 data.frame(min.fitted.test, se.fitted.test)[1:10, ]
 ```
 
 ```{r}
-min.test.roc <- roc(data.test$HD, fit1.fitted.test)
+min.test.roc <- roc(data.test$lessThanThirty, min.fitted.test)
+se.test.roc <- roc(data.test$lessThanThirty, se.fitted.test)
 ```
 
 ```{r}
-confusionMatrix(data = as.factor(final_model.pred.5), # predicted value
-reference = train$lessThanThirty, # true results as reference
-positive = levels(train$lessThanThirty)[2])
+plot(1-min.test.roc$specificities, min.test.roc$sensitivities,
+  col="red", type="l", lwd=3,
+  xlab=paste("AUC(min.test) =",
+  round(pROC::auc(min.test.roc),2),
+  " AUC(se.test) =",
+  round(pROC::auc(se.test.roc),2)),
+  ylab="Sensitivities")
+  lines(1-se.test.roc$specificities, se.test.roc$sensitivities, col="blue", lwd=3)
+  legend("bottomright", legend=c("Fit w lambda min variables", "Fit w lambda 1se variables"),
+  lty=c(1,1), lwd=c(2,2), col=c("red", "blue"))
+  title("Comparison of two models using testing data")
+```
+```{r}
+se.fitted.val <- predict(model_1se, data.val, type="response")
+pROC::auc(data.val$lessThanThirty, se.fitted.val)
 ```
 
 
