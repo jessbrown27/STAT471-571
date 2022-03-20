@@ -180,24 +180,47 @@ fit1.1 <- glm(HD~SBP + AGE, hd_data.f, family=binomial)
 summary(fit1.1)
 # you will need to finish by adding each other variable 
 # fit1.2...
+fit1.2 <- glm(HD~SBP + SEX, hd_data.f, family=binomial)
+summary(fit1.2)
+fit1.3 <- glm(HD~SBP + DBP, hd_data.f, family=binomial)
+summary(fit1.3)
+fit1.4 <- glm(HD~SBP + CHOL, hd_data.f, family=binomial)
+summary(fit1.4)
+fit1.5 <- glm(HD~SBP + FRW, hd_data.f, family=binomial)
+summary(fit1.5)
+fit1.6 <- glm(HD~SBP + CIG, hd_data.f, family=binomial)
+summary(fit1.6)
 ```
 
-i. Which single variable would be the most important to add?  Add it to your model, and call the new fit `fit2`.  
+i. Which single variable would be the most important to add?  Add it to your model, and call the new fit `fit2`.
+
+The SEX variable would be the most important to add.
 
 We will pick up the variable either with highest $|z|$ value, or smallest $p$ value. Report the summary of your `fit2` Note: One way to keep your output neat, we will suggest you using `xtable`. And here is the summary report looks like.
 ```{r the most important addition, results='asis', comment="   "}
 ## How to control the summary(fit2) output to cut some junk?
 ## We could use packages: xtable or broom. 
-## Assume the fit2 is obtained by SBP + AGE
+## SEX has the highest z value and smallest p value
 library(xtable)
 options(xtable.comment = FALSE)
-fit2 <- glm(HD~SBP + AGE, hd_data.f, family=binomial)
+fit2 <- glm(HD~SBP + SEX, hd_data.f, family=binomial)
 xtable(fit2)
+summary(fit2)
 ```
 
 ii. Is the residual deviance of `fit2` always smaller than that of `fit1`? Why or why not?
+
+Yes because we are adding in a variable that explains more of the deviance. However, some variables might not decrease the residual deviance by much because they are not good prediction variables.
   
 iii. Perform both the Wald test and the Likelihood ratio tests (Chi-Squared) to see if the added variable is significant at the .01 level.  What are the p-values from each test? Are they the same? 
+
+```{r}
+summary(fit2)
+confint.default(fit2)
+Anova(fit2)
+```
+
+**Answer:** The added variable of SEX is significant at the 0.01 level for both tests, with different p values of 0.0000000001 for the Wald test and .000000000038 for the Likelihood ratio test.
 
 ###  Model building
 
@@ -205,11 +228,61 @@ Start with all variables. Our goal is to fit a well-fitting model, that is still
 
 i. Use backward selection method. Only keep variables whose coefficients are significantly different from 0 at .05 level. Kick out the variable with the largest p-value first, and then re-fit the model to see if there are other variables you want to kick out.
 
-ii. Use AIC as the criterion for model selection. Find a model with small AIC through exhaustive search. Does exhaustive search  guarantee that the p-values for all the remaining variables are less than .05? Is our final model here the same as the model from backwards elimination? 
+```{r, results='hide'}
+fit3 <- glm(HD~SBP + AGE+ SEX + DBP + CHOL + FRW + CIG, hd_data.f, family=binomial)
+summary(fit3)
+#DBP has the highest p value of 0.70594 which is not significant at the 0.05 level
+fit3.1 <- update(fit3, .~. -DBP)
+summary(fit3.1)
+#FRW has the highest p value of 0.1315 which is not significant at the 0.05 level
+fit3.2 <- update(fit3.1, .~. -FRW)
+summary(fit3.2)
+#CIG has the highest p value of 0.0608 which is not significant at the 0.05 level
+fit3.3 <- update(fit3.2, .~. -CIG)
+summary(fit3.3)
+#All variables (SBP, AGE, SEX, and CHOL) are now significant at the 0.05 level
+```
 
-iii. Use the model chosen from part ii. as the final model. Write a brief summary to describe important factors relating to Heart Diseases (i.e. the relationships between those variables in the model and heart disease). Give a definition of “important factors”. 
+ii. Use AIC as the criterion for model selection. Find a model with small AIC through exhaustive search. Does exhaustive search guarantee that the p-values for all the remaining variables are less than .05? Is our final model here the same as the model from backwards elimination? 
+
+```{r}
+Xy_design <- model.matrix(HD ~.+0, hd_data.f)
+Xy <- data.frame(Xy_design, hd_data.f$HD)   
+
+fit.all <- bestglm(Xy, family = binomial, method = "exhaustive", IC="AIC", nvmax = 10)
+fit.all$BestModel
+```
+
+```{r}
+fit4 <-glm(HD~AGE+SEX+SBP+CHOL+FRW+CIG, family=binomial, data=hd_data.f)
+summary(fit4)
+```
+
+```{r}
+#Dropping FRW because it is not significant at the 0.05 level
+fit4.1 <- update(fit4, .~. -FRW)
+summary(fit4.1)
+```
+
+```{r}
+#Dropping CIG because it is not significant at the 0.05 level
+fit4.2 <- update(fit4.1, .~. -CIG)
+summary(fit4.2)
+```
+
+The exhaustive search does not guarantee that the p values for all the remaining variables are less than 0.05. For example, the p value for FRW is 0.1315 which is greater than 0.05. We also dropped CIG after dropping FRW because the p value was also greater than 0.05 at 0.0608. The model here is the same as the one from backwards induction after dropping the insignificant variables.
+
+iii. Use the model chosen from part ii. as the final model. Write a brief summary to describe important factors relating to Heart Diseases (i.e. the relationships between those variables in the model and heart disease). Give a definition of “important factors”.
+
+Important factors, factors are significant at the 0.05 level in impacting the probability of someone having heart disease if all else is held constant, include age, sex, systolic blood pressure (SBP), cholesterol level, and self-reported number of cigarettes smoked each week. If two people had the exact same statistics but one person was one year older than that person would be 5.664% more likely to have heart disease than the younger person. If a man and woman had the exact same statistics, the man would be 98.987% more likely to have heart disease. Similarly, holding all other factors constant, an increase SBP increases the chance of heart disease by 1.696%, and 0.448% for an increase in cholesterol level.
 
 iv. What is the probability that Liz will have heart disease, according to our final model?
+
+```{r}
+predict(fit4.2, hd_data.new, type="response")
+```
+
+The probability that Liz will have heart disease according to the model is 3.36%.
 
 ##  Classification analysis
 
@@ -217,11 +290,79 @@ iv. What is the probability that Liz will have heart disease, according to our f
 
 i. Display the ROC curve using `fit1`. Explain what ROC reports and how to use the graph. Specify the classifier such that the False Positive rate is less than .1 and the True Positive rate is as high as possible.
 
+```{r}
+fit1.roc<- roc(hd_data.f$HD, fit1$fitted, plot=T, col="blue")
+```
+
+```{r}
+plot(1-fit1.roc$specificities, fit1.roc$sensitivities, col="red", pch=16,
+     xlab="False Positive", 
+     ylab="Sensitivity")
+```
+
+```{r}
+plot(fit1.roc$thresholds, 1-fit1.roc$specificities, col="green", pch=16,  
+     xlab="Threshold on prob",
+     ylab="False Positive",
+     main = "Thresholds vs. False Postive")
+abline(h = 0.1, col = "black")
+```
+
+The ROC curve plots pairs of sensitivity and specificity and is useful in selecting a classifier. We want both a high sensitivity and high specificity and aim for a balance of the two. The classifier for a high true positive rate while maintaining a false positive rate less than 0.1 is one with a threshold on probability of around 0.3.
+
 ii. Overlay two ROC curves: one from `fit1`, the other from `fit2`. Does one curve always contain the other curve? Is the AUC of one curve always larger than the AUC of the other one? Why or why not?
+
+```{r}
+fit2.roc<- roc(hd_data.f$HD, fit2$fitted, plot=T, col="red")
+lines(fit1.roc$specificities, fit1.roc$sensitivities)
+```
+
+```{r}
+fit1.roc$auc
+fit2.roc$auc
+```
+
+The red curve for fit2 always contains the black curve for fit1. The AUC for fit2 is larger at 0.68 than the AUC for fit1 at 0.636. This is because fit2 has an additional variable so it explains more of the response variable.
 
 iii.  Estimate the Positive Prediction Values and Negative Prediction Values for `fit1` and `fit2` using .5 as a threshold. Which model is more desirable if we prioritize the Positive Prediction values?
 
+```{r}
+fit1.pred.5 <- ifelse(fit1$fitted > 1/2, "1", "0")
+cm.5.1 <- table(fit1.pred.5, hd_data.f$HD)
+positive.pred.1 <- cm.5.1[2,2] / sum(cm.5.1[2,])
+positive.pred.1
+negative.pred.1 <- cm.5.1[1,1] / sum(cm.5.1[1,])
+negative.pred.1
+```
+
+```{r}
+fit2.pred.5 <- ifelse(fit2$fitted > 1/2, "1", "0")
+cm.5.2 <- table(fit2.pred.5, hd_data.f$HD)
+positive.pred.2 <- cm.5.2[2,2] / sum(cm.5.2[2,])
+positive.pred.2
+negative.pred.2 <- cm.5.2[1,1] / sum(cm.5.2[1,])
+negative.pred.2
+```
+
+For fit1, the positive prediction value is 0.45 and the negative prediction value is 0.783. Meanwhile, for fit 2 the positive prediction value is 0.472 and the negative prediction value is 0.786. Fit2 has a higher positive prediction value and is more desirable if prioritizing positive prediction value.
+
 iv.  For `fit1`: overlay two curves,  but put the threshold over the probability function as the x-axis and positive prediction values and the negative prediction values as the y-axis.  Overlay the same plot for `fit2`. Which model would you choose if the set of positive and negative prediction values are the concerns? If you can find an R package to do so, you may use it directly.
+
+```{r}
+coordinates.1.ppv <- coords(fit1.roc, x = "all", input = "threshold", ret = c("threshold", "ppv"))
+coordinates.1.npv <- coords(fit1.roc, x = "all", input = "threshold", ret = c("threshold", "npv"))
+plot1 <- ggplot() + geom_point(data=coordinates.1.ppv, aes(x=threshold, y=ppv), colour="green") + geom_point(data=coordinates.1.npv, aes(x=threshold, y=npv), colour="red") + labs(title = "fit1",x = "threshold", y = "ppv/npv")
+plot1
+```
+
+```{r}
+coordinates.2.ppv <- coords(fit2.roc, x = "all", input = "threshold", ret = c("threshold", "ppv"))
+coordinates.2.npv <- coords(fit2.roc, x = "all", input = "threshold", ret = c("threshold", "npv"))
+plot2 <- ggplot() + geom_point(data=coordinates.2.ppv, aes(x=threshold, y=ppv), colour="green") + geom_point(data=coordinates.2.npv, aes(x=threshold, y=npv), colour="red") + labs(title = "fit2",x = "threshold", y = "ppv/npv")
+plot2
+```
+
+We would choose model 2 because the set of points in model 2 have higher ppv and npv values than that of model 1.
   
 ### Cost function/ Bayes Rule
 
