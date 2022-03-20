@@ -31,7 +31,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table)   #add your packages here
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra)   #add your packages here
 ```
 
 # Executive Summary 
@@ -42,24 +42,227 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table)   #add your packages her
 * Are there any problems with the data?
 * Which variables are considered as input 
 
-```{r}
-diab <- read.csv("diabetic.data.csv")
-head(diab)
-summary(diab)
-names(diab)
+
+```{r, echo=FALSE, results=FALSE}
+diabetes <- read.csv("diabetic.data.csv")
+#names(diabetes)
 ```
-```{r}
+
+
+```{r, results = FALSE}
 readmission <- read.csv("readmission.csv")
-head(readmission)
-summary(readmission)
-names(readmission)
+#head(readmission)
+#summary(readmission)
+#names(readmission)
 ```
+
+
+```{r, results = FALSE}
+readmission$race <- as.factor(readmission$race)
+```
+```{r,results = FALSE}
+readmission$gender <- as.factor(readmission$gender)
+```
+
 
 The original data is from the [Center for Clinical and Translational Research](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) at Virginia Commonwealth University. It covers data on diabetes patients across 130 U.S. hospitals from 1999 to 2008. There are over 100,000 unique hospital admissions in this dataset, from ~70,000 unique patients. The data includes demographic elements, such as age, gender, and race, as well as clinical attributes such as tests conducted, emergency/inpatient visits, etc.
 
 For our analysis we will use a cleaned subset of this dataset which excludes variables with lots of missing values and variables with very little variability, as well as applying binning on some categorical variables. 
 
-**TODO:** The event of interest is **readmitted within < 30 days**. Note that you need to create this response first by regrouping **Readmission indicator**!
+The event of interest is **readmitted within < 30 days**. 
+
+```{r,results = FALSE}
+#create response variable for readmit within <30 days
+readmission$lessThanThirty <- ifelse(readmission$readmitted == "<30", 1, 0)
+sum(readmission$lessThanThirty)
+```
+From our dataset that we are using to create out model we see that there are 11,357 patients that were readmitted in less than 30 days out of the full 101,766 patients that we have data for. 
+
+```{r}
+p1 <- ggplot(readmission, aes(x = factor(gender), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Greens") + 
+  xlab("gender") +
+  ggtitle("Distribution of Gender in Cleaned Dataset") + 
+  theme_minimal()
+
+p2<- ggplot(readmission, aes(x = factor(lessThanThirty), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, position = position_dodge(), color = "black") + 
+  scale_fill_brewer(palette="Greens") + 
+  xlab("Readmitted Within <30 Days") +
+  ggtitle("Distribution of Gender with Response Variable") +
+  theme_minimal()
+ggarrange(p1, p2, ncol = 2, nrow = 1)
+
+```
+Based on our data, we can see that there are slightly more females than males included in the study.
+
+```{r}
+p3 <- ggplot(readmission, aes(x = factor(race), fill = race)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Reds") + 
+  xlab("race") +
+  ggtitle("Distribution of Race in Cleaned Dataset") + 
+  theme_minimal()
+
+p4<- ggplot(readmission, aes(x = factor(lessThanThirty), fill = race)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Reds") + 
+  xlab("Readmitted Within <30 Days") +
+  ggtitle("Distribution of Race with Response Variable") +
+  theme_minimal()
+
+ggarrange(p3, p4, ncol = 2, nrow = 1)
+
+```
+
+
+```{r}
+p5 <- ggplot(readmission, aes(x = factor(age_mod), fill = age_mod)) +
+  geom_bar(stat = "count", width = 0.7, color = "black") + 
+  scale_fill_brewer(palette="Blues") + 
+  labs(title = "Distribution of Age in Cleaned Dataset", fill = "Age group", x = "Age group") + 
+  theme_minimal()
+p6 <- ggplot(readmission, aes(x = factor(age_mod), fill = gender)) +
+  geom_bar(stat = "count", width = 0.7, color = "black", position = position_dodge()) + 
+  scale_fill_brewer(palette="Greens") + 
+  labs(title = "Distribution of Gender for Each Age Group", fill = "Gender", x = "Age group") + 
+  theme_minimal()
+
+ggarrange(p5, p6, ncol = 2, nrow = 1)
+
+```
+
+```{r}
+ggplot(readmission, aes(x = num_medications)) +
+  geom_boxplot(fill = "pink") + 
+  labs(x = "Number of Medications", title = "Distribution of Number of Medications") + 
+  theme_minimal()
+```
+
+Here we begin our variable selection. We start by removing certain variables that are not needed for the study such as patient identifiers and duplicate variables. Our next step is to clean the remaining data. Since we don't have access to additional records for the patients, we decided to remove the patients in which there was missing information, such as those whose race was coded as "?". Due to the large size of our data set, removing these data points should not have a great impact on the analysis and the final model.
+```{r}
+readmission_sub <- readmission %>% select(-encounter_id, -patient_nbr, -readmitted)
+```
+
+```{r, results=FALSE}
+readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?"))
+```
+
+```{r}
+readmission_sub <- readmission_sub %>% filter((race != "?") & (gender != "Unknown/Invalid") & (diag3_mod != "?"))
+readmission_sub <- droplevels(readmission_sub)
+#lapply(readmission_sub, unique)
+```
+
+```{r}
+X <- model.matrix(lessThanThirty~., readmission_sub)[,-1]
+dim(X)
+```
+
+```{r}
+Y <- readmission_sub$lessThanThirty
+```
+
+```{r}
+#takes a while to run
+set.seed(10)
+fit1.cv <- cv.glmnet(X, Y,  alpha=1, family="binomial", nfolds = 10, type.measure = "deviance")
+plot(fit1.cv)
+```
+
+```{r}
+coef.1se <- coef(fit1.cv, s="lambda.1se")
+coef.1se <- coef.1se[which(coef.1se !=0),]
+coef.1se
+```
+
+```{r, results = TRUE}
+#might want to put these results into the appendix
+rownames(as.matrix(coef.1se))
+```
+Here we are looking at the coefficients that LASSO selected for lamda.1se. Which is the value of lambda that gives the most regularized model such that the cross-validated error is within one standard error of the minimum. We have 12 different overall variables that were selected with some of them having multiple levels in this model, there are a total of 21 coefficients and the intercept. 
+
+
+```{r, results=FALSE}
+coef.min <- coef(fit1.cv, s="lambda.min")
+coef.min <- coef.min[which(coef.min !=0), ]
+as.matrix(coef.min)
+```
+
+```{r, results=TRUE}
+#might want to put these results into the apendix
+beta.min <- rownames(as.matrix(coef.min))
+beta.min
+```
+Here we are looking at the coefficients that LASSO selected for lamda.min. Which is the value of lamda that gives minimum mean cross-validated error. We can note that many more variables were selected in this model with additional levels for some of the factors that were included in the 1se model. We can see that 28 variables were selected for this model, which is every single variable that we are using in this model, however not all of the levels were included for each of the factor variables. 
+
+Now we will start to fit glm to the variables that LASSO selected. We will start with the model for lamda min. Since we have factor variables in which not all of the levels were selected, we decided to force all of the levels in since there is not easy way to remove just one level. 
+
+```{r}
+model.1 <- glm(lessThanThirty~ race + time_in_hospital + num_lab_procedures + num_procedures + num_medications + number_outpatient + number_emergency + number_inpatient + number_diagnoses + max_glu_serum + A1Cresult + metformin + glimepiride + glipizide + glyburide + pioglitazone + rosiglitazone + insulin + change + diabetesMed + disch_disp_modified + adm_src_mod + adm_typ_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
+```
+
+```{r, results=TRUE}
+#summary(model.1)
+
+#also takes a very long time
+Anova(model.1)
+```
+At a significance level of 0.05 we can see that 16 of the 28 variables are significant. We will create a model with just those 16 variables to compare. 
+
+```{r, results=TRUE}
+model.2 <- glm(lessThanThirty~ num_procedures + num_medications + number_emergency + number_inpatient + number_diagnoses + A1Cresult + metformin + glipizide + insulin + diabetesMed + disch_disp_modified + adm_src_mod + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
+
+anova(model.2, model.1, test = "Chisq")
+```
+In running anova on the reduced model and the full model, we can see that there is no significant difference between the two different models.
+```{r}
+# sooooo loooooong
+Anova(model.2)
+```
+
+Now we will fit glm to the variables that LASSO selected using lambda se. Once again  we have factor variables in which not all of the levels were selected so we will we force all of the levels in.
+
+```{r}
+model.3 <- glm(lessThanThirty~ time_in_hospital + num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
+```
+
+```{r}
+Anova(model.3)
+```
+
+At a significance level of 0.05 we can see that all 12 of variables are significant. We can now compare this model to those that we tested for lambda min.
+
+```{r}
+anova(model.2, model.3, test = "Chisq")
+```
+We get that for these two models, the p-value is super low meaning there is a significant different between the two models.
+
+```{r}
+# group LASSO
+Y <- (-1)*(Y == 0) + (1)*(Y == 1)
+
+categoricals <- c("race", "gender", "max_glu_serum", "A1Cresult", "metformin", "glimepiride", "glipizide", "glyburide", "pioglitazone", "rosiglitazone", "insulin", "change", "diabetesMed", "disch_disp_modified", "adm_src_mod", "adm_typ_mod", "age_mod", "diag1_mod", "diag2_mod", "diag3_mod")
+readmission_sub[categoricals] <- lapply(readmission_sub[categoricals], as.factor)
+
+group1 = NULL
+for (i in 1:28) {
+  if (is.factor(readmission_sub[,i])) {
+    num_level = nlevels(readmission_sub[,i])
+    group1 = c(group1, rep(i, num_level - 1))
+  } else group1 = c(group1, i)
+}
+length(group1)
+```
+
+```{r}
+#cv_glasso <- cv.gglasso(x = X, y = Y, group=group1, loss="logit", pred.loss="misclass", nfolds=10)
+#names(cv_glasso)
+#plot(cv_glasso)
+```
+
+
 
 # Analysis 
 * Various appropriate statistical methods: e.g. glmnet 
@@ -73,6 +276,5 @@ For our analysis we will use a cleaned subset of this dataset which excludes var
 # Appendix
 * Any thing necessary to keep but for which you don’t want them to be in the main report
 * Use Appendices to display lengthy output. 
-
 
 
