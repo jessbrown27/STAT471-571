@@ -26,7 +26,7 @@ urlcolor: blue
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.width=8, fig.height=4)
+knitr::opts_chunk$set(include = TRUE, echo = TRUE, fig.width=8, fig.height=4)
 options(scipen = 0, digits = 3)  # controls base R output
 if(!require('pacman')) {install.packages('pacman')}
 pacman::p_load(bestglm, glmnet, leaps, car, tidyverse, pROC, caret) # add the packages needed
@@ -368,20 +368,69 @@ We would choose model 2 because the set of points in model 2 have higher ppv and
 
 Bayes rules with risk ratio $\frac{a_{10}}{a_{01}}=10$ or $\frac{a_{10}}{a_{01}}=1$. Use your final model obtained from Part 1 to build a class of linear classifiers.
 
-
 i.  Write down the linear boundary for the Bayes classifier if the risk ratio of $a_{10}/a_{01}=10$.
+
+$a_{01}/a_{10}=\frac{1}{10}$
+$P(HD=1 \mid AGE \cap SEX \cap SBP \cap CHOL)>\frac{\frac{1}{10}}{1+\frac{1}{10}}$
+$P(HD=1 \mid AGE \cap SEX \cap SBP \cap CHOL)>0.0909$
+$logit > log\frac{.0909}{1-.0909}$
+$logit > -2.303$
+
+The linear boundary is $-8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL > -2.303$
 
 ii. What is your estimated weighted misclassification error for this given risk ratio?
 
+```{r}
+fit4.2.bayes <- as.factor(ifelse(fit4.2$fitted > 0.0909, "1", "0"))
+MCE.final.bayes <- (10*sum(fit4.2.bayes[hd_data.f$HD == "1"] != "1")
+              + sum(fit4.2.bayes[hd_data.f$HD == "0"] != "0"))/length(hd_data.f$HD)
+MCE.final.bayes
+```
+
+Our estimated weighted misclassification error is 0.719.
+
 iii.  How would you classify Liz under this classifier?
+
+$-8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL >? -2.303$
+$-8.40872+0.05664(50)+0.98987(0)+0.01696(110)+0.00448(180) = -2.905$
+
+We would classify Liz as not having heart disease because her predicted logit value of −2.905 is less than the threshold of -2.303.
 
 iv. Bayes rule gives us the best rule if we can estimate the probability of `HD-1` accurately. In practice we use logistic regression as our working model. How well does the Bayes rule work in practice? We hope to show in this example it works pretty well.
 
 Now, draw two estimated curves where x = threshold, and y = misclassification errors, corresponding to the thresholding rule given in x-axis.
 
+```{r, results='hide'}
+fit4.2.roc<- roc(hd_data.f$HD, fit4.2$fitted, plot=T, col="blue")
+x.values <- fit4.2.roc$thresholds
+
+n_s1<-num(fit4.2.roc$sensitivities)
+n_s2<-num(fit4.2.roc$specificities)
+n_hdf<-nrow(hd_data.f)
+
+MCE.1 <- (10*(1-fit4.2.roc$sensitivities)*n_s1+(1-fit4.2.roc$specificities)*n_s2)/n_hdf
+MCE.2 <- ((1-fit4.2.roc$sensitivities)*n_s1+(1-fit4.2.roc$specificities)*n_s2)/n_hdf
+```
+
+```{r}
+plot(x.values, MCE.1, col="blue", pch=16)
+points(x.values, MCE.2, col="red", pch=16)
+```
+
 v. Use weighted misclassification error, and set $a_{10}/a_{01}=10$. How well does the Bayes rule classifier perform? 
 
-vi. Use weighted misclassification error, and set $a_{10}/a_{01}=1$. How well does the Bayes rule classifier perform? 
+The Bayes rule classifier has an increasing MCE with from thresholds 0-0.3 but then decreases after that. The weighted misclassification error is 0.719
+
+vi. Use weighted misclassification error, and set $a_{10}/a_{01}=1$. How well does the Bayes rule classifier perform?
+
+```{r}
+fit4.2.bayes.1 <- as.factor(ifelse(fit4.2$fitted > 0.5, "1", "0"))
+MCE.final.bayes.1 <- (sum(fit4.2.bayes.1[hd_data.f$HD == "1"] != "1")
+              + sum(fit4.2.bayes.1[hd_data.f$HD == "0"] != "0"))/length(hd_data.f$HD)
+MCE.final.bayes.1
+```
+
+The Bayes rule classifier has an increasing MCE with from thresholds 0-0.2 but then decreases after that. The increase and decrease is not as large as if $a_{10}/a_{01}=10$. The weighted misclassification error is 0.22.
 
 # Part II: Project
 
