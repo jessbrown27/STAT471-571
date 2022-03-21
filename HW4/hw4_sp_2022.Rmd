@@ -24,7 +24,6 @@ output:
 urlcolor: blue
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(include = TRUE, echo = TRUE, fig.width=8, fig.height=4)
 options(scipen = 0, digits = 3)  # controls base R output
@@ -163,12 +162,12 @@ fit1 <- glm(HD~SBP, hd_data.f, family=binomial(logit))
 summary(fit1, results=TRUE)
 ```
 
-$logit=-3.65489+0.01581SBP$
-$P(HD=1 \mid SBP) = \frac{e^{-3.65489+0.01581SBP}}{1+e^{-3.65489+0.01581SBP}}$
+$logit= - 3.65489+0.01581SBP$
+$P(HD=1 \mid SBP) = \frac{e^{ - 3.65489+0.01581SBP}}{1+e^{ - 3.65489+0.01581SBP}}$
 The MLE is obtained through maximizing the likelihood function in ii above.
 
 iv. Evaluate the probability of Liz having heart disease.
-$P(HD=1 \mid SBP=110) = \frac{e^{-3.65489+0.01581(110)}}{1+e^{-3.65489+0.01581(110)}} \approx 0.128331772$
+$P(HD=1 \mid SBP=110) = \frac{e^{ - 3.65489+0.01581(110)}}{1+e^{ - 3.65489+0.01581(110)}} \approx 0.128331772$
 
 ### Identify important risk factors for `Heart.Disease.`
 
@@ -373,10 +372,10 @@ i.  Write down the linear boundary for the Bayes classifier if the risk ratio of
 $a_{01}/a_{10}=\frac{1}{10}$
 $P(HD=1 \mid AGE \cap SEX \cap SBP \cap CHOL)>\frac{\frac{1}{10}}{1+\frac{1}{10}}$
 $P(HD=1 \mid AGE \cap SEX \cap SBP \cap CHOL)>0.0909$
-$logit > log\frac{.0909}{1-.0909}$
-$logit > -2.303$
+$logit > log\frac{.0909}{1 - .0909}$
+$logit >  - 2.303$
 
-The linear boundary is $-8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL > -2.303$
+The linear boundary is $ - 8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL >  - 2.303$
 
 ii. What is your estimated weighted misclassification error for this given risk ratio?
 
@@ -391,10 +390,10 @@ Our estimated weighted misclassification error is 0.719.
 
 iii.  How would you classify Liz under this classifier?
 
-$-8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL >? -2.303$
-$-8.40872+0.05664(50)+0.98987(0)+0.01696(110)+0.00448(180) = -2.905$
+$ - 8.40872+0.05664AGE+0.98987SEXMALE+0.01696SBP+0.00448CHOL >?  - 2.303$
+$ - 8.40872+0.05664(50)+0.98987(0)+0.01696(110)+0.00448(180) =  - 2.905$
 
-We would classify Liz as not having heart disease because her predicted logit value of −2.905 is less than the threshold of -2.303.
+We would classify Liz as not having heart disease because her predicted logit value of $-2.905$ is less than the threshold of $-2.303$.
 
 iv. Bayes rule gives us the best rule if we can estimate the probability of `HD-1` accurately. In practice we use logistic regression as our working model. How well does the Bayes rule work in practice? We hope to show in this example it works pretty well.
 
