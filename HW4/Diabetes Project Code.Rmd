@@ -4,7 +4,7 @@ author:
 - Annie Vo
 - Sarah Hayward
 - Jessica Brown
-date: ' '
+date: '20 March 2022'
 output:
   pdf_document:
     toc: yes
@@ -21,12 +21,6 @@ output:
     toc_depth: '4'
 urlcolor: blue
 ---
-
-* to hide source code: echo = FALSE
-* to hide text output: results = 'hide' or results = FALSE
-* hide messages: message = FALSE
-* hide warning messages: warning = FALSE
-* hide plotsL fig.show = 'hide'
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
@@ -123,10 +117,10 @@ p5 <- ggplot(readmission, aes(x = factor(age_mod), fill = age_mod)) +
   scale_fill_brewer(palette="Blues") + 
   labs(title = "Distribution of Age in Cleaned Dataset", fill = "Age group", x = "Age group") + 
   theme_minimal()
-p6 <- ggplot(readmission, aes(x = factor(age_mod), fill = gender)) +
+p6 <- ggplot(readmission, aes(x = factor(age_mod), fill = factor(lessThanThirty))) +
   geom_bar(stat = "count", width = 0.7, color = "black", position = position_dodge()) + 
-  scale_fill_brewer(palette="Greens") + 
-  labs(title = "Distribution of Gender for Each Age Group", fill = "Gender", x = "Age group") + 
+  scale_fill_brewer(palette="Blues") + 
+  labs(title = "Distribution of Patients Readmitted <30 Days for Each Age Group", fill = "Readmitted in <30 Days", x = "Age Group") + 
   theme_minimal()
 
 ggarrange(p5, p6, ncol = 2, nrow = 1)
@@ -145,7 +139,7 @@ readmission_sub <- readmission %>% select(-encounter_id, -patient_nbr, -readmitt
 ```
 
 ```{r, results=FALSE}
-nrow(readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?")))
+nrow(readmission_sub %>% filter((gender == "Unknown/Invalid") | (race == "?") | (diag3_mod == "?")))
 ```
 
 ```{r}
@@ -235,7 +229,11 @@ Anova(model.3)
 At a significance level of 0.05, the anova results indicated that all of variables used are significant except time in hospital. We can now compare this model to those that we tested for lambda min using anova.
 
 ```{r}
-anova(model.2, model.3, test = "Chisq")
+model.4 <- glm(lessThanThirty~ num_medications + number_emergency + number_inpatient + number_diagnoses + insulin + diabetesMed + disch_disp_modified + age_mod + diag1_mod + diag2_mod + diag3_mod, family=binomial, data = readmission_sub)
+```
+
+```{r}
+anova(model.2, model.4, test = "Chisq")
 ```
 We get that for these two models, the p-value is super low meaning there is a significant difference between the two models. The key variables that differ are: num_procedures, AICresult, metformin, glipizide, adm_src_mod, and time_in_hospital. Time in hospital is the only variable used in the smaller model and it was notably found to not be statistically significant in the model. 
 
@@ -263,6 +261,11 @@ model_1se <- glm(lessThanThirty~ num_medications + number_emergency + number_inp
 ```
 
 ```{r}
+summary(model_min)
+```
+
+
+```{r}
 min.fitted.test <- predict(model_min, data.test, type="response") 
 se.fitted.test <- predict(model_1se, data.test, type="response")
 data.frame(min.fitted.test, se.fitted.test)[1:10, ]
@@ -277,18 +280,61 @@ se.test.roc <- roc(data.test$lessThanThirty, se.fitted.test)
 plot(1-min.test.roc$specificities, min.test.roc$sensitivities,
   col="red", type="l", lwd=3,
   xlab=paste("AUC(min.test) =",
-  round(pROC::auc(min.test.roc),2),
+  round(pROC::auc(min.test.roc), 4),
   " AUC(se.test) =",
-  round(pROC::auc(se.test.roc),2)),
+  round(pROC::auc(se.test.roc), 4)),
   ylab="Sensitivities")
-  lines(1-se.test.roc$specificities, se.test.roc$sensitivities, col="blue", lwd=3)
-  legend("bottomright", legend=c("Fit w lambda min variables", "Fit w lambda 1se variables"),
+lines(1-se.test.roc$specificities, se.test.roc$sensitivities, col="blue", lwd=3)
+legend("bottomright", legend=c("Fit w lambda min variables", "Fit w lambda 1se variables"),
   lty=c(1,1), lwd=c(2,2), col=c("red", "blue"))
   title("Comparison of two models using testing data")
 ```
+
 ```{r}
-se.fitted.val <- predict(model_1se, data.val, type="response")
-pROC::auc(data.val$lessThanThirty, se.fitted.val)
+pROC::auc(se.test.roc)
+pROC::auc(min.test.roc)
+```
+
+```{r}
+min.fitted.val <- predict(model_min, data.val, type="response")
+pROC::auc(data.val$lessThanThirty, min.fitted.val)
+```
+
+
+```{r}
+plot(min.test.roc$thresholds, 1-min.test.roc$specificities, col="green", pch=16,
+xlab="Threshold on prob",
+ylab="False Positive",
+main = "Thresholds vs. False Postive")
+```
+
+```{r}
+weight <- 1/2
+sum(ifelse(min.fitted.val > 0.5, 1, 0) != data.val$lessThanThirty)/length(data.val$lessThanThirty)
+```
+
+```{r}
+fit.final.bayes <- as.factor(ifelse(min.fitted.test > (weight/(1 + weight)), "1", "0"))
+MCE.final.bayes <- (2 * sum(fit.final.bayes[data.test$lessThanThirty == "1"] != "1")
++ sum(fit.final.bayes[data.test$lessThanThirty == "0"] != "0"))/length(data.test$lessThanThirty)
+MCE.final.bayes
+```
+
+```{r}
+fit.final.bayes <- as.factor(ifelse(min.fitted.val > (weight/(1 + weight)), "1", "0"))
+MCE.final.bayes <- (2 * sum(fit.final.bayes[data.val$lessThanThirty == "1"] != "1")
++ sum(fit.final.bayes[data.val$lessThanThirty == "0"] != "0"))/length(data.val$lessThanThirty)
+MCE.final.bayes
+```
+
+```{r}
+test_pred <- ifelse(min.fitted.test > (weight/(1 + weight)), 1, 0)
+table(test_pred, data.test$lessThanThirty) 
+```
+
+```{r}
+val_pred <- ifelse(min.fitted.val > (weight/(1 + weight)), 1, 0)
+table(val_pred, data.val$lessThanThirty) 
 ```
 
 
