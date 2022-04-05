@@ -152,6 +152,45 @@ Variable Related to Life Success in 2006
   - testing data: find the best tuning parameters/best models
   - validation data: only used in your final model to report the accuracy. 
 
+```{r}
+iq <- read.csv("IQ.Full.csv")
+#removing first variable
+iq <- iq[,-1]
+
+#setting categorical as factors
+iq$Gender <- as.factor(iq$Gender)
+iq$Race <- as.factor(iq$Race)
+iq$Imagazine <- as.factor(iq$Imagazine)
+iq$Inewspaper <- as.factor(iq$Inewspaper)
+iq$Ilibrary <- as.factor(iq$Ilibrary)
+
+#setting income as log
+iq$Income2005 <- log(iq$Income2005)
+
+#making last row Michelle and removing it
+Michelle <- tail(iq, 1)
+iq <- iq[-2584,]
+```
+
+
+```{r}
+# Split the data: 
+N <- nrow(iq)
+n1 <- floor(.7*N)
+n2 <- floor(.2*N)
+
+set.seed(10)
+# Split data to three portions of .7, .2 and .1 of data size N
+
+idx_train <- sample(N, n1)
+idx_no_train <- (which(! seq(1:N) %in% idx_train))
+idx_test <- sample( idx_no_train, n2)
+idx_val <- which(! idx_no_train %in% idx_test)
+data.train <- iq[idx_train,]
+data.test <- iq[idx_test,]
+data.val <- iq[idx_val,]
+```
+
 
 ## 2. Factors affect Income
 
@@ -160,7 +199,46 @@ We only use linear models to answer the questions below.
 i. To summarize ASVAB test scores, create PC1 and PC2 of 10 scores of ASVAB tests and label them as
 ASVAB_PC1 and ASVAB_PC2. Give a quick interpretation of each ASVAB_PC1 and ASVAB_PC2 in terms of the original 10 tests. 
 
+```{r}
+pca.all <- prcomp(iq[,  c(10:19)], scale=TRUE)
+pca.all.loading <- data.frame(tests=row.names(pca.all$rotation), pca.all$rotation)
+#setting the variables of PC1 and PC2
+ASVAB_PC1 <- pca.all.loading$PC1
+ASVAB_PC2 <- pca.all.loading$PC2
+```
+
+```{r}
+#Analyzing PC1
+pca.all.loading %>% select(tests, PC1) %>%
+  arrange(-PC1)
+```
+For PC1, we see that that the loadings are roughly similar which means that it captures  the total scores for the test, scaled by the standard deviations. It is essentially a weighted average.
+
+```{r}
+#Analyzing PC2
+pca.all.loading %>% select(tests, PC2) %>%
+  arrange(-PC2)
+```
+We can see that PC2 measures the difference between the total of Coding ,Numer, Parag , Math and the total of Mechanic, Elec, and Auto.
+
+
 ii. Is there any evidence showing ASVAB test scores in terms of ASVAB_PC1 and ASVAB_PC2, might affect the Income?  Show your work here. You may control a few other variables, including gender. 
+
+```{r}
+#creating ASVAB variables for the data set
+iq$ASVAB_PC1 <- pca.all$x[,1]
+iq$ASVAB_PC2 <- pca.all$x[,2]
+```
+
+```{r}
+#create a linear regression of the PC1 and PC2 scores to see if they are statistically significant with regards to Income
+fit1 <- lm(Income2005~ASVAB_PC1 + ASVAB_PC2 + Gender, iq)
+summary(fit1)
+fit2 <- lm(Income2005~Gender, iq)
+anova(fit2, fit1)
+```
+In a linear model using ASVAB_PC1, ASVAB_PC2, and gender to predict Income, we can see that the PC scores are statistically significant and this may affect the income. We made a full model of the 3 variables and a reduced model with just gender to see if the PC scores made a difference and we got a P-value of < 2.2e-16 meaning that the PC scores are statistically significant when predicting income while holding gender.
+
 
 iii. Is there any evidence to show that there is gender bias against either male or female in terms of income in the above model? 
 
