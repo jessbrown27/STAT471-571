@@ -308,8 +308,30 @@ str(yelp_data)
 **Write a brief summary about the data:**
 
 a) Which time period were the reviews collected in this data?
+```{r}
+yelp_data$cleaned_date <- as.Date(yelp_data$date)
+print(min(yelp_data$cleaned_date)) 
+print(max(yelp_data$cleaned_date))
+```
+
+The reviews were collected from 10/19/2004 to 10/04/2018. 
 
 b) Are ratings (with 5 levels) related to month of the year or days of the week? Only address this through EDA please. 
+
+```{r}
+library(lubridate)
+yelp_data$month <- as.factor(month(yelp_data$cleaned_date))
+yelp_data %>% ggplot(aes(x = month, fill = as.factor(stars))) +
+  geom_bar(stat="count", width=0.7) +
+  theme_minimal() + ggtitle("Distribution of Month For Each Star Rating") + labs(fill = "stars")
+```
+
+```{r}
+yelp_data$wday <- wday(yelp_data$cleaned_date, label = TRUE)
+yelp_data %>% ggplot(aes(x = wday, fill = as.factor(stars))) +
+  geom_bar(stat="count", width=0.7) +
+  theme_minimal() + ggtitle("Distribution of Weekday For Each Star Rating") + xlab("weekday") + labs(fill = "stars")
+```
 
 
 ii. Document term matrix (dtm)
