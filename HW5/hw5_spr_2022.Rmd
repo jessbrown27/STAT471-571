@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate,nnet)
 ```
 
 
@@ -241,6 +241,12 @@ In a linear model using ASVAB_PC1, ASVAB_PC2, and gender to predict Income, we c
 
 
 iii. Is there any evidence to show that there is gender bias against either male or female in terms of income in the above model? 
+
+```{r}
+anova(fit1)
+summary(fit1)
+```
+Here we see that gender is statistically significant in the model when predicted income. In this fit, female is considered the base with a coefficient of zero whereas if the person is male, the log value of the income is 0.671353 higher. Thus there is a bias toward males here in that males are more likely to have a higher income based on solely their gender. 
 
 
 We next build a few models for the purpose of prediction using all the information available. From now on you may use the three data sets setting (training/testing/validation) when it is appropriate. 
