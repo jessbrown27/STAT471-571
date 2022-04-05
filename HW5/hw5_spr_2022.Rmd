@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate)
 ```
 
 
@@ -319,7 +319,6 @@ The reviews were collected from 10/19/2004 to 10/04/2018.
 b) Are ratings (with 5 levels) related to month of the year or days of the week? Only address this through EDA please. 
 
 ```{r}
-library(lubridate)
 yelp_data$month <- as.factor(month(yelp_data$cleaned_date))
 yelp_data %>% ggplot(aes(x = month, fill = as.factor(stars))) +
   geom_bar(stat="count", width=0.7) +
@@ -337,20 +336,9 @@ yelp_data %>% ggplot(aes(x = wday, fill = as.factor(stars))) +
 ii. Document term matrix (dtm)
  
  Extract document term matrix for texts to keep words appearing at least .5% of the time among all 20000 documents. Go through the similar process of cleansing as we did in the lecture. 
- 
-```{r}
-yelp.text <- yelp_data$text   # take the text outinstall.packages("ggplot2")
-
-mycorpus1 <- VCorpus(VectorSource(yelp.text))
-mycorpus1
-typeof(mycorpus1)   ## It is a list
-# inspect the first corpus
-inspect(mycorpus1[[1]])
-# or use `as.character` to extract the text
-as.character(mycorpus1[[1]])
-```
 
 a) Briefly explain what does this matrix record? What is the cell number at row 100 and column 405? What does it represent?
+
 
 b) What is the sparsity of the dtm obtained here? What does that mean?
 
