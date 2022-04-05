@@ -317,15 +317,33 @@ ii. Document term matrix (dtm)
  Extract document term matrix for texts to keep words appearing at least .5% of the time among all 20000 documents. Go through the similar process of cleansing as we did in the lecture. 
  
 ```{r}
-yelp.text <- yelp_data$text   # take the text outinstall.packages("ggplot2")
+yelp.text <- yelp_data$text
 
-mycorpus1 <- VCorpus(VectorSource(yelp.text))
-mycorpus1
-typeof(mycorpus1)   ## It is a list
-# inspect the first corpus
-inspect(mycorpus1[[1]])
-# or use `as.character` to extract the text
-as.character(mycorpus1[[1]])
+corpus <- VCorpus(VectorSource(yelp.text))
+corpus
+
+# Converts all words to lowercase
+corpus_clean <- tm_map(corpus, content_transformer(tolower))
+
+# Removes common English stopwords (e.g. "with", "i")
+corpus_clean <- tm_map(corpus_clean, removeWords, stopwords("english"))
+
+corpus_clean <- tm_map(corpus_clean, removePunctuation)
+
+# Removes numbers
+corpus_clean <- tm_map(corpus_clean, removeNumbers)
+
+# Stem words
+corpus_clean <- tm_map(corpus_clean, stemDocument, lazy = TRUE)
+
+dtm <- DocumentTermMatrix(corpus_clean)
+
+inspect(dtm)
+
+threshold <- .005*length(corpus_clean)   # 0.5% of the total documents 
+words.005 <- findFreqTerms(dtm, lowfreq=threshold)  # words appearing at least among 0.5% of the documents
+
+dtm.005<- DocumentTermMatrix(corpus_clean, control = list(dictionary = words.005))
 ```
 
 a) Briefly explain what does this matrix record? What is the cell number at row 100 and column 405? What does it represent?
