@@ -256,6 +256,15 @@ We next build a few models for the purpose of prediction using all the informati
 i. fit1: tree(Income ~ Educ + Gender, data.train) with default set up 
 
     a) Display the tree
+    
+```{r}
+fit1 <- tree(Income2005 ~ Educ + Gender, data.train)
+# plot the tree
+plot(fit1)
+text(fit1, pretty = TRUE)   # plot method 1
+
+```
+    
     b) How many end nodes? Briefly explain how the estimation is obtained in each end nodes and deescribe the prediction equation
     c) Does it show interaction effect of Gender and Educ over Income?
     d) Predict Michelle's income
