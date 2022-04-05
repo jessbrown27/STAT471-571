@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate)
 ```
 
 
@@ -319,7 +319,6 @@ The reviews were collected from 10/19/2004 to 10/04/2018.
 b) Are ratings (with 5 levels) related to month of the year or days of the week? Only address this through EDA please. 
 
 ```{r}
-library(lubridate)
 yelp_data$month <- as.factor(month(yelp_data$cleaned_date))
 yelp_data %>% ggplot(aes(x = month, fill = as.factor(stars))) +
   geom_bar(stat="count", width=0.7) +
@@ -366,13 +365,30 @@ threshold <- .005*length(corpus_clean)   # 0.5% of the total documents
 words.005 <- findFreqTerms(dtm, lowfreq=threshold)  # words appearing at least among 0.5% of the documents
 
 dtm.005<- DocumentTermMatrix(corpus_clean, control = list(dictionary = words.005))
+dtm.005
 ```
 
 a) Briefly explain what does this matrix record? What is the cell number at row 100 and column 405? What does it represent?
 
+This matrix records the frequency for each word in the corpus for each document. The rows in the matrix are the 20,000 documents and the columns are the words in our cleaned corpus corpus, with the cells storing the frequencies of the words in each document. 
+
+```{r}
+inspect(dtm.005[100,405])
+```
+The cell number at row 100 and column 405 is 0. This represents that the word "driver" does not appear in the 100th document but is still in our corpus because it appears at least 0.5% of the time among all of our documents.
+
 b) What is the sparsity of the dtm obtained here? What does that mean?
 
+The sparsity is 98% which means that 98% of the cells in our document term matrix have a value of 0.
+
 iii. Set the stars as a two category response variable called rating to be “1” = 5,4 and “0”= 1,2,3. Combine the variable rating with the dtm as a data frame called data2. 
+
+```{r}
+yelp_data$rating = ifelse(yelp_data$stars == 5 | yelp_data$stars == 4, 1, 0)
+data2 <- cbind(dtm.005, yelp_data$rating)
+data2
+```
+
 
 ## Analysis
 
