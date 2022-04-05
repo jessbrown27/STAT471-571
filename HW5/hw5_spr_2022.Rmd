@@ -1,9 +1,9 @@
 ---
 title: "Modern Data Mining - HW 5"
 author:
-- Group Member 1
-- Group Member 2
-- Group Member 3
+- Jessica Brown
+- Sarah Hayward
+- Annie Vo
 date: 'Due: 11:59Pm,  4/10, 2022'
 output:
   html_document:
@@ -337,6 +337,18 @@ yelp_data %>% ggplot(aes(x = wday, fill = as.factor(stars))) +
 ii. Document term matrix (dtm)
  
  Extract document term matrix for texts to keep words appearing at least .5% of the time among all 20000 documents. Go through the similar process of cleansing as we did in the lecture. 
+ 
+```{r}
+yelp.text <- yelp_data$text   # take the text outinstall.packages("ggplot2")
+
+mycorpus1 <- VCorpus(VectorSource(yelp.text))
+mycorpus1
+typeof(mycorpus1)   ## It is a list
+# inspect the first corpus
+inspect(mycorpus1[[1]])
+# or use `as.character` to extract the text
+as.character(mycorpus1[[1]])
+```
 
 a) Briefly explain what does this matrix record? What is the cell number at row 100 and column 405? What does it represent?
 
