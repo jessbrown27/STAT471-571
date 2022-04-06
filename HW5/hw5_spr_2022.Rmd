@@ -262,17 +262,27 @@ fit1 <- tree(Income2005 ~ Educ + Gender, data.train)
 # plot the tree
 plot(fit1)
 text(fit1, pretty = TRUE)   # plot method 1
-
 ```
     
     b) How many end nodes? Briefly explain how the estimation is obtained in each end nodes and deescribe the prediction equation
+    
+
     c) Does it show interaction effect of Gender and Educ over Income?
+
     d) Predict Michelle's income
 
 ii. fit2: fit2 <- rpart(Income2005 ~., data.train, minsplit=20, cp=.009)
 
-    a) Display the tree using plot(as.party(fit2), main="Final Tree with Rpart") 
+    a) Display the tree using plot(as.party(fit2), main="Final Tree with Rpart")
+    
+```{r}
+fit2 <- rpart(Income2005 ~., data.train, minsplit=20, cp=.009)
+plot(as.party(fit2), main="Final Tree with Rpart")
+```
+    
     b) A brief summary of the fit2
+
+
     c) Compare testing errors between fit1 and fit2. Is the training error from fit2 always less than that from fit1? Is the testing error from fit2 always smaller than that from fit1? 
     d) You may prune the fit2 to get a tree with small testing error. 
     
