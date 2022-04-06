@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate,nnet)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate,nnet, data.table)
 ```
 
 
@@ -264,12 +264,20 @@ plot(fit1)
 text(fit1, pretty = TRUE)   # plot method 1
 ```
     
-    b) How many end nodes? Briefly explain how the estimation is obtained in each end nodes and deescribe the prediction equation
-    
+    b) How many end nodes? Briefly explain how the estimation is obtained in each end nodes and describe the prediction equation
+
+The fit1 tree has 4 end nodes. The first split is based on gender of the person. After that you split the Educ on the person at a level of 15.5 (years of education completed by 2006). The estimation of each of the end nodes was determined by taking the average of log of the Income based on each split. So the first end node took all females with educ less that 15.5 and took the average, and so on for the rest of the nodes. 
 
     c) Does it show interaction effect of Gender and Educ over Income?
 
+I would say that the tree does show the interaction effect of Gender and Educ over Income. Although the split for Educ occurs at the same point. We can see that the different genders have different incomes based on their educ. Typically, when we create trees with multuple variables as predictors we see their interactions. 
+
     d) Predict Michelle's income
+```{r}
+predict(fit1, Michelle)
+```
+
+Michelle's prediced log Income in 9.940797.
 
 ii. fit2: fit2 <- rpart(Income2005 ~., data.train, minsplit=20, cp=.009)
 
@@ -277,13 +285,35 @@ ii. fit2: fit2 <- rpart(Income2005 ~., data.train, minsplit=20, cp=.009)
     
 ```{r}
 fit2 <- rpart(Income2005 ~., data.train, minsplit=20, cp=.009)
-plot(as.party(fit2), main="Final Tree with Rpart")
+plot(as.party(fit2), main="Final Tree with Rpart", pretty = TRUE)
 ```
     
     b) A brief summary of the fit2
-
+```{r}
+fit2.s <- summary(fit2)
+```
+We can see that in total there are 8 end nodes in the tree for fit2. We see that the first split is based on the gender of the person. From there the different variables that are used are slightly different. The females are split based on their math score and number of years educ. The males have more splits that the females and they are their arith score, years of educ, and esteem 10. 
 
     c) Compare testing errors between fit1 and fit2. Is the training error from fit2 always less than that from fit1? Is the testing error from fit2 always smaller than that from fit1? 
+    
+```{r}
+test.error.fit1 <- sum((predict(fit1, data.test) - data.test$Income2005)^2)
+test.error.fit2 <- sum((predict(fit2, data.test) - data.test$Income2005)^2)
+test.error.fit1
+test.error.fit2
+```
+
+The testing error for fit1 is 345.306 and the testing error for fit2 is 351.766. As we can see, the testing error from fit2 is larger than the testing error for fit1. We can see that the testing error from fit2 is not alwasy smaller than fit1 because that depends on the data that you use to train and test the models with. 
+
+```{r}
+fit1.s <- summary(fit1)
+fit1.s$dev
+fit2.s <- summary(fit2)
+fit2.s$frame
+```
+
+If you add up the deviance for all of the end nodes for fit2, you get a training error of about 1383 whereas the training error for fit1 is about 1482. We expect that the RSS to be the smallest for the model using all of the predictors and so the training error for fit2 should always be smaller than that of fit1.
+
     d) You may prune the fit2 to get a tree with small testing error. 
     
 iii. fit3: bag two trees
