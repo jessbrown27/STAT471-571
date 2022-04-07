@@ -542,7 +542,7 @@ iii. Set the stars as a two category response variable called rating to be â€œ1â
 
 ```{r}
 yelp_data$rating = ifelse(yelp_data$stars == 5 | yelp_data$stars == 4, 1, 0)
-data2 <- cbind(dtm.005, yelp_data$rating)
+data2 <- cbind(dtm.005, as.factor(yelp_data$rating))
 data2
 ```
 
@@ -550,6 +550,22 @@ data2
 ## Analysis
 
 Get a training data with 13000 reviews and the 5000 reserved as the testing data. Keep the rest (2000) as our validation data set. 
+
+```{r}
+set.seed(1) 
+n <- nrow(data2)
+sample.index <- sample(n, 13000)
+data2.train <- data2[sample.index, ]
+test_and_val <- data2[-sample.index, ]
+n_tv <- nrow(test_and_val)
+sample_tv <- sample(n_tv, 5000)
+data2.test <- test_and_val[sample_tv, ]
+data2.val <- test_and_val[-sample_tv, ]
+dim(data2.train)
+dim(data2.test)
+dim(data2.val)
+```
+
 
 ## 2. LASSO
 
