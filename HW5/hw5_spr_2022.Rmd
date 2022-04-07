@@ -332,10 +332,29 @@ iii. fit3: bag two trees
 
     a) Take 2 bootstrap training samples and build two trees using the 
     rpart(Income2005 ~., data.train.b, minsplit=20, cp=.009). Display both trees.
-    
+```{r}
+par(mfrow=c(1, 2))
+n=1808
+set.seed(1)  
+index1 <- sample(n, n, replace = TRUE)
+data.train.b <- data.train[index1, ]
+boot.1 <- rpart(Income2005 ~., data.train.b, minsplit=20, cp=.009) 
+plot(boot.1)
+title(main = "First bootstrap tree")
+text(boot.1, pretty=0)
+
+set.seed(2)
+index1 <- sample(n, n, replace = TRUE)
+data.train.b <- data.train[index1, ]
+boot.2 <- rpart(Income2005 ~., data.train.b, minsplit=20, cp=.009) 
+plot(boot.2)
+title(main = "First bootstrap tree")
+text(boot.2, pretty=0)
+```
     
     b) Explain how to get fitted values for Michelle by bagging the two trees obtained above. Do not use the predict(). 
-    
+
+In order to obtain the fitted values for Michelle, we need to take the average of the two trees above. 
     
     c) What is the testing error for the bagged tree. Is it guaranteed that the testing error by bagging the two tree always smaller that either single tree? 
     
