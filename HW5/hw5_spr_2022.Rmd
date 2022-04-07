@@ -360,10 +360,10 @@ In order to obtain the fitted values for Michelle, we need to take the average o
 
 ```{r}
 fit3.p <- (predict(boot.1, data.test) + predict(boot.2, data.test))/2
-sum((fit3.p - data.test$Income2005)^2)
-
-set.seed(1)
-fit3 <- randomForest(data.train, mtry = 31, ntree = 2)
+test.error.fit3 <- sum((fit3.p - data.test$Income2005)^2)
+test.error.fit3
+# set.seed(1)
+# fit3 <- randomForest(data.train, mtry = 31, ntree = 2)
 ```
 We get that the testing error for the bagged tree is  361.3871. As we can see, the testing error is not smaller than that of a single tree. This could be due to the randomness of the sample selected for each of the bootstrap samples. It could give a prediction that does not do a good job of predicting the income for the testing sample.    
 
@@ -371,25 +371,115 @@ iv. fit4: Build a best possible RandomForest
 
     a) Show the process how you tune mtry and number of trees. Give a very high level explanation how fit4 is built.
 
-    
+```{r}
+#given mtry, we see the effect of ntree first
+par(mfrow=c(1, 3))
+fit.rf.500 <- randomForest(Income2005~., data.train, mtry=5, ntree=500)
+plot(fit.rf.500, col="red", pch=16, type="p", 
+     main="Plot for 500 trees, ")
+fit.rf.250 <- randomForest(Income2005~., data.train, mtry=5, ntree=250)
+plot(fit.rf.250, col="red", pch=16, type="p", 
+     main="Plot for 250 trees, ")
+fit.rf.100 <- randomForest(Income2005~., data.train, mtry=5, ntree=100)
+plot(fit.rf.100, col="red", pch=16, type="p", 
+     main="Plot for 100 trees, ")
+```
+We can see that the error for 500 and 250 trees is about the same so we will set ntree to 250.
+Now we can determine the optimal mtry
+
+```{r}
+rf.error.p <- 1:31 
+for (p in 1:31)  
+{
+  fit.rf <- randomForest(Income2005~., data.train, mtry=p, ntree=250)
+  rf.error.p[p] <- fit.rf$mse[250] 
+}
+rf.error.p  
+
+plot(1:31, rf.error.p, pch=16,
+     main = "Testing errors of mtry with 250 trees",
+     xlab="mtry",
+     ylab="OOB mse of mtry")
+lines(1:31, rf.error.p)
+```
+The recommended mtry is p/3 so in our case 31/3 = 10 or 11. And we see that the OOB mse of mtry for 10 is pretty good so we will select 10 to use for our model.
+
+```{r}
+fit4 <- randomForest(Income2005~., data.train, mtry=10, ntree=250)
+plot(fit4)
+fit4$mse[250]
+```
+
+We were able to tune the values of mry and ntree by fixing one of the values and then lookinig at plots associated with the errors for the variables we were changing. First, we fixed mtry = 5 and changed the values of ntrees. We tested ntrees = 100, 250, and 500 to see which one would have the smallest error based on the graph. We determined that the errors for ntrees between 250 and 500 were approxiamately the same so we were able to set ntree=250. Then we tuned mtry to determine the best error for that variables. Typically we use p/31 which in our case would give us 31/10 which is about 10. We also ran a loop that looked at all of the different values for mtry and plotted them. We saw that 10 had a pretty low error so we were able to select that as the mtry.
     
     b) Compare the oob errors form fit4 to the testing errors using your testing data. Are you convinced that oob errors estimate testing error reasonably well.
-    
+```{r}
+fit.rf.testing <- randomForest(Income2005~., data.train, xtest=data.test[, -21],
+                          ytest=data.test[,21], mtry=10, ntree=250)
+par(mfrow=c(1, 2))
+plot(fit.rf.testing$mse)
+plot(fit4)
+```
+We can see that the testing errors seem to agree with what we found using OOB errors. We can look at a graph of them together to get more evidence. 
+
+```{r}
+plot(1:250, fit.rf.testing$mse, col="red", pch=16,
+     xlab="number of trees",
+     ylab="mse",
+     main="mse's of RF: blue=oob errors, red=testing errors")
+points(1:250, fit4$mse, col="blue", pch=16)
+```
+We can see that the OOB errors do a good job of estimating the testing errors. 
     
     c) What is the predicted value for Michelle?
-
+    
+```{r}
+predict(fit4, Michelle)
+```
+The predicted log income using fit4 for Michelle is 9.687374.
     
 v. Now you have built so many predicted models (fit1 through fit4 in this section). What about build a fit5 which bags fit1 through fit4. Does fit5 have the smallest testing error?
 
+```{r}
+fit1.p <- predict(fit1, data.test)
+fit2.p <- predict(fit2, data.test)
+fit4.p <- predict(fit4, data.test)
 
+test.error.fit1
+test.error.fit2
+test.error.fit3
+test.error.fit4 <- sum((fit4.p - data.test$Income2005)^2)
+test.error.fit4
+
+
+fit5 <- (fit1.p + fit2.p + fit3.p + fit4.p)/4
+test.error.fit5 <- sum((fit5 - data.test$Income2005)^2)
+test.error.fit5
+```
+
+Earlier we determined the testing errors for each of the different fits. 
+fit1 = 345.306
+fit2 = 351.766
+fit3 = 361.3871
+fit4 = 334.7837
+We can see that fit5 has a testing error of 333.1914. Thus we can see that fit5 has the smallest testing error of the 5 different fits. 
 
 vi.  Summarize the results and nail down one best possible final model you will recommend to predict income. Explain briefly why this is the best choice. Finally for the first time evaluate the prediction error using the validating data set. 
 
+Overall, we created 5 different fits using the training set from the IQ data set. fit1 focused on just the variables gender and educ. fit2 was a tree created from all of the different variables in the data set. fit3 bagged two different bootstrap trees to get the prediction. fit4 was optimizing a random forest in which we used mtry=10 and ntrees=250. Finally, fit5 bagged the 4 different trees to get the final prediction. We compared all of the different testing errors for the tests and saw that fit5 had the lowest testing error, however, fit5 bagged the previous 4 different fits and since the testing error for fit4 was only slightly higher we are going to select fit4 as the final model since we made sure to optimize the MSE and OOB when creating that test as well as it having a low testing error. 
 
+```{r}
+sum((predict(fit4, data.val) - data.val$Income2005)^2)
+```
+
+We get that the prediction error for the validation data set is 58.71275. 
 
 vii. Use your final model to predict Michelle's income. 
 
-
+```{r}
+predict(fit4, Michelle)
+```
+We get that Michelle's predict log income is 9.687374.
     
 # Problem 2: Yelp challenge 2019
 
