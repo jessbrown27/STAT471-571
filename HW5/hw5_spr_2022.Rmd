@@ -310,29 +310,51 @@ fit1.s <- summary(fit1)
 fit1.s$dev
 fit2.s <- summary(fit2)
 fit2.s$frame
+
+fit2.t <- tree(fit2, mindev = 0.008) #making fit2 into a tree so it's easier to prune and determine deviance
+fit2.ts <- summary(fit2.t)
+fit2.ts$dev
 ```
 
 If you add up the deviance for all of the end nodes for fit2, you get a training error of about 1383 whereas the training error for fit1 is about 1482. We expect that the RSS to be the smallest for the model using all of the predictors and so the training error for fit2 should always be smaller than that of fit1.
 
     d) You may prune the fit2 to get a tree with small testing error. 
     
+```{r}
+fit2.p <- prune.tree(fit2.t, best = 5)
+plot(fit2.p)
+text(fit2.p, pretty = TRUE)
+sum((predict(fit2.p, data.test) - data.test$Income2005)^2)
+```
+The testing error for fit2 before we did any pruning is 351.766. Here we were able to determine after pruning the best tree has 5 end nodes and gives a testing error of 346.2485 whicih is smaller than we had for fit2.
+
 iii. fit3: bag two trees
 
     a) Take 2 bootstrap training samples and build two trees using the 
     rpart(Income2005 ~., data.train.b, minsplit=20, cp=.009). Display both trees.
+    
+    
     b) Explain how to get fitted values for Michelle by bagging the two trees obtained above. Do not use the predict(). 
+    
+    
     c) What is the testing error for the bagged tree. Is it guaranteed that the testing error by bagging the two tree always smaller that either single tree? 
     
 iv. fit4: Build a best possible RandomForest
 
     a) Show the process how you tune mtry and number of trees. Give a very high level explanation how fit4 is built.
+    
+    
     b) Compare the oob errors form fit4 to the testing errors using your testing data. Are you convinced that oob errors estimate testing error reasonably well.
+    
+    
     c) What is the predicted value for Michelle?
 
     
 v. Now you have built so many predicted models (fit1 through fit4 in this section). What about build a fit5 which bags fit1 through fit4. Does fit5 have the smallest testing error?
 
+
 vi.  Summarize the results and nail down one best possible final model you will recommend to predict income. Explain briefly why this is the best choice. Finally for the first time evaluate the prediction error using the validating data set. 
+
 
 vii. Use your final model to predict Michelle's income. 
 
