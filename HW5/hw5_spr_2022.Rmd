@@ -542,6 +542,9 @@ data2.val <- test_and_val[-sample_tv, ]
 dim(data2.train)
 dim(data2.test)
 dim(data2.val)
+yelp_data_train <- yelp_data[c(data2.train[["dimnames"]][[1]]),]
+yelp_data_test <- yelp_data[c(data2.test[["dimnames"]][[1]]),]
+yelp_data_val <- yelp_data[c(data2.val[["dimnames"]][[1]]),]
 ```
 
 
@@ -568,7 +571,19 @@ iii. Using majority votes find the testing errors
 
 i. Briefly summarize the method of Random Forest
 
+From 1 to B, Random Forest takes a sample and builds a tree using that sample until n_min is met. The tree is built by randomly selecting m variables and finding the best split point for each (where the misclassification erors is minimized by majority vote). The node with the best variable and split point is split into two resulting in an end note with majority vote either 0 or 1. The leaves of the majority vote of the aggregated trees can provide an estimated prediction and the leaves of the sample proportion of 1's among aggregated trees can provide an estimated probability.
+
 ii. Now train the data using the training data set by RF. Get the testing error of majority vote. Also explain how you tune the tuning parameters (`mtry` and `ntree`). 
+
+```{r}
+set.seed(1)
+fit.rf <- randomForest(rating~., yelp_data_train, mtry=5, ntree=100)
+predicted_oob <- fit.rf$predicted
+mse_oob <- mean((yelp_data_train$rating - predicted_oob)^2)  
+mse_oob
+```
+
+The testing error is `r mse_oob`. We ran the RF using fixed parameters of mtry=5 and and ntree=100. To tune the parameters, we would first look at the effect of ntree with a given mtry. Then we would fix that ntree and plot the OOB errors. The recommended mtry is p/3.
 
 ## 4. Boosting 
 
