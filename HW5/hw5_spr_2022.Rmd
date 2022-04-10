@@ -844,19 +844,27 @@ The testing error is `r rf.test.err.2` which is better than that obtained using 
 i. Take average of some of the  models built above (also try all of them) and this gives us the fifth model. Report it's testing error. (Do you have more models to be bagged, try it.)
 
 ```{r}
+predicted_average_lasso <- round(((class.glm + as.numeric(predict.lasso)) / 2), 0)
+predicted_average_err_lasso <- mean(data3$rating != predicted_average_lasso)
+
 #as.numeric added 1 to the predictions so we subtracted 2 to combat that
-predicted_average <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2 + class.glm + as.numeric(predict.lasso)) / 4), 0)
-predicted_average_err <- mean(data3$rating != predicted_average)
+predicted_average_forest <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2) / 2), 0)
+predicted_average_err_forest <- mean(data3$rating != predicted_average_forest)
+
+predicted_average_three <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2 + class.glm) / 3), 0)
+predicted_average_err_three <- mean(data3$rating != predicted_average_three)
+
+predicted_average_all <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2 + class.glm + as.numeric(predict.lasso)) / 4), 0)
+predicted_average_err_all <- mean(data3$rating != predicted_average_all)
 ```
 
-The testing error is `r predicted_average_err`.
+Our fifth chosen is the one that averages the random forest models. The testing error is `r predicted_average_err_forest`.
 
 ## 7. Final model
 
 Which classifier(s) seem to produce the least testing error? Are you surprised? Report the final model and accompany the validation error. Once again this is THE only time you use the validation data set.  For the purpose of prediction, comment on how would you predict a rating if you are given a review (not a tm output) using our final model? 
 
-
-
+The classifier that produces the least testing error was the logistic regression using the variables selected by LASSO. We are surprised by this because we thought the ensemble models would perform better because they pull together results of different models and because the logistic regression is a more simple model. Our
 
 
 
