@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud, sparsepca)
 ```
 
 
@@ -813,7 +813,7 @@ i. Perform PCA (better to do sparse PCA) for the input matrix first. Decide how 
 ```{r}
 data2.train.num <- data2.train
 data2.train.num$rating <- as.numeric(data2.train.num$rating)
-pc <- prcomp(data2.train.num, scale=TRUE)
+pc <- sparsepca::spca(data2.train.num, scale=TRUE)
 plot(summary(pc)$importance[2, ],  # PVE
      ylab="PVE",
      xlab="Number of PC's",
