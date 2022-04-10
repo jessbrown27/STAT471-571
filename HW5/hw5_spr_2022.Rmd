@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud, sparsepca)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubridate, nnet, data.table, wordcloud, sparsepca)
 ```
 
 
@@ -608,6 +608,7 @@ yelp_data %>% ggplot(aes(x = wday, fill = as.factor(stars))) +
   theme_minimal() + ggtitle("Distribution of Weekday For Each Star Rating") + xlab("weekday") + labs(fill = "stars")
 ```
 
+We can see that although there are different counts for each weekday and month, the composition of star ratings is about the same, so there doesn't appear to be related to month of the year or day of the week. 
 
 ii. Document term matrix (dtm)
  
