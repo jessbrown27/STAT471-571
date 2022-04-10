@@ -700,7 +700,7 @@ result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
 plot(result.lasso)
 
 # save results to result.lasso
-saveRDS(result.lasso, file="data/TextMining_lasso.RDS")
+# saveRDS(result.lasso, file="data/TextMining_lasso.RDS")
 # result.lasso can be assigned back by 
 # result.lasso <- readRDS("data/TextMining_lasso.RDS"
 ```
@@ -722,7 +722,7 @@ sel_cols <- c("rating", lasso.words)
 data_sub <- data2.train %>% select(all_of(sel_cols))
 result.glm <- glm(rating~., family=binomial, data_sub)
 #save results
-saveRDS(result.glm, file = "data/TextMining_glm.RDS")
+#saveRDS(result.glm, file = "data/TextMining_glm.RDS")
 ```
 
 	
@@ -776,7 +776,7 @@ mean(data2.test$rating != predict.lasso)
 	ii) From logistic regression in 4)
 ```{r}
 predict.glm <- predict(result.glm, data2.test, type = "response")
-class.glm <- ifelse(predict.glm > .5, "1", "0")
+class.glm <- ifelse(predict.glm > .5, 1, 0)
 mean(data2.test$rating != class.glm)
 ```
 	
@@ -845,7 +845,7 @@ i. Take average of some of the  models built above (also try all of them) and th
 
 ```{r}
 #as.numeric added 1 to the predictions so we subtracted 2 to combat that
-predicted_average <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2) / 2), 0)
+predicted_average <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2 + class.glm + as.numeric(predict.lasso)) / 4), 0)
 predicted_average_err <- mean(data3$rating != predicted_average)
 ```
 
