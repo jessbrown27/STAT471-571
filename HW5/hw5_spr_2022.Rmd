@@ -794,13 +794,12 @@ ii. Now train the data using the training data set by RF. Get the testing error 
 
 ```{r}
 set.seed(1)
-fit.rf <- randomForest(yelp_data.rating~., data2.train, mtry=3, ntree=50)
+fit.rf <- randomForest(rating~., data2.train, mtry=3, ntree=50)
 predicted_oob <- fit.rf$predicted
-mse_oob <- mean((data2.train$yelp_data.rating - predicted_oob)^2)  
-mse_oob
+rf.test.err <- mean(data2.train$rating != predicted_oob)
 ```
 
-The testing error is `r mse_oob`. We ran the RF using fixed parameters of mtry=5 and and ntree=100. To tune the parameters, we would first look at the effect of ntree with a given mtry. Then we would fix that ntree and plot the OOB errors. The recommended mtry is p/3.
+The testing error is `r rf.test.err`. We ran the RF using fixed parameters of mtry=3 and and ntree=50. To tune the parameters, we would first look at the effect of ntree with a given mtry. Then we would fix that ntree and plot the OOB errors. The recommended mtry is p/3.
 
 ## 4. Boosting 
 
@@ -812,7 +811,9 @@ To be determined.
 i. Perform PCA (better to do sparse PCA) for the input matrix first. Decide how many PC's you may want to take and why.
 
 ```{r}
-pc <- prcomp(data2.train, scale=TRUE)
+data2.train.num <- data2.train
+data2.train.num$rating <- as.numeric(data2.train.num$rating)
+pc <- prcomp(data2.train.num, scale=TRUE)
 plot(summary(pc)$importance[2, ],  # PVE
      ylab="PVE",
      xlab="Number of PC's",
@@ -820,15 +821,35 @@ plot(summary(pc)$importance[2, ],  # PVE
      main="Scree Plot of PVE")
 ```
 
+We would want to take around 50 PCs because that is where the elbow is (per the elbow rule).
 
 ii. Pick up one of your favorite method above and build the predictive model with PC's. Say you use RandomForest.
 
+```{r}
+pc.loading <- pc$rotation
+temp <- pc$x[, 1:50]
+data3 <- data.frame(data2.train,temp)
+
+fit.rf.2 <- randomForest(rating~., data3, mtry=3, ntree=50)
+predicted_oob.2 <- fit.rf.2$predicted
+rf.test.err.2 <- mean(data3$rating != predicted_oob.2)
+```
+
 iii. What is the testing error? Is this testing error better than that obtained using the original x's? 
+
+The testing error is `r rf.test.err.2` which is better than that obtained using the original x's.
 
 ## 6. Ensemble model
 
 i. Take average of some of the  models built above (also try all of them) and this gives us the fifth model. Report it's testing error. (Do you have more models to be bagged, try it.)
 
+```{r}
+#as.numeric added 1 to the predictions so we subtracted 2 to combat that
+predicted_average <- round(((as.numeric(predicted_oob) + as.numeric(predicted_oob.2) - 2) / 2), 0)
+predicted_average_err <- mean(data3$rating != predicted_average)
+```
+
+The testing error is `r predicted_average_err`.
 
 ## 7. Final model
 
