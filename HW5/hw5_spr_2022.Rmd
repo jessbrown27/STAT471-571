@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud, sparsepca)
 ```
 
 
@@ -813,6 +813,8 @@ i. Perform PCA (better to do sparse PCA) for the input matrix first. Decide how 
 ```{r}
 data2.train.num <- data2.train
 data2.train.num$rating <- as.numeric(data2.train.num$rating)
+#could not run sparsepca due to long run time making laptop crash, using prcomp instead
+#pc <- sparsepca::spca(data2.train.num, scale=TRUE)
 pc <- prcomp(data2.train.num, scale=TRUE)
 plot(summary(pc)$importance[2, ],  # PVE
      ylab="PVE",
@@ -862,9 +864,16 @@ Our fifth chosen is the one that averages the random forest models. The testing 
 
 ## 7. Final model
 
-Which classifier(s) seem to produce the least testing error? Are you surprised? Report the final model and accompany the validation error. Once again this is THE only time you use the validation data set.  For the purpose of prediction, comment on how would you predict a rating if you are given a review (not a tm output) using our final model? 
+Which classifier(s) seem to produce the least testing error? Are you surprised? Report the final model and accompany the validation error. Once again this is THE only time you use the validation data set.  For the purpose of prediction, comment on how would you predict a rating if you are given a review (not a tm output) using our final model?
 
-The classifier that produces the least testing error was the logistic regression using the variables selected by LASSO. We are surprised by this because we thought the ensemble models would perform better because they pull together results of different models and because the logistic regression is a more simple model. Our
+```{r}
+predict.glm.val <- predict(result.glm, data2.val, type = "response")
+class.glm.val <- ifelse(predict.glm.val > .5, 1, 0)
+mean(data2.val$rating != class.glm.val)
+```
+
+
+The classifier that produces the least testing error was the logistic regression using the variables selected by LASSO. We are surprised by this because we thought the ensemble models would perform better because they pull together results of different models and because the logistic regression is a more simple model. Our final model model is the logistic regression with a validation error of 0.1315658. If given a review, we would predict the rating by seeing what words in our model is mentioned in the rating and computing the expected value based on the words that are mentioned and their coefficient.
 
 
 
