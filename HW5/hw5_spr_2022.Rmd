@@ -25,7 +25,7 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.height=4, fig.width=6, warning = F)
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate,nnet, data.table)
+pacman::p_load(randomForest, tree, ISLR, rpart, rattle, pROC, partykit, ggplot2, glmnet, leaps, dplyr, keras, neuralnet, imager, ranger, tm, lubricate, nnet, data.table, wordcloud)
 ```
 
 
@@ -602,7 +602,7 @@ yelp_data %>% ggplot(aes(x = month, fill = as.factor(stars))) +
 ```
 
 ```{r}
-yelp_data$wday <- wday(yelp_data$cleaned_date, label = TRUE)
+yelp_data$wday <- lubridate::wday(x = yelp_data$cleaned_date, label = TRUE)
 yelp_data %>% ggplot(aes(x = wday, fill = as.factor(stars))) +
   geom_bar(stat="count", width=0.7) +
   theme_minimal() + ggtitle("Distribution of Weekday For Each Star Rating") + xlab("weekday") + labs(fill = "stars")
@@ -663,7 +663,8 @@ iii. Set the stars as a two category response variable called rating to be â€œ1â
 
 ```{r}
 yelp_data$rating = as.factor(ifelse(yelp_data$stars == 5 | yelp_data$stars == 4, 1, 0))
-data2 <- data.frame(yelp_data$rating,as.matrix(dtm.005))
+data2 <- data.frame(yelp_data$rating, as.matrix(dtm.005))
+data2 <- data2 %>% rename(rating = yelp_data.rating)
 ```
 
 
@@ -690,21 +691,98 @@ dim(data2.val)
 ## 2. LASSO
 
 i. Use the training data to get Lasso fit. Choose lambda.1se. Keep the result here.
+```{r}
+y <- data2.train$rating
+X1 <- sparse.model.matrix(rating~., data = data2.train)[, -1]
+set.seed(2)
+
+result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
+plot(result.lasso)
+
+# save results to result.lasso
+saveRDS(result.lasso, file="data/TextMining_lasso.RDS")
+# result.lasso can be assigned back by 
+# result.lasso <- readRDS("data/TextMining_lasso.RDS"
+```
+```{r}
+# number of non-zero words picked up by LASSO when using lambda.1se
+coef.1se <- coef(result.lasso, s="lambda.1se")  
+coef.1se <- coef.1se[which(coef.1se !=0),] 
+lasso.words <- rownames(as.matrix(coef.1se))[-1]
+length(lasso.words)
+lasso.words[1:10]
+```
+
+Since there are 438 words selected by lasso, we decided to just output a small sample of the words to get a sense of those selected. 
 
 ii. Feed the output from Lasso above, get a logistic regression. 
+
+```{r}
+sel_cols <- c("rating", lasso.words)
+data_sub <- data2.train %>% select(all_of(sel_cols))
+result.glm <- glm(rating~., family=binomial, data_sub)
+#save results
+saveRDS(result.glm, file = "data/TextMining_glm.RDS")
+```
+
 	
 a) Pull out all the positive coefficients and the corresponding words. Rank the coefficients in a decreasing order. Report the leading 2 words and the coefficients. Describe briefly the interpretation for those two coefficients. 
 
+```{r}
+result.glm.coef <- coef(result.glm)
+pos.coef <- result.glm.coef[which(result.glm.coef > 0)]
+pos.coef <- pos.coef[-1]
+sorted.pos <-  sort(pos.coef, decreasing = TRUE)
+sorted.pos[1:2]
+```
+
+The leading 2 words are gem and bomb with coefficients of 2.440625 and 2.280553 respectively. These coefficients mean that the presence of the word gem in a review increases the probability that a review is "highly" rated (rating = 1) by 2.440625 on average and the presence of the word bomb in a review increases the probability that a review is "highly" rated (rating = 1) by 2.280553. 
+
 b) Make a word cloud with the top 100 positive words according to their coefficients. Interpret the cloud briefly.
 
+```{r}
+pos.words <- names(sorted.pos)
+cor.special <- brewer.pal(8, "Dark2")
+wordcloud(pos.words[1:100], sorted.pos[1:100], colors=cor.special, ordered.colors=F)
+```
+
+
 c) Repeat i) and ii) for the bag of negative words.
+
+```{r}
+neg.coef <- result.glm.coef[which(result.glm.coef < 0)]
+neg.coef <- neg.coef[-1]
+sorted.neg <-  sort(neg.coef, decreasing = FALSE)
+sorted.neg[1:2]
+```
+
+```{r}
+neg.words <- names(sorted.neg)
+wordcloud(neg.words[1:100], abs(sorted.neg[1:100]), colors = cor.special, ordered.colors = F, min.freq = abs(sorted.neg[100]))
+```
 
 d) Summarize the findings. 
 
 iii. Using majority votes find the testing errors
 	i) From Lasso fit in 3)
+```{r}
+# get majority vote labels
+predict.lasso <- predict(result.lasso, as.matrix(data2.test[, -1]), type = "class", s = "lambda.1se")
+
+# LASSO testing errors
+mean(data2.test$rating != predict.lasso)
+```
+
 	ii) From logistic regression in 4)
-	iii) Which one is smaller?
+```{r}
+predict.glm <- predict(result.glm, data2.test, type = "response")
+class.glm <- ifelse(predict.glm > .5, "1", "0")
+mean(data2.test$rating != class.glm)
+```
+	
+	
+iii) Which one is smaller?
+The logistic regression testing error is slightly lower than the testing error from the LASSO fit (0.131 vs. 0.1378). 
 
 ## 3. Random Forest  
 
