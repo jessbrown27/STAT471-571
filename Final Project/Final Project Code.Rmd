@@ -1,0 +1,77 @@
+---
+title: "Final Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
+if(!require("pacman")) install.packages("pacman")
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC)
+```
+
+Each row represents a movie available on FilmTV.it, with the original title, year, genre, duration, country, director, actors, average vote and votes.
+The fie in the English version contains 37,711 movies and 19 attributes.
+
+##EDA
+```{r}
+film <- read.csv("filmtv_movies - ENG.csv")
+```
+
+```{r}
+summary(film)
+```
+
+```{r}
+film$genre <- as.factor(film$genre)
+levels(film$genre)
+film[film$genre == "",]
+#there are 88 films with no genre
+```
+
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = avg_vote), bins = 10, fill = "light blue") +
+  labs( title = "Histogram of Average Vote", x = "Average Vote" , y = "Frequency")
+```
+```{r}
+ggplot(subset(film, duration < 300)) + 
+  geom_histogram(aes(x = duration), bins = 10, fill = " blue") +
+  labs( title = "Histogram of Movie Length (for those less than 300 minutes)", x = "Length of Movie (minutes)" , y = "Frequency")
+```
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = year), bins = 10, fill = "light green") +
+  labs( title = "Histogram of Movie Release Year", x = "Year" , y = "Frequency")
+```
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = humor), bins = 5, fill = "red") +
+  labs( title = "Histogram of Humor", x = "Humor" , y = "Frequency")
+```
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = rhythm), bins = 5, fill = "pink") +
+  labs( title = "Histogram of Rhythm", x = "Rhythm" , y = "Frequency")
+```
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = effort), bins = 5, fill = "orange") +
+  labs( title = "Histogram of Effort", x = "Effort" , y = "Frequency")
+```
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = tension), bins = 5, fill = "purple") +
+  labs( title = "Histogram of Tension", x = "Tension" , y = "Frequency")
+```
+
+```{r}
+ggplot(film) + 
+  geom_histogram(aes(x = erotism), bins = 5, fill = "maroon") +
+  labs( title = "Histogram of Erotism", x = "Erotism" , y = "Frequency")
+```
+
