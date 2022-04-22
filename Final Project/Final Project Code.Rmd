@@ -6,13 +6,17 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC)
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC, tidyverse, dplyr, skimr, factoextra, corrplot)
 ```
+
+#Executive Summary
 
 Each row represents a movie available on FilmTV.it, with the original title, year, genre, duration, country, director, actors, average vote and votes.
 The fie in the English version contains 37,711 movies and 19 attributes.
 
-##EDA
+(we should add what each of the different variables mean)
+
+#EDA
 ```{r}
 film <- read.csv("filmtv_movies - ENG.csv")
 ```
@@ -22,18 +26,54 @@ summary(film)
 ```
 
 ```{r}
+#there are 88 with no genre, do we want to spend the time to find their genre online and fill it in?
+film[film$genre=="",]
+```
+
+Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors. We will also remove the films that contain no genre.
+```{r}
+#there are 88 films with no genre --> i'm going to remove them to make it easier for analysis
+i <- which(film$genre == "")
+as.vector(i)
+film <- film[-i,]
+film[film$genre == "",]
+
+#make genre into a factor
 film$genre <- as.factor(film$genre)
 levels(film$genre)
-film[film$genre == "",]
-#there are 88 films with no genre
+```
+
+We will also make the year variable into different subsections including different years that will be used as a factor. We are going to make the years in sections of 10 years from 1897 to 2021, that will give us 14 different levels of year modulos to work with
+```{r}
+film$year_mod <- NA
+summary(film$year)
+film$year_mod[film$year < 1900] <- "[1890,1900)"
+film$year_mod[film$year > 1899 & film$year < 1910] <- "[1900,1910)"
+film$year_mod[film$year > 1909 & film$year < 1920] <- "[1910,1920)"
+film$year_mod[film$year > 1919 & film$year < 1930] <- "[1920,1930)"
+film$year_mod[film$year > 1929 & film$year < 1940] <- "[1930,1940)"
+film$year_mod[film$year > 1939 & film$year < 1950] <- "[1940,1950)"
+film$year_mod[film$year > 1949 & film$year < 1960] <- "[1950,1960)"
+film$year_mod[film$year > 1959 & film$year < 1970] <- "[1960,1970)"
+film$year_mod[film$year > 1969 & film$year < 1980] <- "[1970,1980)"
+film$year_mod[film$year > 1979 & film$year < 1990] <- "[1980,1990)"
+film$year_mod[film$year > 1989 & film$year < 2000] <- "[1990,2000)"
+film$year_mod[film$year > 1999 & film$year < 2010] <- "[2000,2010)"
+film$year_mod[film$year > 2009 & film$year < 2020] <- "[2010,2020)"
+film$year_mod[film$year > 2019 & film$year < 2030] <- "[2020,2030)"
+
+film$year_mod <- as.factor(film$year_mod)
+summary(film$year_mod)
 ```
 
 
+##Plots
 ```{r}
 ggplot(film) + 
   geom_histogram(aes(x = avg_vote), bins = 10, fill = "light blue") +
   labs( title = "Histogram of Average Vote", x = "Average Vote" , y = "Frequency")
 ```
+
 ```{r}
 ggplot(subset(film, duration < 300)) + 
   geom_histogram(aes(x = duration), bins = 10, fill = " blue") +
@@ -74,4 +114,25 @@ ggplot(film) +
   geom_histogram(aes(x = erotism), bins = 5, fill = "maroon") +
   labs( title = "Histogram of Erotism", x = "Erotism" , y = "Frequency")
 ```
+
+#PCA
+
+
+
+#Linear Regression
+
+Let's try to predict the average vote using some of the other variables in the data set. First, we will drop some of the variables in the data set that are not useful for the regression, such as `filmtv_id`,`year`, `title`,`country`, `directors`, `actors`, `description`, and `notes`.
+
+```{r}
+film2 <- film[,-c(1,2,3,6,7,8,13,14)]
+```
+
+
+
+#LASSO
+
+
+#Logistic Regression
+
+
 
