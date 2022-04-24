@@ -245,7 +245,7 @@ film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
 
 ## Simple Regression
 
-I think we should add 1 of two simple regression models and slowly add variables to see what happens and we can write anaylsis of the models and they mean. 
+I think we should add 1 of two simple regression models and slowly add variables to see what happens and we can write analysis of the models and they mean. 
 
 
 ##Multiple Regression
