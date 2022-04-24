@@ -27,6 +27,7 @@ film <- read.csv("filmtv_movies - ENG.csv")
 summary(film)
 ```
 
+## Data Cleaning
 ```{r, echo=FALSE, results=FALSE}
 #there are 88 with no genre, do we want to spend the time to find their genre online and fill it in?
 film[film$genre=="",]
