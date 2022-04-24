@@ -217,6 +217,19 @@ film %>%
   ggpairs()
 ```
 
+In our data we noticed that there are three different voting variables. Our ultimate goal is to predict the average vote, so we want to determine if the public vote and critics vote have a linear relationship or high correlation to the average vote. If that is the case, we will remove those variables from the regression as they have a somewhat linear dependency on one another. 
+```{r}
+plot(film$avg_vote, film$critics_vote)
+abline(lm(avg_vote~critics_vote, film))
+```
+We can see that the scatter plot shows a high correlation between the average vote and the critics vote with a correlation of 0.915. Thus there is almost a linear relationship between the variables so we will remove critics vote for the sake of prediction and regression. 
+
+```{r}
+plot(film$avg_vote, film$public_vote)
+abline(lm(avg_vote~public_vote, film))
+```
+We can see that this scatter plot also shows a high correlation between the average vote and the public vote with a correlation of 0.891. Thus there is almost a linear relationship between the variables so we will remove public vote for the sake of prediction and regression as well. 
+
 
 # PCA
 Let's create PCA scores for our data set and see if they tell us anything important. 
@@ -224,35 +237,24 @@ Let's create PCA scores for our data set and see if they tell us anything import
 
 # Linear Regression
 
-Let's try to predict the average vote using some of the other variables in the data set. First, we will drop some of the variables in the data set that are not useful for the regression, such as `filmtv_id`,`year`, `title`,`country`, `directors`, `actors`, `description`, and `notes`.
+Let's try to predict the average vote using some of the other variables in the data set. First, we will drop some of the variables in the data set that are not useful for the regression, such as `filmtv_id`,`year`, `title`,`country`, `directors`, `actors`, `description`, and `notes`. We will also remove `critics_vote` and `public_vote` as indicated previously. 
 
 ```{r}
-film2 <- film[,-c(1,2,3,6,7,8,13,14)]
+film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
 ```
 
-## Simple Regression
-Let's first perform a simple regression and see if the critics vote can predict the average vote.
-```{r}
-fit1 <- lm(avg_vote ~ critics_vote, film2)
-summary(fit1)
-
-plot(film2$avg_vote, film2$critics_vote)
-abline(fit1$coefficients, col = "red", lwd = 3)
-```
-We can see that the correlation between average vote and critics vote is 0.915 which is a very strong positive correlation. From the simple linear regression we can see that when the critics' vote increases by 1 unit we get that the average vote increase by 0.780724 units.
 
 ##Multiple Regression
-Now let's add in public vote to our model.
+Let's run a linear model using all of the variables
 ```{r}
-fit2 <- lm(avg_vote ~ critics_vote + public_vote, film2)
-summary(fit2)
+fit1 <- lm(avg_vote~.,film2)
+Anova(fit1)
 ```
+Based on the ANOVA for this test, we can ese that all of the variables used the the regression are significant. 
 
-Now let's run a linear model using all of the variables
-```{r}
-fit3 <- lm(avg_vote~.,film2)
-Anova(fit3)
-```
+
+
+
 
 # LASSO
 
