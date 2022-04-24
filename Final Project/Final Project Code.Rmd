@@ -260,6 +260,8 @@ Based on the ANOVA for this test, we can ese that all of the variables used the 
 # LASSO
 
 
+# Trees
+
 # Logistic Regression
 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
