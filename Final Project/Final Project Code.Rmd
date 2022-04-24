@@ -28,19 +28,106 @@ summary(film)
 ```
 
 ## Data Cleaning
+The first step in our data cleaning is to deal with missing values. First, there werre 88 movies that had no genre. So we used google to fill in the missing genres to ensure we could use those data points for our analysis. We also were able to find one movie that had no title, however, from the description we were able to determine the movie name as well as the genre. 
 ```{r, echo=FALSE, results=FALSE}
-#there are 88 with no genre, do we want to spend the time to find their genre online and fill it in?
+#there are 88 with no genre, I google to determine the genres of the movies
 film[film$genre=="",]
+
+film$genre[film$title == "Monsieur Batignole"] <- "Comedy"
+film$genre[film$title == "Il posto dell'anima"] <- "Romantic"
+film$genre[film$title == "Yossi & Jagger"] <- "Drama"
+film$genre[film$title == "Cradle Will Rock"] <- "Drama"
+film$genre[film$title == "Bord de mer"] <- "Drama"
+film$genre[film$title == "Liberi"] <- "Action"
+film$genre[film$title == "SubUrbia"] <- "Comedy"
+film$genre[film$title == "It's a Very Merry Muppet Christmas Movie"] <- "Comedy"
+film$genre[film$title == "L'autre"] <- "Comedy"
+film$genre[film$title == "Nan va koutcheh/Zang-e tafrih/Dow rahehal baraye yek massaleh/Hamsarayan"] <- "Drama"
+film$genre[film$title == "Une visite au Louvre"] <- "Documentary"
+film$genre[film$title == "Wiesele"] <- "Drama"
+film$genre[film$title == "König, Dame, Bube"] <- "Comedy"
+film$genre[film$title == "Dokfa nai meuman"] <- "Documentary"
+film$genre[film$title == "The Station Agent"] <- "Comedy"
+film$genre[film$title == "Marija, krest'janskaja elegija"] <- "Drama"
+film$genre[film$title == "Elegija Rossii"] <- "Drama"
+film$genre[film$title == "Povinnost'"] <- "Documentary"
+film$genre[film$title == "Smirennaja zizn'"] <- "Documentary"
+film$genre[film$title == "Beautiful"] <- "Comedy"
+film$genre[film$title == "The Muppets' Wizard of Oz"] <- "Comedy"
+film$genre[film$title == "L'ingorgo - Una storia impossibile"] <- "Drama"
+film$genre[film$title == "Pumhaeng zero"] <- "Romance"
+film$genre[film$title == "Julian Po"] <- "Romance"
+film$genre[film$title == "En la ciudad de Sylvia"] <- "Romance"
+film$genre[film$title == "A vot' bon coeur"] <- "Comedy"
+film$genre[film$title == "L'Immoralità"] <- "Thriller"
+film$genre[film$title == "Cicciabomba"] <- "Comedy"
+film$genre[film$title == "Homeless to Harvard: The Liz Murray Story"] <- "Drama"
+film$genre[film$title == "Chaharshanbe-soori"] <- "Drama"
+film$genre[film$title == "De la guerre"] <- "Comedy"
+film$genre[film$title == "Elizabeth I"] <- "Drama"
+film$genre[film$title == "35 rhums"] <- "Drama"
+film$genre[film$title == "Ted Bundy"] <- "Crime"
+film$genre[film$title == "Tatarak"] <- "Drama"
+film$genre[film$title == "Ander"] <- "Romance"
+film$genre[film$title == "Star Wars: Episode -1. As Clone pass by"] <- "Adventure"
+film$genre[film$title == "La casa sperduta nel parco"] <- "Thriller"
+film$genre[film$title == "Rivelazioni di uno psichiatra sul mondo perverso del sesso"] <- "Drama"
+film$genre[film$title == "Kill Gil - Vol. 2"] <- "Documentary"
+film$genre[film$title == "Plan B"] <- "Comedy"
+film$genre[film$title == "Bancs publics (Versailles rive droite)"] <- "Comedy"
+film$genre[film$title == "Get Low"] <- "Drama"
+film$genre[film$title == "Love"] <- "Romance"
+film$genre[film$title == "Kosmos"] <- "Comedy"
+film$genre[film$title == "L'arroseur arrosé"] <- "Comedy"
+film$genre[film$title == "La distrazione"] <- "Documentary"
+film$genre[film$filmtv_id == 42646] <- "Documentary"
+film$genre[film$title == "Zift"] <- "Thriller"
+film$genre[film$title == "Vacanze col gangster"] <- "Comedy"
+film$genre[film$filmtv_id == 43546] <- "Action"
+film$genre[film$title == "Almanya - Willkommen in Deutschland"] <- "Comedy"
+film$genre[film$title == "V Subbotu"] <- "Drama"
+film$genre[film$title == "The Deal"] <- "Romance"
+film$genre[film$title == "Fear City"] <- "Drama"
+film$genre[film$title == "Gasu ningen dai ichigo"] <- "Fantasy"
+film$genre[film$title == "Morte all'orecchio di Van Gogh"] <- "Documentary"
+film$genre[film$title == "Fractions of Temporary Periods"] <- "Drama"
+film$genre[film$title == "Questo film è dedicato a David Riesman e si intitolerà Capolavoro"] <- "Documentary"
+film$genre[film$title == "Il ponte dei sospiri"] <- "Drama"
+film$genre[film$title == "La gerla di papà Martin"] <- "Drama"
+film$genre[film$title == "Walter Chiari - Fino all'ultima risata"] <- "Documentary"
+film$genre[film$title == "Materiale resistente"] <- "Documentary"
+film$genre[film$title == "Il prigioniero di Santa Cruz"] <- "Drama"
+film$genre[film$title == "Kabe no naka no himegoto"] <- "Drama"
+film$genre[film$title == "Amor Louco"] <- "Romance"
+film$genre[film$title == "Una iena in cassaforte"] <- "Crime"
+film$genre[film$title == "Amish Grace"] <- "Drama"
+film$genre[film$title == "Il circolo Pickwick"] <- "Comedy"
+film$genre[film$title == "Ties That Bind"] <- "Crime"
+film$genre[film$title == "Oliveira, o arquitecto"] <- "Documentary"
+film$genre[film$title == "The Adventures of Sherlock Holmes"] <- "Drama"
+film$genre[film$title == "Jackass: The Lost Tapes"] <- "Action"
+film$genre[film$title == "Sedia elettrica"] <- "Thriller"
+film$genre[film$title == "Wrong Cops"] <- "Comedy"
+film$genre[film$title == "Educação Sentimental"] <- "Romance"
+film$genre[film$title == "Mia moglie, un corpo per l'amore"] <- "Drama"
+film$genre[film$title == "Xi You"] <- "Adventure"
+film$genre[film$title == "Kreditis Limiti"] <- "Drama"
+film$genre[film$title == "Come quando fuori piove"] <- "Comedy"
+film$genre[film$title == "Incontro"] <- "Romance"
+film$genre[film$title == "Lo scialo"] <- "Romance"
+film$genre[film$title == "Mon Mon Mon Monsters"] <- "Thriller"
+film$genre[film$title == "The Farm"] <- "Horror"
+film$genre[film$title == "All the Colors of Giallo"] <- "Horror"
+film$genre[film$title == "Night School"] <- "Horror"
+film$genre[film$title == "Tensión sexual, Volumen 1: Volátil"] <- "Drama"
+
+film$title[film$filmtv_id == 47741] <- "Cry of a Prostitute"
+film$genre[film$filmtv_id == 47741] <- "Crime"
+
 ```
 
-Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors. We will also remove the films that contain no genre.
+Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors.
 ```{r}
-#there are 88 films with no genre --> i'm going to remove them to make it easier for analysis
-i <- which(film$genre == "")
-as.vector(i)
-film <- film[-i,]
-film[film$genre == "",]
-
 #make genre into a factor
 film$genre <- as.factor(film$genre)
 levels(film$genre)
@@ -67,6 +154,10 @@ film$year_mod[film$year > 2019 & film$year < 2030] <- "[2020,2030)"
 
 film$year_mod <- as.factor(film$year_mod)
 summary(film$year_mod)
+```
+
+```{r}
+#here we want to make sure we save the data to a new csv since we have to submit the cleaned data as well as the old data
 ```
 
 
@@ -148,7 +239,7 @@ summary(fit1)
 plot(film2$avg_vote, film2$critics_vote)
 abline(fit1$coefficients, col = "red", lwd = 3)
 ```
-We can see that the correlation between average vote and critics vote is 0.915 which is a very strong positive correlation. From the simple linear regression we can see that when the critics' vote increases by 1 unit we get that the average vote increase by ___ units.
+We can see that the correlation between average vote and critics vote is 0.915 which is a very strong positive correlation. From the simple linear regression we can see that when the critics' vote increases by 1 unit we get that the average vote increase by 0.780724 units.
 
 ##Multiple Regression
 Now let's add in public vote to our model.
