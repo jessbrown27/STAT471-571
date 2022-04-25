@@ -254,7 +254,7 @@ Let's run a linear model using all of the variables
 fit1 <- lm(avg_vote~.,film2)
 Anova(fit1)
 ```
-Based on the ANOVA for this test, we can ese that all of the variables used the the regression are significant. 
+Based on the ANOVA for this test, we can see that all of the variables used the the regression are significant. 
 
 
 # LASSO
