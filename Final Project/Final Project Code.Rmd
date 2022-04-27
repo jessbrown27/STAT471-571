@@ -125,6 +125,14 @@ film$title[film$filmtv_id == 47741] <- "Cry of a Prostitute"
 film$genre[film$filmtv_id == 47741] <- "Crime"
 
 ```
+Another thing we noticed when analyzing the data was that some of the genres overlapped. For instance, there was a level "Romantic" and "Romance". We decided that these are essentially the same thing and thus should be marked as the same. 
+
+```{r}
+film$genre[film$genre == "Romantic"] <- "Romance"
+```
+
+
+
 
 Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors.
 ```{r}
@@ -156,12 +164,18 @@ film$year_mod <- as.factor(film$year_mod)
 summary(film$year_mod)
 ```
 
+
 ```{r}
 #here we want to make sure we save the data to a new csv since we have to submit the cleaned data as well as the old data
 ```
 
 
-## Plots
+## Plots and Charts
+
+```{r}
+table(film$genre)
+```
+
 ```{r}
 ggplot(film) + 
   geom_histogram(aes(x = avg_vote), bins = 10, fill = "light blue") +
@@ -241,20 +255,36 @@ Let's try to predict the average vote using some of the other variables in the d
 
 ```{r}
 film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
-#get rid of rating
 ```
 
 ## Simple Regression
 
-I think we should add 1 of two simple regression models and slowly add variables to see what happens and we can write analysis of the models and they mean. 
+First let's start with a linear regression to determine what is the best model fro predicting the average vote. Specifically, let's determine if we can use `genre` to predict what the average vote is. We also can note that `genre` is a categorical/factor variable. We decided to start with `genre` as many people give different reviews based on the genres they like, thus we decided it could be significant in predicting the average vote the movie received. 
 
+```{r}
+fit.1 <- lm(avg_vote~genre, film2)
+#we need this output, or potentially could go in the appendix
+summary(fit.1)
+Anova(fit.1)
+```
+From the summary, we can first not that the genre "Action" is the base for the factor and is represented by the intercept. We can also see that the majority of the different genres are significant in predicting the average vote. We can see that most of the genres increase the average vote given we are only looking at the affect that genre has on the average score. There were however a few genres that decreased the average score, those being biblical, mythology, and romance. 
+Looking at the ANOVA, however, we can see that `genre` as a whole is significant in predicting the average vote, as it's p-value is 2.2e-16. 
 
 ##Multiple Regression
+Let's continue with genre, and add another variable to see if anything with the model changes. First, let's add on the variable `duration`. We decided to add duration as the next variable since the lenght of different movies also could be important to people reviewing the movies. For instance, a longer movie may loose the attention of some of the viewers and thus receive a lower score. 
+
+```{r}
+fit2 <- lm(avg_vote~genre + duration, film2)
+summary(fit2)
+Anova(fit2)
+```
+From the summary, we can see that holding the genre constant, the duration is significant in predicting the average vote. Further, holding the duration constant, the genres that decrease the average vote are the same from the single regression, those being biblical, mythology, and romance. In viewing the ANOVA, we can see that both duration, and genre as a whole are significant in predicting the average vote. 
+
 Let's run a linear model using all of the variables
 ```{r}
-fit1 <- lm(avg_vote~.,film2)
-Anova(fit1)
-summary(fit1)
+fit.full <- lm(avg_vote~.,film2)
+Anova(fit.full)
+summary(fit.full)
 ```
 Based on the ANOVA for this test, we can see that all of the variables used the the regression are significant. 
 
@@ -270,8 +300,9 @@ Based on the ANOVA for this test, we can see that all of the variables used the 
 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
 ```{r}
-film2$rating <- ifelse(film2$avg_vote > 6 , "1", "0")
-film2$rating <- as.integer(film2$rating)
+film3 <- film2
+film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
+film3$rating <- as.integer(film3$rating)
 table(film2$rating)
 #add a jitter plot
 ```
