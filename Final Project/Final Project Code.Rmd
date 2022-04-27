@@ -6,7 +6,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.width = 7, fig.height = 4)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
 pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC, tidyverse, dplyr, skimr, factoextra, corrplot, tm, wordcloud)
 ```
@@ -225,7 +225,7 @@ ggplot(film) +
 
 Let's look at the correlation between some of the numerical variables and average vote. 
 
-```{r}
+```{r, warning=FALSE}
 film %>%
   select(avg_vote, duration, critics_vote, public_vote) %>%
   ggpairs()
@@ -334,7 +334,7 @@ dtm <- DocumentTermMatrix(corpus_clean)
 dtms <- removeSparseTerms(dtm, 0.995)
 ```
 
-```{r, echo = FALSE, fig.width = 3, fig.height = 3}
+```{r, echo = FALSE, fig.width = 3, fig.height = 3, warning=FALSE}
 total_freq <- sort(colSums(as.matrix(dtms)), decreasing = TRUE)
 cor.special <- brewer.pal(8, "Dark2")
 wordcloud(names(total_freq)[1:100], total_freq[1:100], colors=cor.special, ordered.colors=F)
