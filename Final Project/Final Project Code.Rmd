@@ -241,6 +241,7 @@ Let's try to predict the average vote using some of the other variables in the d
 
 ```{r}
 film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
+#get rid of rating
 ```
 
 ## Simple Regression
@@ -253,6 +254,7 @@ Let's run a linear model using all of the variables
 ```{r}
 fit1 <- lm(avg_vote~.,film2)
 Anova(fit1)
+summary(fit1)
 ```
 Based on the ANOVA for this test, we can see that all of the variables used the the regression are significant. 
 
@@ -262,6 +264,8 @@ Based on the ANOVA for this test, we can see that all of the variables used the 
 
 # Trees
 
+
+
 # Logistic Regression
 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
@@ -269,6 +273,7 @@ Now let's use our data to perform a Logistic Regression to determine whether the
 film2$rating <- ifelse(film2$avg_vote > 6 , "1", "0")
 film2$rating <- as.integer(film2$rating)
 table(film2$rating)
+#add a jitter plot
 ```
 
 Now we want to split up our data in testing and training.
