@@ -1,8 +1,8 @@
 ---
 title: "Final Project"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +11,7 @@ if(!require("pacman")) install.packages("pacman")
 pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC, tidyverse, dplyr, skimr, factoextra, corrplot, tm, wordcloud)
 ```
 
-#Executive Summary
+# Executive Summary
 
 Each row represents a movie available on FilmTV.it, with the original title, year, genre, duration, country, director, actors, average vote and votes.
 The fie in the English version contains 37,711 movies and 19 attributes.
@@ -28,9 +28,9 @@ summary(film)
 ```
 
 ## Data Cleaning
-The first step in our data cleaning is to deal with missing values. First, there werre 88 movies that had no genre. So we used google to fill in the missing genres to ensure we could use those data points for our analysis. We also were able to find one movie that had no title, however, from the description we were able to determine the movie name as well as the genre. 
+The first step in our data cleaning is to deal with missing values. First, there werre 88 movies that had no genre. So we used Google to fill in the missing genres to ensure we could use those data points for our analysis. We also were able to find one movie that had no title, however, from the description we were able to determine the movie name as well as the genre. 
 ```{r, echo=FALSE, results=FALSE}
-#there are 88 with no genre, I google to determine the genres of the movies
+#there are 88 with no genre, we used Google to determine the genres of the movies
 film[film$genre=="",]
 
 film$genre[film$title == "Monsieur Batignole"] <- "Comedy"
@@ -250,8 +250,63 @@ We can see that this scatter plot also shows a high correlation between the aver
 
 
 # PCA
-Let's create PCA scores for our data set and see if they tell us anything important. 
+Let's create PCA scores for our data set and see if they tell us anything important. Since PCA can only be applied on continuous variables, we first remove all non numeric columns.
 
+```{r}
+#only selecting numeric columns
+film_numeric <- film %>% dplyr::select(where(is.numeric))
+```
+
+We also drop the `year` variable because that acts more as a factor variable than a continuous one. The variable `filmtv_id` is not useful for our PCA analysis so we drop that variable. `critics_vote` and `public_vote` are dropped as well as indicated previously. We decided to also remove `duration` and `total_votes`, only leaving the variables that were numeric scores given to the movie.
+
+```{r}
+film_numeric2 <- film_numeric[,-c(1,2,3,5,6,7)]
+```
+
+Now `film_numeric2` has only numeric vote variables of scores given to the movie and is ready to be put through a PCA analysis.
+
+```{r}
+film_pc <- prcomp(film_numeric2, scale=TRUE)
+film_pc
+```
+
+From the PCA table, since the loadings are all the same sign for PC1, this tells us that PC1 is a weighted average of all the variables. In PC1, `rhythm` has that largest weight while `avg_vote` has the lowest. A higher PC1 implies that the movie has higher numeric scores given to it.
+
+PC2 has loadings with different signs. The loadings for `avg_vote`, `effort`, and `tension` are positive while `humor`, `rhythm`, and `erotism` are negative. A higher PC2 score implies larger `avg_vote`, `effort`, and/or `tension` scores and a lower PC2 score implies larger `humor`, `rhythm`, and/or `erotism` scores.
+
+## PVE
+
+We then look at the Proportion of Variance Explained (PVE) and the scree plot to see how many PC's would be informative enough.
+
+```{r}
+plot(film_pc)
+plot(summary(film_pc)$importance[2, ],  # PVE
+  ylab="PVE",
+  xlab="Number of PC's",
+  pch = 16, 
+  main="Scree Plot of PVE for Film")
+```
+
+From the scree plot and using elbow rule, there is a sharp drop at 2 PCs which indicates that taking 2 leading PCs should be enough.
+
+## PC and Genre Clustering
+
+We plot the 2 leading PCs color coding with genre to see if there are any clusters.
+
+```{r}
+as.data.frame(film_pc$x) %>%
+  mutate(genre = film$genre) %>%
+  ggplot(aes(x = PC1, y = PC2)) +  # pca.all$rotation  try PC3 vs. PC1, no gender effect
+  geom_point(aes(color = genre)) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  ggtitle("PCs with Genre") +
+  theme_bw() 
+```
+
+The colors in the graphs are pretty well spread out. However, one clear cluster is that the `comedy` genre has lower PC2 scores. This is not surprising considering the loadings for PC2 is largely negative for the humor variable.
+
+We understand and acknowledge that this PCA analysis excludes non numeric variables that could be significant to our overall analysis. This PCA analysis is a start but we continue to do more in depth analysis including non numeric variables.
 
 # Linear Regression
 
