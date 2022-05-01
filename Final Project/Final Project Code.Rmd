@@ -431,5 +431,31 @@ total_freq <- sort(colSums(as.matrix(dtms)), decreasing = TRUE)
 cor.special <- brewer.pal(8, "Dark2")
 wordcloud(names(total_freq)[1:100], total_freq[1:100], colors=cor.special, ordered.colors=F)
 ```
+```{r, echo = FALSE, results = FALSE}
+set.seed(1) 
+n <- nrow(dtms)
+sample.index <- sample(n, 0.8 * n)
+dtms <- as.matrix(dtms)
+dtms <- as.data.frame(dtms)
+dtms$genre <- as.factor(film$genre)
+dtm.train <- dtms[sample.index, ]
+dtm.test <- dtms[-sample.index, ]
+```
+```{r, echo = FALSE, results = FALSE}
+y <- dtm.train$genre
+X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
+set.seed(2)
+
+result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
+plot(result.lasso)
+```
+```{r}
+# number of non-zero words picked up by LASSO when using lambda.1se
+coef.1se <- coef(result.lasso, s="lambda.1se")  
+coef.1se <- coef.1se[which(coef.1se !=0),] 
+lasso.words <- rownames(as.matrix(coef.1se))[-1]
+length(lasso.words)
+lasso.words[1:10]
+```
 
 
