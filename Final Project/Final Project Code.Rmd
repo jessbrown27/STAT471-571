@@ -411,7 +411,7 @@ plot(film.rf)
 film.rf$mse[300]
 ```
 
-The testing error we get using ntree = 300 is `r film.rf$mse[300]`.
+The testing error we get using ntree = 300 is `r film.rf$mse[300]`. The testing errors are larger because we are predicting a continuous variable. In a later section, we use these models to predict a more categorical outcome of the `avg_vote`.
 
 # Logistic Regression
 
