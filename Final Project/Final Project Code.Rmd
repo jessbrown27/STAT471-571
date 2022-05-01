@@ -335,6 +335,55 @@ plot(fit3, 2)
 ```
 Here we see that the normality assumption is met as the normal qq plot follows the line $y=x$ approximately. We can see that the first plot, meets the homoscedasticity requirement. 
 
+# Logistic Regression
+
+Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
+```{r, echo = FALSE}
+film3 <- film2
+boxplot(film3$avg_vote)
+```
+We can see that 6 is about the median of the average vote and thus we decided to split it there for the film rating. 
+```{r, echo = FALSE}
+film3$rating <- ifelse(film3$avg_vote >= 6 , 1, 0)
+```
+
+Now we want to split up our data into train, test and validation sets.
+For this we decided to do a 70-20-10 split. This gives us 30,168 training rows, 5,028 testing rows, and 2,515 validation rows. We also removed the avg_vote column from the data since the binary rating variable was derived using the avg_vote values. 
+
+```{r, echo = FALSE, results = FALSE}
+set.seed(1) 
+film4 <- film3 %>% select(-avg_vote)
+n <- nrow(film4)
+sample.index <- sample(n, n * 0.8)
+film.train <- film4[sample.index, ]
+test_and_val <- film4[-sample.index, ]
+n_tv <- nrow(test_and_val)
+sample_tv <- sample(n_tv, n_tv * (2/3))
+film.test <- test_and_val[sample_tv, ]
+film.val <- test_and_val[-sample_tv, ]
+dim(film.train)
+dim(film.test)
+dim(film.val)
+```
+```{r, echo = FALSE, results = FALSE}
+logreg <- glm(rating ~., family=binomial, data = film.train)
+Anova(logreg)
+```
+Using an Anova test, we were able to see that each variable included the logistic regression model was significant. Our next step was to use the ROC curve to determine the best threshold for our binary predictions:
+```{r, echo = FALSE}
+predict.test <- predict(logreg, film.test, type="response") 
+test.roc <- roc(film.test$rating, predict.test)
+plot(test.roc$thresholds, 1-test.roc$specificities, col="green", pch=16,
+xlab="Threshold on Probability",
+ylab="False Positive Rate",
+main = "Thresholds vs. False Postive Rates")
+```
+Plotting different prediction threholds versus the false positive rate notably returned a curve without a very obvious "elbow", although 0.5 or 0.6 seem to be reasonable choices. After experimenting more manually with minimizing MCE on the testing set, we found that 0.5 was the best threshold to use. 
+```{r, echo = FALSE, results = FALSE}
+sum(ifelse(predict.test > 0.5, 1, 0) != film.test$rating) / length(film.test$rating)
+```
+
+
 
 # Trees
 
@@ -374,21 +423,6 @@ film.rf$mse[300]
 ```
 
 The testing error we get using ntree = 300 is `r film.rf$mse[300]`. The testing errors are larger because we are predicting a continuous variable. In a later section, we use these models to predict a more categorical outcome of the `avg_vote`.
-
-# Logistic Regression
-
-Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
-```{r}
-film3 <- film2
-boxplot(film3$avg_vote)
-```
-We can see that 6 is about the average of the average vote and thus we decided to split it there for the film rating. 
-```{r}
-film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
-film3$rating <- as.integer(film3$rating)
-```
-
-Now we want to split up our data in testing and training.
 
 # Text Analysis 
 
