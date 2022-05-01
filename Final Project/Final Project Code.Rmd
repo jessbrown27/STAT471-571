@@ -164,7 +164,9 @@ summary(film$year_mod)
 
 
 ```{r}
-#here we want to make sure we save the data to a new csv since we have to submit the cleaned data as well as the old data
+#cleaned data
+write.csv(film,"/Users/sarahhayward/Documents/GitHub/STAT471-571/Final Project/Cleaned Data.csv", row.names = FALSE)
+
 ```
 
 
@@ -415,11 +417,14 @@ The testing error we get using ntree = 300 is `r film.rf$mse[300]`. The testing 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
 ```{r}
 film3 <- film2
+boxplot(film3$avg_vote)
+```
+We can see thata 6 is about the average of the average vote and thus we decided to split it there for the film rating. 
+```{r}
 film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
 film3$rating <- as.integer(film3$rating)
-table(film2$rating)
-#add a jitter plot
 ```
+
 
 Now we want to split up our data in testing and training.
 
