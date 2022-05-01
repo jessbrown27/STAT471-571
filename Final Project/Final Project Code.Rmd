@@ -132,8 +132,6 @@ film$genre[film$genre == "Romantic"] <- "Romance"
 ```
 
 
-
-
 Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors.
 ```{r}
 #make genre into a factor
@@ -320,7 +318,7 @@ film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
 
 First let's start with a linear regression to determine what is the best model fro predicting the average vote. Specifically, let's determine if we can use `genre` to predict what the average vote is. We also can note that `genre` is a categorical/factor variable. We decided to start with `genre` as many people give different reviews based on the genres they like, thus we decided it could be significant in predicting the average vote the movie received. 
 
-```{r}
+```{r, results=FALSE}
 fit1 <- lm(avg_vote~genre, film2)
 #we need this output, or potentially could go in the appendix
 summary(fit1)
@@ -333,7 +331,7 @@ Further, from the summary of fit1 we can see that some of the specific genres ar
 ##Multiple Regression
 Let's continue with genre, and add another variable to see if anything with the model changes. First, let's add on the variable `duration`. We decided to add duration as the next variable since the length of different movies also could be important to people reviewing the movies. For instance, a longer movie may loose the attention of some of the viewers and thus receive a lower score. 
 
-```{r}
+```{r,results=FALSE}
 fit2 <- lm(avg_vote~genre + duration, film2)
 summary(fit2)
 Anova(fit2)
@@ -343,7 +341,7 @@ From the summary, we can see that holding the genre constant, the duration is si
 Once again, the summary reveals that some of the specific genres are not significant at a significance level of 0.1, those being Biblical, Short Movie, and Sport. However, we can see that the majority of the genres have very low p-values, < 2.2e-16. And, in viewing the ANOVA, we can see that both duration, and genre as a whole are significant in predicting the average vote. 
 
 Let's run a linear model using all of the variables
-```{r}
+```{r,results=FALSE}
 fit.full <- lm(avg_vote~.,film2)
 Anova(fit.full)
 summary(fit.full)
@@ -352,14 +350,14 @@ Based on the ANOVA for this test, we can see that all of the variables used the 
 
 Looking at the summary, we can see the importance of some of the specific variables and levels of the factors. From the summary, we can see that only about half of the specific genres are considered significant. This is different than what we saw with the simple regression and the multiple regression using just two variables. Further, from the summary we can also see that none of the specific year modules are significant either. Thus we will continue with determining a model, using backwards elimination to remove the `year_mod` and see if our model is better at prediction. 
 
-```{r}
+```{r,results=FALSE}
 fit3 <-lm(avg_vote~. -year_mod, film2)
 summary(fit3)
 Anova(fit3)
 ```
 Based on the summary, we can see that in fit3 more of the specific genres are significant and from the ANOVA we can see that are of the variables are significant. Now we can compare the two models, fit.full and fit3, to determine if there is significant difference. 
 
-```{r}
+```{r,results=FALSE}
 anova(fit.full, fit3)
 ```
 From the analysis of variance comparing the two models we see that there is a significant difference between the two models, as the p-value is < 2.2e-16. Thus we will decided that fit3 that doesn't include the `year_mod` will be the model we continue on with. This allows for our model to be slightly simpler as well as we have fewer variables to manage, especially since `year_mod` is factor with numerous levels. 
