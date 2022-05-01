@@ -422,35 +422,20 @@ wordcloud(names(total_freq)[1:100], total_freq[1:100], colors=cor.special, order
 set.seed(1) 
 n <- nrow(dtms)
 sample.index <- sample(n, 0.8 * n)
-dtms <- as.matrix(dtms)
-dtms <- as.data.frame(dtms)
-dtms$genre <- as.factor(film$genre)
-dtm.train <- dtms[sample.index, ]
-dtm.test <- dtms[-sample.index, ]
+dtmM <- as.matrix(dtms)
+dtm_df <- as.data.frame(dtmM)
+dtm_df$rating <- ifelse(film3$avg_vote > 6 , 1, 0)
+names(dtm_df) <- str_replace_all(names(dtm_df), '[^[:alnum:]]', "")
+dtm.train <- dtm_df[sample.index, ]
+dtm.test <- dtm_df[-sample.index, ]
 ```
 ```{r, echo = FALSE, results = FALSE}
-y <- dtm.train$genre
-# temp <- dtm.train
-# colnames(temp) <- gsub(x = names(temp), pattern = " ", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "\\.", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "1", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "2", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "3", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "4", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "5", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "6", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "7", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "8", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "9", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "0", replacement = "_")
-# colnames(temp) <- gsub(x = names(temp), pattern = "#", replacement = "_")
-# temp <- as.data.frame(temp)
-# X1 <- sparse.model.matrix(y ~., data = temp)[, -1]
-# X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
-# set.seed(2)
-# 
-# result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
-# plot(result.lasso)
+y <- dtm.train$rating
+X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
+set.seed(2)
+
+result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
+plot(result.lasso)
 ```
 ```{r}
 # # number of non-zero words picked up by LASSO when using lambda.1se
