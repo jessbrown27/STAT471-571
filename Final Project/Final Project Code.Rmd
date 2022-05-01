@@ -28,7 +28,7 @@ summary(film)
 ```
 
 ## Data Cleaning
-The first step in our data cleaning is to deal with missing values. First, there werre 88 movies that had no genre. So we used Google to fill in the missing genres to ensure we could use those data points for our analysis. We also were able to find one movie that had no title, however, from the description we were able to determine the movie name as well as the genre. 
+The first step in our data cleaning is to deal with missing values. First, there were 88 movies that had no genre. So we used Google to fill in the missing genres to ensure we could use those data points for our analysis. We also were able to find one movie that had no title, however, from the description we were able to determine the movie name as well as the genre. 
 ```{r, echo=FALSE, results=FALSE}
 #there are 88 with no genre, we used Google to determine the genres of the movies
 film[film$genre=="",]
@@ -132,15 +132,15 @@ film$genre[film$genre == "Romantic"] <- "Romance"
 ```
 
 
-Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors.
-```{r}
+We also decided to make genre into a factor as it contains categorical variables that would be better analyzed as factors. There are 27 different genres that were recorded and we will use to analyze. 
+```{r, results=FALSE}
 #make genre into a factor
 film$genre <- as.factor(film$genre)
 levels(film$genre)
 ```
 
 We will also make the year variable into different subsections including different years that will be used as a factor. We are going to make the years in sections of 10 years from 1897 to 2021, that will give us 14 different levels of year modulos to work with
-```{r}
+```{r, results=FALSE}
 film$year_mod <- NA
 summary(film$year)
 film$year_mod[film$year < 1900] <- "[1890,1900)"
@@ -166,66 +166,25 @@ summary(film$year_mod)
 ```{r}
 #cleaned data
 write.csv(film,"/Users/sarahhayward/Documents/GitHub/STAT471-571/Final Project/Cleaned Data.csv", row.names = FALSE)
-
 ```
 
 
 ## Plots and Charts
 
 ```{r}
-table(film$genre)
+sort(table(film$genre))
 ```
+Here we have displayed a table of the different genres that the movies are sorted into. There are 27 different genres and we have the movies split up between them. The genre with the mostt movies is Drama which has 11,002 different films and the one with the least is Short Movie with just 5 different films.
 
 ```{r}
-p1 <- ggplot(film) + 
+ggplot(film) + 
   geom_histogram(aes(x = avg_vote), bins = 10, fill = "light blue") +
   labs( title = "Histogram of Average Vote", x = "Average Vote" , y = "Frequency")
-
-p2 <- ggplot(subset(film, duration < 300)) + 
-  geom_histogram(aes(x = duration), bins = 10, fill = " blue") +
-  labs( title = "Histogram of Movie Length (for those less than 300 minutes)", x = "Length of Movie (minutes)" , y = "Frequency")
-
-grid.arrange(p1,p2,ncol=2)
 ```
-
-
 ```{r}
-p3 <- ggplot(film) + 
-  geom_histogram(aes(x = year), bins = 10, fill = "light green") +
-  labs( title = "Histogram of Movie Release Year", x = "Year" , y = "Frequency")
-
-p4 <- ggplot(film) + 
-  geom_histogram(aes(x = humor), bins = 5, fill = "red") +
-  labs( title = "Histogram of Humor", x = "Humor" , y = "Frequency")
-
-grid.arrange(p3,p4,ncol=2)
+summary(film$avg_vote)
 ```
-
-
-```{r}
-p5 <- ggplot(film) + 
-  geom_histogram(aes(x = rhythm), bins = 5, fill = "pink") +
-  labs( title = "Histogram of Rhythm", x = "Rhythm" , y = "Frequency")
-
-p6 <- ggplot(film) + 
-  geom_histogram(aes(x = effort), bins = 5, fill = "orange") +
-  labs( title = "Histogram of Effort", x = "Effort" , y = "Frequency")
-
-grid.arrange(p5,p6,ncol=2)
-```
-
-
-```{r}
-p7 <- ggplot(film) + 
-  geom_histogram(aes(x = tension), bins = 5, fill = "purple") +
-  labs( title = "Histogram of Tension", x = "Tension" , y = "Frequency")
-
-p8 <- ggplot(film) + 
-  geom_histogram(aes(x = erotism), bins = 5, fill = "maroon") +
-  labs( title = "Histogram of Erotism", x = "Erotism" , y = "Frequency")
-
-grid.arrange(p7,p8,ncol=2)
-```
+The variable we are predicting in this report is `avg_vote`. That is the average vote that the film received from the critics and the public. From the histogram we can see that the distribution is approximately normal. This means that most of the movies received a vote around 5-7 with the median being 6 and the mean being 5.841. We can note that there were no movies that received an average vote of 0 as the minimum is 1 and we also can note that the maximum average vote was a full score of 10. 
 
 Let's look at the correlation between some of the numerical variables and average vote. 
 
@@ -248,6 +207,7 @@ abline(lm(avg_vote~public_vote, film))
 ```
 We can see that this scatter plot also shows a high correlation between the average vote and the public vote with a correlation of 0.891. Thus there is almost a linear relationship between the variables so we will remove public vote for the sake of prediction and regression as well. 
 
+Some of the further EDA and plots have been moved to the appendix.
 
 # PCA
 Let's create PCA scores for our data set and see if they tell us anything important. Since PCA can only be applied on continuous variables, we first remove all non numeric columns.
@@ -504,6 +464,52 @@ y <- dtm.train$genre
 
 # Appendix
 
+## EDA
+```{r}
+ggplot(subset(film, duration < 300)) + 
+  geom_histogram(aes(x = duration), bins = 10, fill = " blue") +
+  labs( title = "Histogram of Movie Length (for those less than 300 minutes)", x = "Length of Movie (minutes)" , y = "Frequency")
+```
+
+
+```{r}
+p3 <- ggplot(film) + 
+  geom_histogram(aes(x = year), bins = 10, fill = "light green") +
+  labs( title = "Histogram of Movie Release Year", x = "Year" , y = "Frequency")
+
+p4 <- ggplot(film) + 
+  geom_histogram(aes(x = humor), bins = 5, fill = "red") +
+  labs( title = "Histogram of Humor", x = "Humor" , y = "Frequency")
+
+grid.arrange(p3,p4,ncol=2)
+```
+
+
+```{r}
+p5 <- ggplot(film) + 
+  geom_histogram(aes(x = rhythm), bins = 5, fill = "pink") +
+  labs( title = "Histogram of Rhythm", x = "Rhythm" , y = "Frequency")
+
+p6 <- ggplot(film) + 
+  geom_histogram(aes(x = effort), bins = 5, fill = "orange") +
+  labs( title = "Histogram of Effort", x = "Effort" , y = "Frequency")
+
+grid.arrange(p5,p6,ncol=2)
+```
+
+
+```{r}
+p7 <- ggplot(film) + 
+  geom_histogram(aes(x = tension), bins = 5, fill = "purple") +
+  labs( title = "Histogram of Tension", x = "Tension" , y = "Frequency")
+
+p8 <- ggplot(film) + 
+  geom_histogram(aes(x = erotism), bins = 5, fill = "maroon") +
+  labs( title = "Histogram of Erotism", x = "Erotism" , y = "Frequency")
+
+grid.arrange(p7,p8,ncol=2)
+```
+
 ## Linear Regression Outputs
 
 Output I
@@ -549,4 +555,9 @@ Output VIII
 ```{r}
 Anova(fit3)
 ```
+
+
+
+
+
 
