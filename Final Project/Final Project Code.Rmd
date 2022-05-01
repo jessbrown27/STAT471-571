@@ -419,7 +419,7 @@ Now let's use our data to perform a Logistic Regression to determine whether the
 film3 <- film2
 boxplot(film3$avg_vote)
 ```
-We can see thata 6 is about the average of the average vote and thus we decided to split it there for the film rating. 
+We can see that 6 is about the average of the average vote and thus we decided to split it there for the film rating. 
 ```{r}
 film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
 film3$rating <- as.integer(film3$rating)
