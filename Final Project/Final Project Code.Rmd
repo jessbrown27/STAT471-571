@@ -132,8 +132,6 @@ film$genre[film$genre == "Romantic"] <- "Romance"
 ```
 
 
-
-
 Here we are making film into a factor as it contains categorical variables that would be better analyzed as factors.
 ```{r}
 #make genre into a factor
@@ -166,7 +164,9 @@ summary(film$year_mod)
 
 
 ```{r}
-#here we want to make sure we save the data to a new csv since we have to submit the cleaned data as well as the old data
+#cleaned data
+write.csv(film,"/Users/sarahhayward/Documents/GitHub/STAT471-571/Final Project/Cleaned Data.csv", row.names = FALSE)
+
 ```
 
 
@@ -320,39 +320,38 @@ film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
 
 First let's start with a linear regression to determine what is the best model fro predicting the average vote. Specifically, let's determine if we can use `genre` to predict what the average vote is. We also can note that `genre` is a categorical/factor variable. We decided to start with `genre` as many people give different reviews based on the genres they like, thus we decided it could be significant in predicting the average vote the movie received. 
 
-```{r}
+```{r, results=FALSE}
 fit1 <- lm(avg_vote~genre, film2)
-#we need this output, or potentially could go in the appendix
 summary(fit1)
 Anova(fit1)
 ```
-From the summary, we can first not that the genre "Action" is the base for the factor and is represented by the intercept. We can also see that the majority of the different genres are significant in predicting the average vote. We can see that most of the genres increase the average vote given we are only looking at the affect that genre has on the average score. There were however a few genres that decreased the average score, those being biblical, mythology, and romance. 
+From the summary in the appendix Output I, we can first not that the genre "Action" is the base for the factor and is represented by the intercept. We can also see that the majority of the different genres are significant in predicting the average vote. We can see that most of the genres increase the average vote given we are only looking at the affect that genre has on the average score. There were however a few genres that decreased the average score, those being biblical, mythology, and romance. 
 
-Further, from the summary of fit1 we can see that some of the specific genres are not significant in predicting the average vote. We see that the genres Biblical and Sport are not significant at a level of 0.1 or less. In fact, their p-values are quite large. Looking at the ANOVA, however, we can see that `genre` as a whole is significant in predicting the average vote, as it's p-value is 2.2e-16. Because of the ANOVA, we can conclude that `genre` is a signicant variable in predicting the average vote and thus we will continue to use it in our analysis. 
+Further, from the summary of fit1 we can see that some of the specific genres are not significant in predicting the average vote. We see that the genres Biblical and Sport are not significant at a level of 0.1 or less. In fact, their p-values are quite large. Looking at the ANOVA, however, we can see that `genre` as a whole is significant in predicting the average vote, as it's p-value is 2.2e-16. Because of the ANOVA, appendix Output II, we can conclude that `genre` is a significant variable in predicting the average vote and thus we will continue to use it in our analysis. 
 
 ##Multiple Regression
 Let's continue with genre, and add another variable to see if anything with the model changes. First, let's add on the variable `duration`. We decided to add duration as the next variable since the length of different movies also could be important to people reviewing the movies. For instance, a longer movie may loose the attention of some of the viewers and thus receive a lower score. 
 
-```{r}
+```{r,results=FALSE}
 fit2 <- lm(avg_vote~genre + duration, film2)
 summary(fit2)
 Anova(fit2)
 ```
-From the summary, we can see that holding the genre constant, the duration is significant in predicting the average vote. Further, holding the duration constant, the genres that decrease the average vote are the same from the single regression, those being biblical, mythology, and romance. 
+From the summary, Appendix Output III, we can see that holding the genre constant, the duration is significant in predicting the average vote. Further, holding the duration constant, the genres that decrease the average vote are the same from the single regression, those being biblical, mythology, and romance. 
 
-Once again, the summary reveals that some of the specific genres are not significant at a significance level of 0.1, those being Biblical, Short Movie, and Sport. However, we can see that the majority of the genres have very low p-values, < 2.2e-16. And, in viewing the ANOVA, we can see that both duration, and genre as a whole are significant in predicting the average vote. 
+Once again, the summary reveals that some of the specific genres are not significant at a significance level of 0.1, those being Biblical, Short Movie, and Sport. However, we can see that the majority of the genres have very low p-values, < 2.2e-16. And, in viewing the ANOVA, Appendix Output IV, we can see that both duration, and genre as a whole are significant in predicting the average vote. 
 
 Let's run a linear model using all of the variables
-```{r}
+```{r,results=FALSE}
 fit.full <- lm(avg_vote~.,film2)
 Anova(fit.full)
 summary(fit.full)
 ```
-Based on the ANOVA for this test, we can see that all of the variables used the the regression are significant. 
+Based on the ANOVA, Appendix Output VI, for this test, we can see that all of the variables used the the regression are significant. 
 
-Looking at the summary, we can see the importance of some of the specific variables and levels of the factors. From the summary, we can see that only about half of the specific genres are considered significant. This is different than what we saw with the simple regression and the multiple regression using just two variables. Further, from the summary we can also see that none of the specific year modules are significant either. Thus we will continue with determining a model, using backwards elimination to remove the `year_mod` and see if our model is better at prediction. 
+Looking at the summary, Appendix Output V, we can see the importance of some of the specific variables and levels of the factors. From the summary, we can see that only about half of the specific genres are considered significant. This is different than what we saw with the simple regression and the multiple regression using just two variables. Further, from the summary we can also see that none of the specific year modules are significant either. Thus we will continue with determining a model, using backwards elimination to remove the `year_mod` and see if our model is better at prediction. 
 
-```{r}
+```{r,results=FALSE}
 fit3 <-lm(avg_vote~. -year_mod, film2)
 summary(fit3)
 Anova(fit3)
@@ -418,11 +417,14 @@ The testing error we get using ntree = 300 is `r film.rf$mse[300]`. The testing 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
 ```{r}
 film3 <- film2
+boxplot(film3$avg_vote)
+```
+We can see that 6 is about the average of the average vote and thus we decided to split it there for the film rating. 
+```{r}
 film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
 film3$rating <- as.integer(film3$rating)
-table(film2$rating)
-#add a jitter plot
 ```
+
 
 Now we want to split up our data in testing and training.
 
@@ -484,4 +486,52 @@ plot(result.lasso)
 # lasso.words[1:10]
 ```
 
+
+# Appendix
+
+## Linear Regression Outputs
+
+Output I
+```{r}
+fit1 <- lm(avg_vote~genre, film2)
+summary(fit1)
+```
+
+Output II
+```{r}
+Anova(fit1)
+```
+
+Output III
+```{r}
+fit2 <- lm(avg_vote~genre + duration, film2)
+summary(fit2)
+```
+
+Output IV
+```{r}
+Anova(fit2)
+```
+
+Output V
+```{r}
+fit.full <- lm(avg_vote~.,film2)
+summary(fit.full)
+```
+
+Output VI
+```{r}
+Anova(fit.full)
+```
+
+Output VII
+```{r}
+fit3 <-lm(avg_vote~. -year_mod, film2)
+summary(fit3)
+```
+
+Output VIII
+```{r}
+Anova(fit3)
+```
 
