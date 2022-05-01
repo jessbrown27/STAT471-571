@@ -8,7 +8,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,warning = FALSE, fig.width = 7, fig.height = 4)
 if(!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC, tidyverse, dplyr, skimr, factoextra, corrplot, tm, wordcloud)
+pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, ggpubr, gridExtra, pROC, tidyverse, dplyr, skimr, factoextra, corrplot, tm, wordcloud, tree, rpart, randomForest, ranger, rattle, pROC, partykit, lda, ISLR)
 ```
 
 # Executive Summary
@@ -375,6 +375,16 @@ Here we see that the normality assumption is met as the normal qq plot follows t
 
 
 # Trees
+
+We now build tree models to predict the average rating.
+
+```{r}
+film_tree <- tree(avg_vote~., film2)
+
+plot(film_tree)
+title(main =  "final single tree")
+text(film_tree, pretty=0)
+```
 
 
 
