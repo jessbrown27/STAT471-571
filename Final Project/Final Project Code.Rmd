@@ -384,9 +384,34 @@ film_tree <- tree(avg_vote~., film2)
 plot(film_tree)
 title(main =  "final single tree")
 text(film_tree, pretty=0)
+
+film_tree
+
+film_tree_sum <- summary(film_tree)
+film_tree_sum$used
 ```
 
+In our tree, `r length(film_tree_sum$used)` variables are used: `effort`, `genre`, `year_mod`, `duration`, and `rhythm`. These variables used in the tree are the ones that have significant predictive qualities according to the regression tree model. There are a total of `r film_tree_sum$size` terminal nodes (final predictions).
 
+## Random Forest
+
+Now we want to use Random Forest for a tree model. First we need to fine tune mtry and ntree. The recommended mtry is p/3 so in this case where p = 10, 10/3 = 3 or 4, so we decide to use mtry as 3. From mtry = 3, we now plot with ntree value 500 to see the effect of different ntree values.
+
+```{r}
+film.rf.500 <- randomForest(avg_vote~., film2, mtry=3, ntree=500)
+plot(film.rf.500, col="red", pch=16, type="p", 
+     main="Plot for 500 trees, ")
+```
+
+From the graph, we see that the error levels off at around ntree = 300, so the error with ntree = 300 is about the same as the error at ntree = 500. We decide then to use ntree = 300 for our random forest.
+
+```{r}
+film.rf <- randomForest(avg_vote~., film2, mtry=3, ntree=300)
+plot(film.rf)
+film.rf$mse[300]
+```
+
+The testing error we get using ntree = 300 is `r film.rf$mse[300]`.
 
 # Logistic Regression
 
@@ -443,19 +468,35 @@ dtm.test <- dtms[-sample.index, ]
 ```
 ```{r, echo = FALSE, results = FALSE}
 y <- dtm.train$genre
-X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
-set.seed(2)
-
-result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
-plot(result.lasso)
+# temp <- dtm.train
+# colnames(temp) <- gsub(x = names(temp), pattern = " ", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "\\.", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "1", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "2", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "3", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "4", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "5", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "6", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "7", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "8", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "9", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "0", replacement = "_")
+# colnames(temp) <- gsub(x = names(temp), pattern = "#", replacement = "_")
+# temp <- as.data.frame(temp)
+# X1 <- sparse.model.matrix(y ~., data = temp)[, -1]
+# X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
+# set.seed(2)
+# 
+# result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
+# plot(result.lasso)
 ```
 ```{r}
-# number of non-zero words picked up by LASSO when using lambda.1se
-coef.1se <- coef(result.lasso, s="lambda.1se")  
-coef.1se <- coef.1se[which(coef.1se !=0),] 
-lasso.words <- rownames(as.matrix(coef.1se))[-1]
-length(lasso.words)
-lasso.words[1:10]
+# # number of non-zero words picked up by LASSO when using lambda.1se
+# coef.1se <- coef(result.lasso, s="lambda.1se")  
+# coef.1se <- coef.1se[which(coef.1se !=0),] 
+# lasso.words <- rownames(as.matrix(coef.1se))[-1]
+# length(lasso.words)
+# lasso.words[1:10]
 ```
 
 
