@@ -385,7 +385,6 @@ film3$rating <- ifelse(film3$avg_vote > 6 , "1", "0")
 film3$rating <- as.integer(film3$rating)
 ```
 
-
 Now we want to split up our data in testing and training.
 
 # Text Analysis 
