@@ -16,7 +16,10 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, 
 Each row represents a movie available on FilmTV.it, with the original title, year, genre, duration, country, director, actors, average vote and votes.
 The fie in the English version contains 37,711 movies and 19 attributes.
 
-(we should add what each of the different variables mean)
+
+For the linear regression, we were determining which variables would be the best in predicting the average vote. We started with just a simple linear model to determine whether or not we could use just gender to predict the average vote. We were able to learn that the majority of the different genres were significant in predicting the average vote. We saw that most of the genres increase the average vote given we are only looking at the affect that genre has on the average score. From the analysis of variance, we determined that all together, genre was a significant variable in predicting the average vote.
+
+We continued on with multiple linear regression. We looked at a model that included all of the variables that made sense to predict the average vote. From the summary of this model, we were able to eliminate the year variable and the specific year modulos were not significant. Continuing on, we removed that variable and were able to come to a final linear model which included the variables, genre, duration, total votes, humor, rhythm, effort, tension, and erotism. The model also followed the linear model assumptions as required. 
 
 # EDA
 ```{r}
@@ -278,7 +281,7 @@ film2 <- film[,-c(1,2,3,6,7,8,10,11,13,14)]
 
 ## Simple Regression
 
-First let's start with a linear regression to determine what is the best model fro predicting the average vote. Specifically, let's determine if we can use `genre` to predict what the average vote is. We also can note that `genre` is a categorical/factor variable. We decided to start with `genre` as many people give different reviews based on the genres they like, thus we decided it could be significant in predicting the average vote the movie received. 
+First let's start with a linear regression to determine what is the best model for predicting the average vote. Specifically, let's determine if we can use `genre` to predict what the average vote is. We also can note that `genre` is a categorical/factor variable. We decided to start with `genre` as many people give different reviews based on the genres they like, thus we decided it could be significant in predicting the average vote the movie received. 
 
 ```{r, results=FALSE}
 fit1 <- lm(avg_vote~genre, film2)
