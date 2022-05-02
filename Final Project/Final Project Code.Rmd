@@ -1,8 +1,8 @@
 ---
 title: "Final Project"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -297,7 +297,7 @@ From the summary in the appendix Output I, we can first not that the genre "Acti
 
 Further, from the summary of fit1 we can see that some of the specific genres are not significant in predicting the average vote. We see that the genres Biblical and Sport are not significant at a level of 0.1 or less. In fact, their p-values are quite large. Looking at the ANOVA, however, we can see that `genre` as a whole is significant in predicting the average vote, as it's p-value is 2.2e-16. Because of the ANOVA, appendix Output II, we can conclude that `genre` is a significant variable in predicting the average vote and thus we will continue to use it in our analysis. 
 
-##Multiple Regression
+## Multiple Regression
 Let's continue with genre, and add another variable to see if anything with the model changes. First, let's add on the variable `duration`. We decided to add duration as the next variable since the length of different movies also could be important to people reviewing the movies. For instance, a longer movie may loose the attention of some of the viewers and thus receive a lower score. 
 
 ```{r,results=FALSE}
@@ -368,7 +368,7 @@ boxplot(film3$avg_vote)
 ```
 We can see that 6 is about the median of the average vote and thus we decided to split it there for the film rating. 
 ```{r, echo = FALSE}
-film3$rating <- ifelse(film3$avg_vote >= 6 , 1, 0)
+film3$rating <- as.factor(ifelse(film3$avg_vote >= 6 , 1, 0))
 ```
 
 Now we want to split up our data into train, test and validation sets.
@@ -404,7 +404,7 @@ xlab="Threshold on Probability",
 ylab="False Positive Rate",
 main = "Thresholds vs. False Postive Rates")
 ```
-Plotting different prediction threholds versus the false positive rate notably returned a curve without a very obvious "elbow", although 0.5 or 0.6 seem to be reasonable choices. After experimenting more manually with minimizing MCE on the testing set, we found that 0.5 was the best threshold to use. 
+Plotting different prediction threholds versus the false positive rate notably returned a curve without a very obvious "elbow", although 0.5 or 0.6 seem to be reasonable choices. After experimenting more manually with minimizing MCE on the testing set, we found that 0.5 was the best threshold to use. We also notably decided to weigh false positives and false negatives equally given that we didn't think either outcome was necessarily "worse" than the other. 
 ```{r, echo = FALSE, results = FALSE}
 predict.logreg <- ifelse(predict.test > 0.5, 1, 0)
 logreg_error = sum(predict.logreg != film.test$rating) / length(film.test$rating)
@@ -423,7 +423,7 @@ plot(film.rf.500, col="red", pch=16, type="p",
      main="Plot for 500 trees, ")
 ```
 
-From the graph, we see that the error levels off at around ntree = 300, so the error with ntree = 300 is about the same as the error at ntree = 500. We decide then to use ntree = 300 for our random forest and build our model using the training data
+From the graph, we see that the error levels off at around ntree = 300, so the error with ntree = 300 is about the same as the error at ntree = 500. We decide then to use ntree = 300 for our random forest and build our model using the training data.
 
 ```{r}
 film.rf <- randomForest(rating~., film.train, mtry=3, ntree=300)
@@ -431,38 +431,38 @@ plot(film.rf)
 ```
 
 ```{r}
-predict.rf <- round(predict(film.rf, film.test, type = "class"))
+predict.rf <- predict(film.rf, film.test, type = "class")
 rf.test.err <- mean(film.test$rating != predict.rf)
 ```
 
-Using the model and our testing data, we get a testing error of `r rf.test.err`.
+Using the model calibrated on our training data to predict using our testing data, we get a testing error of `r rf.test.err`.
 
 # Ensemble Model
 
 Now we combine and average our logistic regression with our random forest model for an ensemble model.
 
 ```{r}
-predicted_ensemble <- round(((predict.logreg + predict.rf) / 2), 0)
+#as numeric changes predction values to 1 and 2 instead of 0 and 1 so we subtract 1
+predicted_ensemble <- round(((predict.logreg + (as.numeric(predict.rf) - 1)) / 2), 0)
 predicted_ensemble_err <- mean(film.test$rating != predicted_ensemble)
 ```
 
-There is a testing error of `predicted_ensemble_err`.
+There is a testing error of `r predicted_ensemble_err`, which is good but not as low as the model just using random forest. 
 
 # Final Model to Predict if a Movie is Good or Bad
 
 From our 3 models (logistic regression, random forest, and the ensemble), the one with the lowest testing error is the random forest model so we decided to use that as our final model to predict if a movie is good or bad. 
 
 ```{r}
-film.rf.val <- randomForest(rating~., film.val, mtry=3, ntree=300)
-predict.rf.val <- ifelse(film.rf.val$predicted > .5, 1, 0)
+predict.rf.val <- predict(film.rf, film.val, type = "class")
 rf.val.err <- mean(film.val$rating != predict.rf.val)
 ```
 
 
-We used the validation data set to find the validation error of our final model and found that the validation error is `r rf.val.error`.
+We used the validation data set to find the validation error of our final model and found that the validation error is `r rf.val.err`, so we were able to predict the quality of movies fairly well. 
 
 
-*****
+\newpage
 # Appendix
 
 ## EDA
