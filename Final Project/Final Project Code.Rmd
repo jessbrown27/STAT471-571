@@ -22,8 +22,9 @@ For the linear regression, we were determining which variables would be the best
 
 We continued on with multiple linear regression. We looked at a model that included all of the variables that made sense to predict the average vote. From the summary of this model, we were able to eliminate the year variable and the specific year modulos were not significant. Continuing on, we removed that variable and were able to come to a final linear model which included the variables, genre, duration, total votes, humor, rhythm, effort, tension, and erotism. The model also followed the linear model assumptions as required. 
 
+Next, we ran a regression tree. Our regression tree includes the variables `effort`, `genre`, `year_mod`, `duration`, and `rhythm`. In other words, according to our regression tree, these are the variables significant to predicting the average vote.
 
-Finally, we run logistic regression, random for
+Finally, we create a new variable called `rating` which is coded 0 if the average vote is below 6 (indicating the movie is below average in vote and is a bad movie) and is coded 1 if otherwise (indicating the movie is above average in vote and is a good movie). We run logistic regression, random forest, and an ensemble model with the new `rating` variable. From our testing errors for the 3 models, we find that the random forest model had the lowest testing error and use that as our final model for predicting whether a movie is good or bad.
 
 # EDA
 ```{r}
