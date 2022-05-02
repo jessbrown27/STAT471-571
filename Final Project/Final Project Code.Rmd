@@ -431,7 +431,6 @@ plot(film.rf)
 ```
 
 ```{r}
-#predict.rf <- ifelse(film.rf$predicted > .5, 1, 0)
 predict.rf <- round(predict(film.rf, film.test, type = "class"))
 rf.test.err <- mean(film.test$rating != predict.rf)
 ```
