@@ -16,10 +16,14 @@ pacman::p_load(dplyr, ggplot2, glmnet, car, data.table, GGally, leaps, gglasso, 
 Each row represents a movie available on FilmTV.it, with the original title, year, genre, duration, country, director, actors, average vote and votes.
 The fie in the English version contains 37,711 movies and 19 attributes.
 
+We ran PCA to get some insight on the data. We find that 2 leading PCs is enough for our analysis. PC1 is a weighted average of the variables so a higher PC1 implies that the movie has higher numeric scores given to it. PC2 has loadings with different signs so a higher PC2 score implies larger `avg_vote`, `effort`, and/or `tension` scores and a lower PC2 score implies larger `humor`, `rhythm`, and/or `erotism` scores. Plotting PC1 and PC2, while clustering on genre, we find that there is one clear cluster with the `comedy` genre having low PC2 scores, which is not surprising because comedy movies should have a high `humor` score.
 
 For the linear regression, we were determining which variables would be the best in predicting the average vote. We started with just a simple linear model to determine whether or not we could use just gender to predict the average vote. We were able to learn that the majority of the different genres were significant in predicting the average vote. We saw that most of the genres increase the average vote given we are only looking at the affect that genre has on the average score. From the analysis of variance, we determined that all together, genre was a significant variable in predicting the average vote.
 
 We continued on with multiple linear regression. We looked at a model that included all of the variables that made sense to predict the average vote. From the summary of this model, we were able to eliminate the year variable and the specific year modulos were not significant. Continuing on, we removed that variable and were able to come to a final linear model which included the variables, genre, duration, total votes, humor, rhythm, effort, tension, and erotism. The model also followed the linear model assumptions as required. 
+
+
+Finally, we run logistic regression, random for
 
 # EDA
 ```{r}
@@ -168,7 +172,7 @@ summary(film$year_mod)
 
 ```{r}
 #cleaned data
-write.csv(film,"/Users/sarahhayward/Documents/GitHub/STAT471-571/Final Project/Cleaned Data.csv", row.names = FALSE)
+#write.csv(film,"/Users/sarahhayward/Documents/GitHub/STAT471-571/Final Project/Cleaned Data.csv", row.names = FALSE)
 ```
 
 
@@ -335,6 +339,25 @@ plot(fit3, 2)
 ```
 Here we see that the normality assumption is met as the normal qq plot follows the line $y=x$ approximately. We can see that the first plot, meets the homoscedasticity requirement. 
 
+# Regression Tree
+
+We now build tree models to predict the average rating.
+
+```{r}
+film_tree <- tree(avg_vote~., film2)
+
+plot(film_tree)
+title(main =  "final single tree")
+text(film_tree, pretty=0)
+
+film_tree
+
+film_tree_sum <- summary(film_tree)
+film_tree_sum$used
+```
+
+In our tree, `r length(film_tree_sum$used)` variables are used: `effort`, `genre`, `year_mod`, `duration`, and `rhythm`. These variables used in the tree are the ones that have significant predictive qualities according to the regression tree model. There are a total of `r film_tree_sum$size` terminal nodes (final predictions).
+
 # Logistic Regression
 
 Now let's use our data to perform a Logistic Regression to determine whether the movie is good or bad. We will use the average vote numbers to make a binary variable that is 1 if the rating is greater than 6, and 0 otherwise.
@@ -348,7 +371,7 @@ film3$rating <- ifelse(film3$avg_vote >= 6 , 1, 0)
 ```
 
 Now we want to split up our data into train, test and validation sets.
-For this we decided to do a 70-20-10 split. This gives us 30,168 training rows, 5,028 testing rows, and 2,515 validation rows. We also removed the avg_vote column from the data since the binary rating variable was derived using the avg_vote values. 
+For this we decided to do a 70-20-10 split. This gives us 30,168 training rows, 5,028 testing rows, and 2,515 validation rows. We also removed the `avg_vote` column from the data since the binary `rating` variable was derived using the `avg_vote` values. 
 
 ```{r, echo = FALSE, results = FALSE}
 set.seed(1) 
@@ -369,7 +392,9 @@ dim(film.val)
 logreg <- glm(rating ~., family=binomial, data = film.train)
 Anova(logreg)
 ```
+
 Using an Anova test, we were able to see that each variable included the logistic regression model was significant. Our next step was to use the ROC curve to determine the best threshold for our binary predictions:
+
 ```{r, echo = FALSE}
 predict.test <- predict(logreg, film.test, type="response") 
 test.roc <- roc(film.test$rating, predict.test)
@@ -380,109 +405,63 @@ main = "Thresholds vs. False Postive Rates")
 ```
 Plotting different prediction threholds versus the false positive rate notably returned a curve without a very obvious "elbow", although 0.5 or 0.6 seem to be reasonable choices. After experimenting more manually with minimizing MCE on the testing set, we found that 0.5 was the best threshold to use. 
 ```{r, echo = FALSE, results = FALSE}
-sum(ifelse(predict.test > 0.5, 1, 0) != film.test$rating) / length(film.test$rating)
+predict.logreg <- ifelse(predict.test > 0.5, 1, 0)
+logreg_error = sum(predict.logreg != film.test$rating) / length(film.test$rating)
 ```
 
+With our logistic regression model, we found that the testing error is `r logreg_error`.
 
 
-# Trees
+# Random Forest
 
-We now build tree models to predict the average rating.
-
-```{r}
-film_tree <- tree(avg_vote~., film2)
-
-plot(film_tree)
-title(main =  "final single tree")
-text(film_tree, pretty=0)
-
-film_tree
-
-film_tree_sum <- summary(film_tree)
-film_tree_sum$used
-```
-
-In our tree, `r length(film_tree_sum$used)` variables are used: `effort`, `genre`, `year_mod`, `duration`, and `rhythm`. These variables used in the tree are the ones that have significant predictive qualities according to the regression tree model. There are a total of `r film_tree_sum$size` terminal nodes (final predictions).
-
-## Random Forest
-
-Now we want to use Random Forest for a tree model. First we need to fine tune mtry and ntree. The recommended mtry is p/3 so in this case where p = 10, 10/3 = 3 or 4, so we decide to use mtry as 3. From mtry = 3, we now plot with ntree value 500 to see the effect of different ntree values.
+Now we want to use Random Forest for a prediction model. First we need to fine tune mtry and ntree. The recommended mtry is p/3 so in this case where p = 10, 10/3 = 3 or 4, so we decide to use mtry as 3. From mtry = 3, we now plot with ntree value 500 to see the effect of different ntree values.
 
 ```{r}
-film.rf.500 <- randomForest(avg_vote~., film2, mtry=3, ntree=500)
+film.rf.500 <- randomForest(rating~., film.train, mtry=3, ntree=500)
 plot(film.rf.500, col="red", pch=16, type="p", 
      main="Plot for 500 trees, ")
 ```
 
-From the graph, we see that the error levels off at around ntree = 300, so the error with ntree = 300 is about the same as the error at ntree = 500. We decide then to use ntree = 300 for our random forest.
+From the graph, we see that the error levels off at around ntree = 300, so the error with ntree = 300 is about the same as the error at ntree = 500. We decide then to use ntree = 300 for our random forest and build our model using the training data
 
 ```{r}
-film.rf <- randomForest(avg_vote~., film2, mtry=3, ntree=300)
+film.rf <- randomForest(rating~., film.test, mtry=3, ntree=300)
 plot(film.rf)
-film.rf$mse[300]
 ```
 
-The testing error we get using ntree = 300 is `r film.rf$mse[300]`. The testing errors are larger because we are predicting a continuous variable. In a later section, we use these models to predict a more categorical outcome of the `avg_vote`.
-
-# Text Analysis 
-
-## Description EDA
-```{r, echo = FALSE, results = FALSE}
-desc_text <- film$description
-corpus <- VCorpus(VectorSource(desc_text))
-
-# Converts all words to lowercase
-corpus_clean <- tm_map(corpus, content_transformer(tolower))
-
-# Removes common English stopwords (e.g. "with", "i")
-corpus_clean <- tm_map(corpus_clean, removeWords, stopwords("english"))
-
-corpus_clean <- tm_map(corpus_clean, removePunctuation)
-
-# Removes numbers
-corpus_clean <- tm_map(corpus_clean, removeNumbers)
-
-# Stem words
-corpus_clean <- tm_map(corpus_clean, stemDocument, lazy = TRUE)
-
-dtm <- DocumentTermMatrix(corpus_clean)
-dtms <- removeSparseTerms(dtm, 0.995)
-```
-
-```{r, echo = FALSE, fig.width = 3, fig.height = 3, warning=FALSE}
-total_freq <- sort(colSums(as.matrix(dtms)), decreasing = TRUE)
-cor.special <- brewer.pal(8, "Dark2")
-wordcloud(names(total_freq)[1:100], total_freq[1:100], colors=cor.special, ordered.colors=F)
-```
-```{r, echo = FALSE, results = FALSE}
-set.seed(1) 
-n <- nrow(dtms)
-sample.index <- sample(n, 0.8 * n)
-dtmM <- as.matrix(dtms)
-dtm_df <- as.data.frame(dtmM)
-dtm_df$rating <- ifelse(film3$avg_vote > 6 , 1, 0)
-names(dtm_df) <- str_replace_all(names(dtm_df), '[^[:alnum:]]', "")
-dtm.train <- dtm_df[sample.index, ]
-dtm.test <- dtm_df[-sample.index, ]
-```
-```{r, echo = FALSE, results = FALSE}
-y <- dtm.train$rating
-X1 <- sparse.model.matrix(y ~., data = dtm.train)[, -1]
-set.seed(2)
-
-result.lasso <- cv.glmnet(X1, y, alpha=.99, family="binomial")
-plot(result.lasso)
-```
 ```{r}
-# # number of non-zero words picked up by LASSO when using lambda.1se
-# coef.1se <- coef(result.lasso, s="lambda.1se")  
-# coef.1se <- coef.1se[which(coef.1se !=0),] 
-# lasso.words <- rownames(as.matrix(coef.1se))[-1]
-# length(lasso.words)
-# lasso.words[1:10]
+predict.rf <- ifelse(film.rf$predicted > .5, 1, 0)
+rf.test.err <- mean(film.test$rating != predict.rf)
+```
+
+Using the model and our testing data, we get a testing error of `r rf.test.err`.
+
+# Ensemble Model
+
+Now we combine and average our logistic regression with our random forest model for an ensemble model.
+
+```{r}
+predicted_ensemble <- round(((predict.logreg + predict.rf) / 2), 0)
+predicted_ensemble_err <- mean(film.test$rating != predicted_ensemble)
+```
+
+There is a testing error of `predicted_ensemble_err`.
+
+# Final Model to Predict if a Movie is Good or Bad
+
+From our 3 models (logistic regression, random forest, and the ensemble), the one with the lowest testing error is the random forest model so we decided to use that as our final model to predict if a movie is good or bad. 
+
+```{r}
+film.rf.val <- randomForest(rating~., film.val, mtry=3, ntree=300)
+predict.rf.val <- ifelse(film.rf.val$predicted > .5, 1, 0)
+rf.val.err <- mean(film.val$rating != predict.rf.val)
 ```
 
 
+We used the validation data set to find the validation error of our final model and found that the validation error is `r val.error`.
+
+
+*****
 # Appendix
 
 ## EDA
@@ -577,7 +556,36 @@ Output VIII
 Anova(fit3)
 ```
 
+## Text Analysis 
 
+### Description EDA
+```{r, echo = FALSE, results = FALSE}
+desc_text <- film$description
+corpus <- VCorpus(VectorSource(desc_text))
+
+# Converts all words to lowercase
+corpus_clean <- tm_map(corpus, content_transformer(tolower))
+
+# Removes common English stopwords (e.g. "with", "i")
+corpus_clean <- tm_map(corpus_clean, removeWords, stopwords("english"))
+
+corpus_clean <- tm_map(corpus_clean, removePunctuation)
+
+# Removes numbers
+corpus_clean <- tm_map(corpus_clean, removeNumbers)
+
+# Stem words
+corpus_clean <- tm_map(corpus_clean, stemDocument, lazy = TRUE)
+
+dtm <- DocumentTermMatrix(corpus_clean)
+dtms <- removeSparseTerms(dtm, 0.995)
+```
+
+```{r, echo = FALSE, fig.width = 3, fig.height = 3, warning=FALSE}
+total_freq <- sort(colSums(as.matrix(dtms)), decreasing = TRUE)
+cor.special <- brewer.pal(8, "Dark2")
+wordcloud(names(total_freq)[1:100], total_freq[1:100], colors=cor.special, ordered.colors=F)
+```
 
 
 
